@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import SidebarItem from './SidebarItem';
 import ThemeDecorator from '@enact/sandstone/ThemeDecorator';
 import Popup from '@enact/sandstone/Popup';
-import {initKeyboardNav,onFocusChange,setFocus,getCurrentFocusId,setContentContext,focusFirstContent,focusSidebar,setLastSidebarFocus,isPointerFocus} from './focus';
+import {initKeyboardNav,onFocusChange,setFocus,getCurrentFocusId,setContentContext,focusFirstContent,focusSidebar,setLastSidebarFocus,isPointerFocus,isTopContentRow} from './focus';
 import {FocusButton,FocusSearchInput,PosterCard,TextCard,Icon,Empty,Loading,FocusContainer,ContentScroller} from './components';
 import {call} from './api';
 import {makeLibrary,cleanName,seriesKey} from './library.cjs';
@@ -51,9 +51,9 @@ function App({className}){
         if(item&&!isPointerFocus()&&current.current.page!==item[0]){
           previewTimer.current=setTimeout(()=>go(item[0]),100);
         }
-      }else if(id?.startsWith('content-')||id==='header-source'){
+      }else if(id?.startsWith('content-')||id?.startsWith('header-')){
         setDrawer(false);
-        if((id?.startsWith('content-0-')||(current.current.page==='settings'&&id==='content-1-0'))&&scroller.current)scroller.current.scrollTop=0;
+        if((isTopContentRow(id)||(current.current.page==='history'&&id?.startsWith('content-1-')))&&scroller.current)scroller.current.scrollTop=0;
       }
     });
     const enter=e=>{const item=MENU.find(m=>'sidebar-'+m[0]===e.detail);if(item){if(current.current.page!==item[0])go(item[0],true);else{setDrawer(false);focusFirstContent();}}};
@@ -120,12 +120,11 @@ function App({className}){
   return <div id="tv-frame" className={className}>
     <div className="app-shell" aria-hidden={!!player}>
       <FocusContainer spotlightId="sidebar" spotlightDisabled={!!player||!!dialog} className="sidebar" data-expanded={drawer.current}><div className="sidebar-brand" onClick={()=>go('home',true)}><span className="brand-symbol"><Icon name="tv" size={35}/></span><span className="brand-word">番源<small>你的本地追番空间</small></span></div><nav>{MENU.map((m,i)=><SidebarItem key={m[0]} id={'sidebar-'+m[0]} row={i} label={m[1]} icon={m[2]} active={page===m[0]||(page==='detail'&&lastPage.current===m[0])||((page==='subscriptions'||page==='danmakuSettings')&&m[0]==='settings')} onSelect={()=>go(m[0],true)}/>)}</nav><div className="sidebar-foot"><span className="local-dot"/><span className="sidebar-foot-label">本地收藏 · 无需服务器</span></div></FocusContainer>
-      <FocusContainer spotlightId="content" spotlightDisabled={!!player||!!dialog} className="main-content"><header className="page-header"><div><div className="page-eyebrow">FANYUAN / ANIME LIBRARY</div><h1>{title}</h1></div><div className="header-source"><FocusButton id="header-source" row={0} col={20} recoveryPriority={1} className="source-picker" onSelect={chooseSource}><Icon name="remix" size={21}/>{currentSource?.name||'选择视频源'}<span className="chevron-down"/></FocusButton></div></header>
+      <FocusContainer spotlightId="content" spotlightDisabled={!!player||!!dialog} className="main-content"><header className="page-header"><div><div className="page-eyebrow">FANYUAN / ANIME LIBRARY</div><h1>{title}</h1></div><div className="header-source"><FocusButton id="header-search" row={0} col={19} recoveryPriority={1} className="header-search primary" onSelect={()=>go('search',true)}><Icon name="search" size={21}/>搜索番名</FocusButton><FocusButton id="header-source" row={0} col={20} recoveryPriority={1} className="source-picker" onSelect={chooseSource}><Icon name="remix" size={21}/>{currentSource?.name||'选择视频源'}<span className="chevron-down"/></FocusButton></div></header>
         <ContentScroller apiRef={scroller}>
           <div key={page+(page==='detail'?':'+(meta?.bgmId||meta?.name||''):'')} className="page-stage">
           {error&&<div className="error-banner"><span>{error}</span><FocusButton id="content-0-4" row={0} col={4} recoveryPriority={2} onSelect={chooseSource}>换一个源</FocusButton></div>}
           {page==='home'&&<>
-            <div className="home-intro"><div className="home-intro-copy"><h2>随时开启今日追番时光</h2><p>从上次停下的地方接着看，或探索今日放送的新番。</p></div><FocusButton id="content-0-0" row={0} col={0} className="primary" onSelect={()=>{go('search',true);}}><Icon name="search" size={21}/>搜索番名</FocusButton></div>
             {history.length>0&&<section><h2 className="section-title">继续观看 <span>已在这台电视上保存</span></h2>{renderCards(history.slice(0,settings.gridCols).map(x=>x.subject),1,history.slice(0,settings.gridCols))}</section>}
             <section><h2 className="section-title">今日放送 <span>{DAY[today-1]} · Bangumi</span></h2>{calendarBusy?<Loading/>:calendarError?<div><Empty title="时间表暂未加载">{calendarError}</Empty><FocusButton id="content-calendar-retry" row={history.length?2:1} onSelect={loadCalendar}>重新加载</FocusButton></div>:renderCards(todayItems.slice(0,20),history.length?2:1)}</section>
           </>}

@@ -10,7 +10,7 @@ import ProgressBar from '@enact/sandstone/ProgressBar';
 import Slider from '@enact/sandstone/Slider';
 import SpotlightContainerDecorator from '@enact/spotlight/SpotlightContainerDecorator';
 import {coverThumbnail} from '../src/images.cjs';
-import {useFocusable} from './focus';
+import {useFocusable,isTopContentRow} from './focus';
 import {remoteKey} from './navigation.cjs';
 
 export const FocusContainer=SpotlightContainerDecorator('div');
@@ -38,7 +38,7 @@ export function FocusButton({id,row=0,col=0,group='content',onSelect,onNavigate,
 }
 const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420"><rect width="300" height="420" fill="#252525"/><path d="M105 160L205 210L105 260Z" fill="#888"/></svg>');
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
- const {props}=useFocusable({id:`content-${row}-${col}`,row,col,onSelect});
+ const id=`content-${row}-${col}`,{props}=useFocusable({id,row,col,onSelect,onNavigate:dir=>dir==='up'&&isTopContentRow(id)?'header-search':null});
  const label=actionLabel||(subject.date?subject.date.slice(0,4)+' · ':'')+(subject.episodeCount?'全 '+subject.episodeCount+' 集':subject.originalName||'查看剧集');
  return <article className="poster-entry"><ImageItem {...props} className="poster-control" role="button" orientation="vertical" src={subject.cover?coverThumbnail(subject.cover):placeholder} placeholder={placeholder} aria-label={subject.name} css={{image:'poster-art'}}/>
   <div className="poster-hover"><span className="poster-play-badge"><Icon name="play" size={26}/></span></div>
@@ -47,7 +47,7 @@ export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
 }
 export function TextCard({subject,row,col,onSelect}){return <FocusButton id={`content-${row}-${col}`} row={row} col={col} onSelect={onSelect} className="source-result" slotBefore={<span className="source-result-icon"><Icon name="tv" size={30}/></span>} slotAfter={<Icon name="arrow" size={24}/>} label="查看线路与剧集">{subject.name}</FocusButton>;}
 export function ContentScroller({apiRef,children,className='content-scroller',spotlightId,...rest}){
- return <Scroller {...rest} spotlightId={spotlightId} className={className} direction="vertical" horizontalScrollbar="hidden" focusableScrollbar={false} cbScrollTo={fn=>{if(apiRef)apiRef.current={set scrollTop(y){fn({y,animate:false});}};}}>{children}</Scroller>;
+ return <Scroller {...rest} spotlightId={spotlightId} className={className} direction="vertical" horizontalScrollbar="hidden" focusableScrollbar={false} cbScrollTo={fn=>{if(apiRef)apiRef.current={set scrollTop(y){fn({position:{y},animate:false});}};}}>{children}</Scroller>;
 }
 export function PlaybackSlider({id,value,max,onChange}){const {props}=useFocusable({id,group:'player'});return <Slider {...props} className="player-progress" css={{fill:'slider-fill',bar:'slider-bar',knob:'slider-knob'}} value={Math.min(value,max||0)} min={0} max={max||1} step={10} onChange={e=>onChange(e.value)} aria-label="播放进度"/>;}
 export function Empty({title,children}){return <div className="empty-state"><Icon name="tv" size={64}/><h2>{title}</h2><p>{children}</p></div>;}

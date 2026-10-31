@@ -442,6 +442,18 @@ input::placeholder {
   margin-bottom: 9px;
 }
 
+#root .header-source {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#root .header-search {
+  border-radius: 999px;
+  padding: 13px 24px;
+  font-size: 20px;
+}
+
 #root .source-picker {
   display: inline-flex;
   align-items: center;
