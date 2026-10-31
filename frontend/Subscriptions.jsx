@@ -3,7 +3,7 @@ import {call} from './api';
 import {FocusButton,Empty,Loading} from './components';
 import {setFocus} from './vendor/bilitv/hooks/useFocus';
 function stamp(t){return t?new Date(t).toLocaleString('zh-CN',{hour12:false}):'尚未成功更新';}
-export default function Subscriptions({onChanged,notify}){
+export default function Subscriptions({onChanged,notify,chooseOption}){
   const [state,setState]=useState(null),[url,setUrl]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const input=useRef(null),live=useRef(true);
   async function load(){try{const r=await call('subscriptions');if(live.current)setState(r);}catch(e){if(live.current)setError(e.message);}}
@@ -28,7 +28,7 @@ export default function Subscriptions({onChanged,notify}){
     {busy&&<div className="subscription-working">正在更新订阅…浏览和播放可继续使用缓存。</div>}
     {(error||state?.storageError)&&<div className="error-banner">{error||state.storageError}</div>}
     {!state?<Loading/>:state.subscriptions.length===0?<Empty title="添加你的第一个订阅">已下载的源仍然可用。添加订阅后会自动获取新规则。</Empty>:state.subscriptions.map((s,i)=>{
-      const row=i*2+1,period=s.updatePeriod/3600000,options=[1,6,12,24],next=options[(options.indexOf(period)+1)%options.length];
+      const row=i*2+1,period=s.updatePeriod/3600000;
       return <section key={s.id} className="subscription-card">
         <h2>{s.metadata?.name||'Animeko 视频源订阅'}<small>{s.sourceCount} 个源</small></h2>
         <div className="subscription-url">{s.url}</div>
@@ -38,8 +38,8 @@ export default function Subscriptions({onChanged,notify}){
         {s.lastUpdated?.excludedMediaSourceCount>0&&<p>{s.lastUpdated.excludedMediaSourceCount} 条 BT 或其他类型源未导入。</p>}
         <div className="subscription-actions">
           <FocusButton id={`content-${row}-0`} row={row} col={0} className="primary" onSelect={()=>run('subscriptionUpdate',{id:s.id})}>立即更新</FocusButton>
-          <FocusButton id={`content-${row}-1`} row={row} col={1} onSelect={()=>run('subscriptionConfigure',{id:s.id,enabled:!s.enabled})}>{s.enabled?'自动更新：开启':'自动更新：暂停'}</FocusButton>
-          <FocusButton id={`content-${row}-2`} row={row} col={2} onSelect={()=>run('subscriptionConfigure',{id:s.id,updatePeriod:next*3600000})}>更新周期：{period} 小时</FocusButton>
+          <FocusButton id={`content-${row}-1`} row={row} col={1} onSelect={()=>chooseOption?chooseOption('自动更新设置',!!s.enabled,[{value:true,label:'开启自动更新',description:'按设定的更新周期自动在后台同步最新视频源规则'},{value:false,label:'暂停自动更新',description:'仅保留当前已缓存规则，需手动点击更新'}],v=>run('subscriptionConfigure',{id:s.id,enabled:v})):run('subscriptionConfigure',{id:s.id,enabled:!s.enabled})}>{s.enabled?'自动更新：开启':'自动更新：暂停'}</FocusButton>
+          <FocusButton id={`content-${row}-2`} row={row} col={2} onSelect={()=>chooseOption?chooseOption('选择更新周期',period,[{value:1,label:'每 1 小时',description:'高频检查规则更新（默认）'},{value:6,label:'每 6 小时',description:'每日检查数次'},{value:12,label:'每 12 小时',description:'每半天检查一次'},{value:24,label:'每 24 小时',description:'每日检查一次'}],h=>run('subscriptionConfigure',{id:s.id,updatePeriod:h*3600000})):run('subscriptionConfigure',{id:s.id,updatePeriod:period*3600000})}>更新周期：{period} 小时</FocusButton>
           <FocusButton id={`content-${row}-3`} row={row} col={3} className="quiet" onSelect={()=>run('subscriptionRemove',{id:s.id})}>移除订阅，保留源</FocusButton>
         </div>
       </section>;

@@ -1259,14 +1259,22 @@ button svg {
 }
 
 .dialog-option {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
   margin: 0 0 14px;
   border-radius: 16px;
   text-align: left;
   background: #272a34;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 20px 24px;
+  padding: 20px 26px;
+}
+
+.dialog-option-body {
+  flex: 1;
+  min-width: 0;
+  padding-right: 20px;
 }
 
 .dialog-option strong {
@@ -1281,6 +1289,17 @@ button svg {
   color: #a3a9b7;
   margin-top: 8px;
   line-height: 1.55;
+}
+
+.dialog-option-check {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 17px;
+  font-weight: 600;
+  background: rgba(247, 123, 166, 0.22);
+  border: 1px solid rgba(247, 123, 166, 0.45);
+  color: #ffd0e2;
 }
 
 @keyframes toast-in {
