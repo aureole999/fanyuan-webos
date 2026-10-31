@@ -1,6 +1,6 @@
 import React, { memo, useRef, useEffect } from 'react';
+import { computeDanmakuLayout } from '../../../danmaku.cjs';
 
-const MAX_VISIBLE = 24;
 const MAX_WINDOW_ITEMS = 128;
 
 function lowerBound(items, time) {
@@ -13,11 +13,23 @@ function lowerBound(items, time) {
   return lo;
 }
 
-export default memo(function DanmakuLayer({ danmakus, currentTime, enabled, paused = false, fontScale = 1, mtRef = null }) {
+export default memo(function DanmakuLayer({ danmakus, currentTime, enabled, paused = false, fontScale = 1, settings = null, mtRef = null }) {
   const containerRef = useRef(null);
   const renderedRef = useRef(new Set());
-  const trackHeight = Math.round(48 * fontScale);
-  const trackCount = Math.max(6, Math.floor(1000 / trackHeight));
+  const layout = computeDanmakuLayout(settings || { danmakuScale: fontScale });
+  const {
+    baseFontSize,
+    trackHeight,
+    trackCount,
+    durationSec,
+    maxVisible,
+    separationPx,
+    fontWeight,
+    strokeWidthPx,
+    textShadow,
+    enableFloating,
+    enableColor,
+  } = layout;
   const trackRef = useRef([]);
   const lastTimeRef = useRef(null);
 
@@ -26,11 +38,26 @@ export default memo(function DanmakuLayer({ danmakus, currentTime, enabled, paus
     trackRef.current = new Array(trackCount).fill(0);
     lastTimeRef.current = null;
     if (containerRef.current) containerRef.current.textContent = '';
-  }, [danmakus, trackCount, enabled]);
+  }, [danmakus, trackCount, enabled, enableFloating]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!enabled || !danmakus || !container) return;
+    if (!container) return;
+    const children = container.children;
+    for (let i = 0; i < children.length; i++) {
+      const el = children[i];
+      const tr = Number(el.dataset.track) || 0;
+      const rawSize = Number(el.dataset.size) || 28;
+      const rawColor = el.dataset.color || '#fff';
+      el.style.top = `${tr * trackHeight + 18}px`;
+      el.style.fontSize = `${Math.round(rawSize * layout.fontScale)}px`;
+      el.style.color = enableColor ? rawColor : '#fff';
+    }
+  }, [trackHeight, layout.fontScale, enableColor]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!enabled || !enableFloating || !danmakus || !container) return;
     const now = currentTime, last = lastTimeRef.current;
     if (last !== null && (now < last - 1.5 || now > last + 2)) {
       renderedRef.current.clear();
@@ -51,25 +78,39 @@ export default memo(function DanmakuLayer({ danmakus, currentTime, enabled, paus
       const text = mtRef ? mtRef.current?.get(i) : dm.text;
       if (!text) continue;
       renderedRef.current.add(i);
-      if (visible >= MAX_VISIBLE) continue;
+      if (visible >= maxVisible) continue;
       const track = trackRef.current.findIndex(free => free <= now);
-      if (track < 0) continue;
-      trackRef.current[track] = now + 3;
+      if (track < 0 || track >= trackCount) continue;
+      const estWidth = Math.max(baseFontSize * 2, text.length * baseFontSize * 0.92) + separationPx;
+      const occupySec = Math.max(1.1, (estWidth / (1920 + estWidth)) * durationSec);
+      trackRef.current[track] = now + occupySec;
+      const rawColor = dm.color || '#fff';
+      const rawSize = dm.size || 28;
       const el = document.createElement('div');
       el.className = 'danmaku-item';
       el.textContent = text;
-      el.style.top = `${track * trackHeight + 20}px`;
-      el.style.color = dm.color || '#fff';
-      el.style.fontSize = `${Math.round((dm.size || 28) * fontScale)}px`;
-      el.style.animationDuration = '8s';
+      el.dataset.track = String(track);
+      el.dataset.size = String(rawSize);
+      el.dataset.color = rawColor;
+      el.style.top = `${track * trackHeight + 18}px`;
+      el.style.color = enableColor ? rawColor : '#fff';
+      el.style.fontSize = `${Math.round(rawSize * layout.fontScale)}px`;
+      el.style.animationDuration = `${durationSec}s`;
       batch.appendChild(el);
       visible++;
     }
     container.appendChild(batch);
-  }, [currentTime, danmakus, enabled, paused, fontScale, trackHeight, mtRef]);
+  }, [currentTime, danmakus, enabled, enableFloating, paused, layout.fontScale, baseFontSize, trackHeight, trackCount, durationSec, maxVisible, separationPx, enableColor, mtRef]);
 
-  if (!enabled) return null;
-  return <div ref={containerRef} className={'danmaku-container' + (paused ? ' danmaku-paused' : '')}
-    onAnimationEnd={e => { if (e.target.parentNode === e.currentTarget) e.target.remove(); }} />;
+  if (!enabled || !enableFloating) return null;
+  return <div
+    ref={containerRef}
+    className={'danmaku-container' + (paused ? ' danmaku-paused' : '')}
+    style={{
+      fontWeight,
+      WebkitTextStroke: strokeWidthPx > 0 ? `${strokeWidthPx}px rgba(0, 0, 0, 0.92)` : '0px transparent',
+      textShadow,
+    }}
+    onAnimationEnd={e => { if (e.target.parentNode === e.currentTarget) e.target.remove(); }}
+  />;
 });
-

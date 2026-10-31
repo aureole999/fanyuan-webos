@@ -11,6 +11,7 @@ import DanmakuSettings from './DanmakuSettings';
 import {coverThumbnail} from '../src/images.cjs';
 import {remoteKey} from './navigation.cjs';
 import {invalidateGeometry} from './spatial-dom';
+import {DANMAKU_OPTIONS,matchOptionValue,danmakuOptionLabel,danmakuTypesSummary} from './danmaku.cjs';
 
 const library=makeLibrary(localStorage);
 const MENU=[['home','首页','home'],['search','搜索','search'],['calendar','新番时间表','tv'],['favorites','我的收藏','star'],['history','观看历史','history'],['settings','设置','settings']];
@@ -67,7 +68,17 @@ function App(){
   },[]);
 
   useEffect(()=>{const scale=()=>{const frame=document.getElementById('tv-frame');if(frame)frame.style.transform=`scale(${Math.min(innerWidth/1920,innerHeight/1080)})`;};scale();window.addEventListener('resize',scale);return()=>window.removeEventListener('resize',scale);},[]);
-  function chooseOption(title,currentVal,items,onPick){setDialog({title,options:items.map(it=>({label:it.label,description:it.description,active:it.value===currentVal,action:()=>{onPick(it.value);setDialog(null);}}))});}
+  function chooseOption(title,currentVal,items,onPick){setDialog({title,options:items.map(it=>({label:it.label,description:it.description,active:matchOptionValue(it.value,currentVal),action:()=>{onPick(it.value);setDialog(null);}}))});}
+  function chooseDanmakuTypes(s=current.current.settings){
+    const toggle=patch=>{const next=library.setSettings(patch);setSettings(next);chooseDanmakuTypes(next);};
+    setDialog({title:'弹幕类型与色彩',options:[
+      {label:'滚动弹幕：'+(s.danmakuFloating!==false?'开启':'关闭'),description:'从右向左横跨画面的普通流动弹幕',active:s.danmakuFloating!==false,action:()=>toggle({danmakuFloating:s.danmakuFloating===false})},
+      {label:'顶部弹幕：'+(s.danmakuTop!==false?'开启':'关闭'),description:'固定在画面顶部居中的弹幕',active:s.danmakuTop!==false,action:()=>toggle({danmakuTop:s.danmakuTop===false})},
+      {label:'底部弹幕：'+(s.danmakuBottom===true?'开启':'关闭'),description:'固定在画面底部居中的弹幕（默认关闭以免遮挡字幕）',active:s.danmakuBottom===true,action:()=>toggle({danmakuBottom:!s.danmakuBottom})},
+      {label:'彩色弹幕：'+(s.danmakuColor!==false?'开启':'关闭'),description:'关闭后所有彩色弹幕将统一显示为白色',active:s.danmakuColor!==false,action:()=>toggle({danmakuColor:s.danmakuColor===false})},
+      {label:'完成',description:'返回设置列表',action:()=>setDialog(null)}
+    ]});
+  }
   async function chooseSource(){let available;try{available=(await refreshSources()).sources;}catch(e){notify(e.message);return;}setDialog({title:'选择视频源',options:available.map(s=>({label:s.name,description:s.factoryId==='json-api'?'接口源 · 原始订阅规则':'网页源 · 原始订阅规则',active:s.id===sourceId,action:()=>{setSourceId(s.id);localStorage.setItem('sourceId',s.id);setDialog(null);if(page==='detail')loadTitleSource(meta||detail?.subject,s.id);else if(page==='search'&&keyword.trim())runSearch(keyword,s.id);}}))});}
   async function runSearch(q=keyword,id=sourceId){
     q=q.trim();if(!q)return;const seq=++token.current;library.addSearch(q);setKeyword(q);setBusy(true);setError('');setPage('search');setContentContext('search');setDrawer(false);setDetail(null);setMeta(null);setCandidates([]);setResults([]);
@@ -138,10 +149,17 @@ function App(){
           {page==='subscriptions'&&<Subscriptions onChanged={refreshSources} notify={notify} chooseOption={chooseOption}/>}
           {page==='settings'&&<><div className="settings-intro"><h2>按你的习惯，舒服地看。</h2><p>设置与追番数据仅保存在本机，不需要登录账号。</p></div><div className="settings-list">{[
             ['默认显示弹幕',settings.danmaku?'开启':'关闭',()=>chooseOption('默认显示弹幕',!!settings.danmaku,[{value:true,label:'开启',description:'进入播放时默认开启弹幕显示'},{value:false,label:'关闭',description:'进入播放时默认隐藏弹幕，可在播放控制栏随时开启'}],v=>updateSettings({danmaku:v}))],
+            ['弹幕显示区域',danmakuOptionLabel('area',settings.danmakuArea,'上方 1/3'),()=>chooseOption('弹幕显示区域',settings.danmakuArea,DANMAKU_OPTIONS.area,v=>updateSettings({danmakuArea:v}))],
+            ['弹幕行间距',danmakuOptionLabel('lineGap',settings.danmakuLineGap,'标准 10px'),()=>chooseOption('弹幕行间距',settings.danmakuLineGap,DANMAKU_OPTIONS.lineGap,v=>updateSettings({danmakuLineGap:v}))],
+            ['弹幕同屏密度',danmakuOptionLabel('density',settings.danmakuDensity,'适中'),()=>chooseOption('弹幕同屏密度',settings.danmakuDensity,DANMAKU_OPTIONS.density,v=>updateSettings({danmakuDensity:v}))],
+            ['弹幕滚动速度',danmakuOptionLabel('speed',settings.danmakuSpeed,'100% 标准'),()=>chooseOption('弹幕滚动速度',settings.danmakuSpeed,DANMAKU_OPTIONS.speed,v=>updateSettings({danmakuSpeed:v}))],
+            ['弹幕字号',Math.round(settings.danmakuScale*100)+'%',()=>chooseOption('弹幕字号',settings.danmakuScale,DANMAKU_OPTIONS.scale,v=>updateSettings({danmakuScale:v}))],
+            ['弹幕不透明度',Math.round(settings.danmakuOpacity*100)+'%',()=>chooseOption('弹幕不透明度',settings.danmakuOpacity,DANMAKU_OPTIONS.opacity,v=>updateSettings({danmakuOpacity:v}))],
+            ['弹幕字体粗细',danmakuOptionLabel('weight',settings.danmakuWeight,'半粗 600'),()=>chooseOption('弹幕字体粗细',settings.danmakuWeight,DANMAKU_OPTIONS.weight,v=>updateSettings({danmakuWeight:v}))],
+            ['弹幕描边粗细',danmakuOptionLabel('stroke',settings.danmakuStroke,'标准 100%'),()=>chooseOption('弹幕描边粗细',settings.danmakuStroke,DANMAKU_OPTIONS.stroke,v=>updateSettings({danmakuStroke:v}))],
+            ['弹幕类型与色彩',danmakuTypesSummary(settings),()=>chooseDanmakuTypes(settings)],
             ['自动播放下一集',settings.autoplayNext?'开启':'关闭',()=>chooseOption('自动播放下一集',!!settings.autoplayNext,[{value:true,label:'开启',description:'本集播放结束后倒计时 5 秒自动连播下一集'},{value:false,label:'关闭',description:'本集播放结束后停留在当前剧集'}],v=>updateSettings({autoplayNext:v}))],
             ['每行番剧数量',settings.gridCols+' 部',()=>chooseOption('每行番剧数量',settings.gridCols,[{value:3,label:'3 部 / 行',description:'大尺寸海报卡片，适合较远观看距离'},{value:4,label:'4 部 / 行',description:'标准海报卡片尺寸（默认）'},{value:5,label:'5 部 / 行',description:'紧凑网格布局，单屏展示更多番剧'}],v=>updateSettings({gridCols:v}))],
-            ['弹幕字号',Math.round(settings.danmakuScale*100)+'%',()=>chooseOption('弹幕字号',Math.round(settings.danmakuScale*100),[{value:80,label:'80% · 小号',description:'紧凑弹幕字号，减少画面遮挡'},{value:100,label:'100% · 标准',description:'默认标准弹幕字号'},{value:120,label:'120% · 较大',description:'适合客厅远距离观看'},{value:140,label:'140% · 特大',description:'最大弹幕字号，清晰醒目'}],pct=>updateSettings({danmakuScale:pct/100}))],
-            ['弹幕透明度',Math.round(settings.danmakuOpacity*100)+'%',()=>chooseOption('弹幕透明度',Math.round(settings.danmakuOpacity*100),[{value:40,label:'40% · 极淡',description:'轻度点缀，几乎不遮挡画面'},{value:55,label:'55% · 半透明',description:'兼顾弹幕氛围与画面细节'},{value:70,label:'70% · 柔和',description:'柔和清晰，视觉舒适'},{value:85,label:'85% · 标准',description:'默认弹幕不透明度'},{value:100,label:'100% · 不透明',description:'文字完全不透明，对比度最高'}],pct=>updateSettings({danmakuOpacity:pct/100}))],
             ['默认视频源',currentSource?.name||'选择',chooseSource],['数据源订阅','在线更新与管理',()=>go('subscriptions',true)],['弹幕服务','服务与匹配',()=>go('danmakuSettings',true)],['版本与来源','番源 0.6.5',()=>setDialog({title:'番源 0.6.5 · 非官方',options:[{label:'BiliTV 界面组件',description:'复用 BiliTV v2.5.1 弹幕、图标和焦点系统，保留 MIT 许可与作者署名。',action:()=>{}},{label:'Animeko 原始源规则',description:'直接订阅原版在线视频源地址，每小时检查更新，保留原始 JSON。解析与播放代理均在电视上执行，不含 BT。',action:()=>{}},{label:'本地追番',description:'番剧资料来自 Bangumi，弹幕优先匹配弹弹play。没有账号同步。',action:()=>{}},{label:'关闭',action:()=>setDialog(null)}]})]
           ].map((x,i)=><FocusButton key={x[0]} id={`content-${i+1}-0`} row={i+1} col={0} className="settings-row" onSelect={x[2]}><span>{x[0]}</span><strong>{x[1]}</strong><span>›</span></FocusButton>)}</div></>}
           </div>

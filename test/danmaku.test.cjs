@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {matchEpisodes,title}=require('../src/danmaku-match.cjs');
 const {DanmakuService,mergeResults}=require('../src/danmaku.cjs');
 const {DanmakuSettings}=require('../src/danmaku-settings.cjs');
-const {renderItems,fixedWindow}=require('../frontend/danmaku.cjs');
+const {renderItems,fixedWindow,computeDanmakuLayout,danmakuOptionLabel,danmakuTypesSummary}=require('../frontend/danmaku.cjs');
 const requestContext={subjectId:1,subjectPrimaryName:'测试番',subjectNames:['测试番','Test'],subjectPublishDate:'2024-05-01',episodeId:2,episodeSort:13,episodeEp:1,episodeName:'重逢',episodeNames:['重逢','再会']};
 test('exact translated title wins over conflicting numbering; sort precedes ep; full-width title punctuation normalizes',()=>{
  const rows=[{id:'a',subjectName:'x',episodeName:'第1话 开始',number:'1'},{id:'b',subjectName:'x',episodeName:'第13话 再会',number:'13'}];assert.equal(matchEpisodes(requestContext,rows).episode.id,'b');
@@ -61,4 +61,12 @@ test('specials require an exact episode title and cannot fall back to main-episo
  const r={...requestContext,episodeType:1,episodeSort:24,episodeEp:0,episodeNames:['特别篇'],episodeName:'特别篇'};
  const main=[{id:'24',subjectName:'测试番',number:24,episodeName:'普通正片'}];assert.equal(matchEpisodes(r,main),null);
  assert.equal(matchEpisodes(r,main.concat({id:'sp',subjectName:'测试番',number:99,episodeName:'特别篇'})).episode.id,'sp');
+});
+test('danmaku style layout computes display area tracks, line gap, speed, density, and type switches',()=>{
+ const oneThird=computeDanmakuLayout({danmakuArea:0.33,danmakuLineGap:10,danmakuScale:1,danmakuSpeed:1.25,danmakuDensity:'sparse',danmakuWeight:700,danmakuStroke:1.5,danmakuBottom:true,danmakuColor:false},1000);
+ assert.equal(oneThird.trackHeight,38);assert.equal(oneThird.trackCount,8);assert.equal(oneThird.durationSec,6.4);assert.equal(oneThird.maxVisible,16);assert.equal(oneThird.separationPx,96);assert.equal(oneThird.fontWeight,700);assert.equal(oneThird.strokeWidthPx,1.8);assert.equal(oneThird.enableBottom,true);assert.equal(oneThird.enableColor,false);
+ const wideGap=computeDanmakuLayout({danmakuArea:0.33,danmakuLineGap:28,danmakuScale:1},1000);
+ assert.equal(wideGap.trackHeight,56);assert.equal(wideGap.trackCount,5);
+ assert.equal(danmakuOptionLabel('area',0.33),'上方 1/3');assert.equal(danmakuOptionLabel('lineGap',18),'宽松 18px');
+ assert.equal(danmakuTypesSummary({danmakuFloating:true,danmakuTop:true,danmakuBottom:false,danmakuColor:false}),'滚动 · 顶部 · 纯白');
 });
