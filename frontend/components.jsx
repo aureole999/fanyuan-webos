@@ -10,7 +10,7 @@ import ProgressBar from '@enact/sandstone/ProgressBar';
 import Slider from '@enact/sandstone/Slider';
 import SpotlightContainerDecorator from '@enact/spotlight/SpotlightContainerDecorator';
 import {coverThumbnail} from '../src/images.cjs';
-import {useFocusable,isTopContentRow} from './focus';
+import {useFocusable,isTopContentRow,eligible} from './focus';
 import {remoteKey} from './navigation.cjs';
 
 export const FocusContainer=SpotlightContainerDecorator('div');
@@ -38,7 +38,7 @@ export function FocusButton({id,row=0,col=0,group='content',onSelect,onNavigate,
 }
 const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420"><rect width="300" height="420" fill="#252525"/><path d="M105 160L205 210L105 260Z" fill="#888"/></svg>');
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
- const id=`content-${row}-${col}`,{props}=useFocusable({id,row,col,onSelect,onNavigate:dir=>dir==='up'&&isTopContentRow(id)?'header-search':null});
+ const id=`content-${row}-${col}`,{props}=useFocusable({id,row,col,onSelect,onNavigate:dir=>dir==='up'&&isTopContentRow(id)?(eligible('header-search')?'header-search':'header-source'):null});
  const label=actionLabel||(subject.date?subject.date.slice(0,4)+' · ':'')+(subject.episodeCount?'全 '+subject.episodeCount+' 集':subject.originalName||'查看剧集');
  return <article className="poster-entry"><ImageItem {...props} className="poster-control" role="button" orientation="vertical" src={subject.cover?coverThumbnail(subject.cover):placeholder} placeholder={placeholder} aria-label={subject.name} css={{image:'poster-art'}}/>
   <div className="poster-hover"><span className="poster-play-badge"><Icon name="play" size={26}/></span></div>

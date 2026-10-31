@@ -8,8 +8,8 @@ let customHandler=null,initialized=false,pointerFocus=false,lastSidebar='sidebar
 let hold=null;
 const element=id=>document.querySelector('[data-focus-id="'+CSS.escape(String(id))+'"]');
 const scope=()=>scopes.length?scopes[scopes.length-1].group:null;
-const isHeader=id=>id==='header-source'||id==='header-search';
-function eligible(id){
+const isHeader=id=>typeof id==='string'&&id.startsWith('header-');
+export function eligible(id){
  const meta=registry.get(id),el=element(id);
  return !!meta&&!meta.disabled&&(meta.group!=='content'||isHeader(id)||meta.context===context)&&(!scope()||scope()===meta.group)&&!!el&&!!el.getClientRects().length&&!el.closest('[aria-hidden="true"],[hidden]');
 }
@@ -40,8 +40,8 @@ export function resetContentMemory(){memories.delete(context);}
 function resolveContent(){
  if(!pending||pending.context!==context||Date.now()>pending.until)return;
  const remembered=memories.get(context);
- const id=!isHeader(remembered)&&eligible(remembered)?remembered:eligible('content-0-0')?'content-0-0':Array.from(registry).find(([key,m])=>!isHeader(key)&&m.group==='content'&&eligible(key))?.[0];
- if(id){cancelContentFocus();setFocus(id);}
+ const id=!isHeader(remembered)&&eligible(remembered)?remembered:eligible('content-0-0')?'content-0-0':Array.from(registry).find(([key,m])=>!isHeader(key)&&m.group==='content'&&eligible(key))?.[0]||(context==='history'&&(eligible('header-clear-history')?'header-clear-history':eligible('header-search')?'header-search':'header-source'));
+ if(id&&eligible(id)){cancelContentFocus();setFocus(id);}
 }
 export function focusFirstContent(maxMs=15000){cancelContentFocus();pending={context,until:Date.now()+maxMs};pendingTimer=setTimeout(resolveContent,0);}
 export function focusSidebar(){setFocus(eligible(lastSidebar)?lastSidebar:'sidebar-home');}
