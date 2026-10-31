@@ -447,7 +447,7 @@ input::placeholder {
   align-items: center;
 }
 
-#root .header-source > .fy-button + .fy-button {
+#root .header-source > .fy-button ~ .fy-button {
   margin-left: 22px;
 }
 
