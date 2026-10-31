@@ -24,9 +24,23 @@ function findGroupTarget(registry,group,row){
 }
 function remoteKey(event){return ({37:'ArrowLeft',38:'ArrowUp',39:'ArrowRight',40:'ArrowDown',13:'Enter',461:'GoBack'})[event.keyCode]||event.key;}
 function seekDelta(key,panel,controlsVisible){return panel||controlsVisible?0:key==='ArrowLeft'?-10:key==='ArrowRight'?10:0;}
+function createSeekSession(){
+ let heldKey=null;
+ return {
+  delta(key,panel,controlsVisible){
+   if(panel||key!==heldKey)heldKey=null;
+   const delta=seekDelta(key,panel,controlsVisible&&heldKey!==key);
+   if(delta)heldKey=key;
+   return delta;
+  },
+  release(key){if(key===heldKey)heldKey=null;},
+  reset(){heldKey=null;},
+  active(){return heldKey!==null;}
+ };
+}
 function recoverTarget(registry,group,anchor){
  let best=null,score=-Infinity;
  for(const [id,d] of registry){if(d.group!==group||d.disabled)continue;const distance=anchor?Math.abs(d.row-anchor.row)*100+Math.abs(d.col-anchor.col):d.row*100+d.col;const value=(d.recoveryPriority||0)*100000-distance;if(value>score){best=id;score=value;}}
  return best;
 }
-module.exports={spatialTarget,navigateTarget,findGroupTarget,remoteKey,seekDelta,recoverTarget};
+module.exports={spatialTarget,navigateTarget,findGroupTarget,remoteKey,seekDelta,createSeekSession,recoverTarget};

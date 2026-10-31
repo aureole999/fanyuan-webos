@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {navigateTarget,spatialTarget,findGroupTarget,remoteKey,seekDelta}=require('../frontend/navigation.cjs');
+const {navigateTarget,spatialTarget,findGroupTarget,remoteKey,seekDelta,createSeekSession}=require('../frontend/navigation.cjs');
 const rect=(left,top,width=100,height=60)=>({left,top,right:left+width,bottom:top+height});
 const registry=new Map([
  ['sidebar-home',{group:'sidebar',row:0,col:0,rect:rect(0,0)}],['sidebar-search',{group:'sidebar',row:1,col:0,rect:rect(0,80)}],['sidebar-calendar',{group:'sidebar',row:2,col:0,rect:rect(0,160)}],
@@ -28,6 +28,45 @@ test('left/right seek only with hidden controls; visible controls and panels own
  assert.equal(seekDelta('ArrowRight','episodes',false),0);
  assert.equal(seekDelta('Enter','',false),0);
  assert.equal(remoteKey({key:'Unidentified',keyCode:40}),'ArrowDown');
+});
+
+test('held seek keeps its meaning across media events until the matching key is released',()=>{
+ for(const [key,delta] of [['ArrowRight',10],['ArrowLeft',-10]]){
+  const session=createSeekSession();
+  assert.equal(session.delta(key,'',false),delta);
+  assert.equal(session.active(),true);
+  for(let i=0;i<5;i++)assert.equal(session.delta(key,'',true),delta);
+  session.release('Unidentified');
+  assert.equal(session.delta(key,'',true),delta);
+  session.release(remoteKey({key:'Unidentified',keyCode:key==='ArrowRight'?39:37}));
+  assert.equal(session.active(),false);
+  assert.equal(session.delta(key,'',true),0);
+ }
+});
+test('explicit controls or panels retain navigation and interrupt an existing seek session',()=>{
+ const session=createSeekSession();
+ assert.equal(session.delta('ArrowRight','',true),0);
+ assert.equal(session.active(),false);
+ assert.equal(session.delta('ArrowRight','',false),10);
+ assert.equal(session.delta('Enter','',false),0);
+ assert.equal(session.active(),false);
+ assert.equal(session.delta('ArrowRight','',true),0);
+ assert.equal(session.delta('ArrowLeft','',false),-10);
+ assert.equal(session.delta('ArrowLeft','episodes',true),0);
+ assert.equal(session.active(),false);
+});
+test('lost window focus and direction changes cannot leave a stale seek session',()=>{
+ const session=createSeekSession();
+ assert.equal(session.delta('ArrowRight','',false),10);
+ session.reset();
+ assert.equal(session.active(),false);
+ assert.equal(session.delta('ArrowRight','',true),0);
+ assert.equal(session.delta('ArrowRight','',false),10);
+ assert.equal(session.delta('ArrowLeft','',true),0);
+ assert.equal(session.active(),false);
+ assert.equal(session.delta('ArrowLeft','',false),-10);
+ session.release('ArrowLeft');
+ assert.equal(session.delta('ArrowLeft','',true),0);
 });
 
 test('old history covers and current API covers use the same bounded Bangumi thumbnail',()=>{
