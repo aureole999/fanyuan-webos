@@ -445,13 +445,19 @@ input::placeholder {
 #root .header-source {
   display: flex;
   align-items: center;
-  gap: 16px;
 }
 
 #root .header-search {
-  border-radius: 999px;
-  padding: 13px 24px;
-  font-size: 20px;
+  width: 54px;
+  height: 54px;
+  min-height: 54px;
+  min-width: 0;
+  border-radius: 50%;
+  padding: 0;
+  margin-right: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #root .source-picker {
@@ -2089,7 +2095,7 @@ input::placeholder {
   flex-shrink: 0;
 }
 
-#root .fy-button:not(.fy-item):not(.dialog-close) .fy-icon {
+#root .fy-button:not(.fy-item):not(.dialog-close):not(.header-search) .fy-icon {
   margin: 0 8px 0 0;
   vertical-align: -3px;
 }
