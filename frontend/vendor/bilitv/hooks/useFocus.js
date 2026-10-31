@@ -77,10 +77,56 @@ let lastAnchor = null;
 
 function elementOf(id) { return focusRegistry.get(id)?.ref?.current || null; }
 
+let followerEl = null;
+let followerTimer = null;
+function glideFocusFollower(prevEl, newEl, sameGroup) {
+  if (typeof document === 'undefined' || !sameGroup || !prevEl || !newEl || prevEl === newEl) return;
+  if (!prevEl.isConnected || !newEl.isConnected) return;
+  const frame = document.getElementById('tv-frame');
+  if (!frame) return;
+  const fr = frame.getBoundingClientRect();
+  const scale = fr.width / 1920 || 1;
+  const r1 = prevEl.getBoundingClientRect();
+  const r2 = newEl.getBoundingClientRect();
+  if (!r1.width || !r1.height || !r2.width || !r2.height) return;
+  if (!followerEl || !followerEl.isConnected) {
+    followerEl = document.createElement('div');
+    followerEl.id = 'focus-follower';
+    followerEl.setAttribute('aria-hidden', 'true');
+    frame.appendChild(followerEl);
+  }
+  clearTimeout(followerTimer);
+  const br1 = getComputedStyle(prevEl).borderRadius || '14px';
+  const br2 = getComputedStyle(newEl).borderRadius || '14px';
+  const x1 = Math.round((r1.left - fr.left) / scale);
+  const y1 = Math.round((r1.top - fr.top) / scale);
+  const w1 = Math.round(r1.width / scale);
+  const h1 = Math.round(r1.height / scale);
+  const x2 = Math.round((r2.left - fr.left) / scale);
+  const y2 = Math.round((r2.top - fr.top) / scale);
+  const w2 = Math.round(r2.width / scale);
+  const h2 = Math.round(r2.height / scale);
+  followerEl.style.transition = 'none';
+  followerEl.style.opacity = '0.9';
+  followerEl.style.borderRadius = br1;
+  followerEl.style.width = w1 + 'px';
+  followerEl.style.height = h1 + 'px';
+  followerEl.style.transform = `translate3d(${x1}px, ${y1}px, 0)`;
+  void followerEl.offsetWidth;
+  followerEl.style.transition = 'transform 175ms cubic-bezier(0.22, 1, 0.36, 1), width 175ms cubic-bezier(0.22, 1, 0.36, 1), height 175ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 175ms ease, opacity 175ms ease';
+  followerEl.style.borderRadius = br2;
+  followerEl.style.width = w2 + 'px';
+  followerEl.style.height = h2 + 'px';
+  followerEl.style.transform = `translate3d(${x2}px, ${y2}px, 0)`;
+  followerEl.style.opacity = '0';
+  followerTimer = setTimeout(() => { if (followerEl) followerEl.style.opacity = '0'; }, 190);
+}
+
 function applyFocus(newId) {
-  const prevId = currentFocusId, meta = focusRegistry.get(newId);
+  const prevId = currentFocusId, meta = focusRegistry.get(newId), prevMeta = focusRegistry.get(prevId);
   const newEl = elementOf(newId), prevEl = elementOf(prevId);
   if(newEl&&!hoverDriven)revealElement(newEl);
+  if(!hoverDriven)glideFocusFollower(prevEl, newEl, prevMeta && meta && prevMeta.group === meta.group);
   currentFocusId = newId;
   if(meta)focusOwner=meta.group;
   if (meta?.group === 'content') contentMemory.set(contentContext, newId);

@@ -24,10 +24,10 @@ export function FocusButton({id,row=0,col=0,group='content',onSelect,onNavigate,
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
   return <FocusButton id={`content-${row}-${col}`} row={row} col={col} className="poster-card" onSelect={onSelect} aria-label={subject.name}>
     <div className="poster-art">{subject.cover?<img src={coverThumbnail(subject.cover)} alt="" loading="lazy" decoding="async" onError={e=>{e.currentTarget.style.display='none';}}/>:<div className="poster-placeholder"><Icon name="tv" size={58}/></div>}
-      {subject.score>0&&<span className="score-badge">{Number(subject.score).toFixed(1)}</span>}
+      {subject.score>0&&<span className="score-badge">★ {Number(subject.score).toFixed(1)}</span>}
       {progress&&progress.position>0&&<div className="card-progress"><i style={{width:`${Math.min(100,progress.position/progress.duration*100)}%`}}/></div>}
-      <div className="poster-hover"><Icon name="live" size={42}/></div>
-    </div><strong>{subject.name}</strong><small>{actionLabel||(subject.date?subject.date.slice(0,4)+' · ':'')+(subject.episodeCount?'全 '+subject.episodeCount+' 集':subject.originalName||'查看剧集')}</small>
+      <div className="poster-hover"><span className="poster-play-badge"><Icon name="play" size={26}/></span></div>
+    </div><div className="poster-body"><strong>{subject.name}</strong><small>{actionLabel||(subject.date?subject.date.slice(0,4)+' · ':'')+(subject.episodeCount?'全 '+subject.episodeCount+' 集':subject.originalName||'查看剧集')}</small></div>
   </FocusButton>;
 }
 export function TextCard({subject,row,col,onSelect}){return <FocusButton id={`content-${row}-${col}`} row={row} col={col} onSelect={onSelect} className="source-result"><span className="source-result-icon"><Icon name="tv" size={35}/></span><span><strong>{subject.name}</strong><small>查看线路与剧集</small></span><span className="arrow">›</span></FocusButton>;}
