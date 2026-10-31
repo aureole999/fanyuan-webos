@@ -1,4 +1,4 @@
-const fs=require('fs'),path=require('path'),zlib=require('zlib'),esbuild=require('esbuild');
+const fs=require('fs'),path=require('path'),zlib=require('zlib'),crypto=require('crypto'),esbuild=require('esbuild');
 const version=require('./package.json').version;
 const out=path.join(__dirname,'dist');fs.mkdirSync(out,{recursive:true});
 const app=path.join(out,'app'),service=path.join(out,'service');fs.rmSync(app,{recursive:true,force:true});fs.rmSync(service,{recursive:true,force:true});fs.mkdirSync(app,{recursive:true});fs.mkdirSync(service,{recursive:true});
@@ -42,17 +42,31 @@ function icon(size){
 async function main(){
   fs.copyFileSync(path.join(__dirname,'src/index.html'),path.join(app,'index.html'));
   fs.copyFileSync(path.join(__dirname,'frontend/style.css'),path.join(app,'style.css'));
-  const frontendBuild=await esbuild.build({metafile:true,entryPoints:[path.join(__dirname,'frontend/App.jsx')],outfile:path.join(app,'app.js'),bundle:true,platform:'browser',format:'iife',target:'chrome79',define:{__PERF__:'false','process.env.NODE_ENV':'"production"'},minify:true,legalComments:'eof'});
+  const browserSupport={name:'enact-browser',setup(build){
+    // ilib's general entry probes non-browser runtimes. Use its browser loader on C1.
+    build.onResolve({filter:/^ilib$/},()=>({path:require.resolve('ilib/lib/ilib-webpack.js')}));
+    build.onLoad({filter:/node_modules[\\/]ilib[\\/]index\.js$/},args=>({contents:"module.exports=require('./lib/ilib-webpack.js');",loader:'js',resolveDir:path.dirname(args.path)}));
+    build.onLoad({filter:/spotlight[\\/]styles[\\/]debug\.less$/},()=>({contents:'',loader:'css'}));
+    // C1's built-in icon font predates these glyphs. Ship the matching official font.
+    build.onLoad({filter:/ThemeDecorator[\\/]ThemeDecorator\.module\.css$/},args=>({contents:fs.readFileSync(args.path,'utf8').replace('local("Sandstone Icons"), local("SandstoneIcons"), ',''),loader:'local-css',resolveDir:path.dirname(args.path)}));
+  }};
+  const frontendBuild=await esbuild.build({metafile:true,plugins:[browserSupport],entryPoints:[path.join(__dirname,'frontend/App.jsx')],outfile:path.join(app,'app.js'),bundle:true,platform:'browser',format:'iife',target:'chrome79',loader:{'.css':'local-css','.woff':'file','.woff2':'file','.ttf':'file','.svg':'file','.png':'file'},assetNames:'assets/[name]-[hash]',define:{global:'window',__PERF__:'false',ILIB_BASE_PATH:'"./ilib"',ILIB_RESOURCES_PATH:'"./resources"','process.env.NODE_ENV':'"production"'},minify:true,legalComments:'eof'});
+  const localeRoot=path.dirname(require.resolve('ilib/package.json'))+'/locale',localeOut=path.join(app,'ilib');fs.mkdirSync(localeOut,{recursive:true});
+  for(const n of fs.readdirSync(localeRoot))if(n.endsWith('.json'))fs.copyFileSync(path.join(localeRoot,n),path.join(localeOut,n));
+  for(const n of ['zh','CN','Hans','en/US'])if(fs.existsSync(path.join(localeRoot,n)))copyTree(path.join(localeRoot,n),path.join(localeOut,n));
+  copyTree(path.join(__dirname,'node_modules/@enact/sandstone/resources'),path.join(app,'resources'));
   fs.writeFileSync(path.join(out,'frontend-metafile.json'),JSON.stringify(frontendBuild.metafile,null,2));
   copyTree(path.join(__dirname,'vendor/webOSTVjs-1.2.13'),path.join(app,'webOSTVjs-1.2.13'));
-  fs.writeFileSync(path.join(app,'icon.png'),icon(80));fs.writeFileSync(path.join(app,'largeIcon.png'),icon(130));
-  fs.writeFileSync(path.join(app,'appinfo.json'),JSON.stringify({id:'com.local.animesources',version:version,vendor:'Local experimental port',type:'web',main:'index.html',title:'番源',icon:'icon.png',largeIcon:'largeIcon.png',iconColor:'#18191c',bgColor:'#111315',resolution:'1920x1080',disableBackHistoryAPI:true,requiredPermissions:['all'],requiredACG:[]},null,2));
+  function writeIcon(prefix,size){const png=icon(size),name=prefix+'-'+crypto.createHash('sha256').update(png).digest('hex').slice(0,12)+'.png';fs.writeFileSync(path.join(app,name),png);return name;}
+  const smallIcon=writeIcon('icon',80),largeIcon=writeIcon('largeIcon',130);
+  fs.writeFileSync(path.join(app,'appinfo.json'),JSON.stringify({id:'com.local.animesources',version:version,vendor:'Local experimental port',type:'web',main:'index.html',title:'番源',icon:smallIcon,largeIcon:largeIcon,iconColor:'#18191c',bgColor:'#111315',resolution:'1920x1080',disableBackHistoryAPI:true,requiredPermissions:['all'],requiredACG:[]},null,2));
   await esbuild.build({entryPoints:[path.join(__dirname,'src/service.cjs')],outfile:path.join(service,'service.js'),bundle:true,platform:'node',target:'node8',external:['webos-service'],legalComments:'eof',minify:false});
   fs.writeFileSync(path.join(service,'package.json'),JSON.stringify({name:'com.local.animesources.service',version:version,main:'service.js'},null,2));
   fs.writeFileSync(path.join(service,'services.json'),JSON.stringify({id:'com.local.animesources.service',description:'On-TV source rule engine',services:[{name:'com.local.animesources.service',description:'Search, source parsing, loopback playback and danmaku'}]},null,2));
   copyTree(path.join(__dirname,'rules'),path.join(service,'rules'));fs.copyFileSync(path.join(__dirname,'vendor/cacert.pem'),path.join(service,'cacert.pem'));
   if(fs.existsSync(path.join(__dirname,'LICENSE.txt')))for(const dest of [app,service])fs.copyFileSync(path.join(__dirname,'LICENSE.txt'),path.join(dest,'LICENSE.txt'));
   fs.copyFileSync(path.join(__dirname,'frontend/vendor/bilitv/LICENSE'),path.join(app,'BILITV-LICENSE.txt'));
+  copyTree(path.join(__dirname,'THIRD_PARTY_NOTICES'),path.join(app,'THIRD_PARTY_NOTICES'));
   for(const dest of [app,service])fs.copyFileSync(path.join(__dirname,'THIRD_PARTY_NOTICES/enact-spotlight-LICENSE.txt'),path.join(dest,'SPOTLIGHT-LICENSE.txt'));
   fs.copyFileSync(path.join(__dirname,'THIRD_PARTY_NOTICES/enact-spotlight-NOTICE.txt'),path.join(app,'SPOTLIGHT-NOTICE.txt'));
   console.log('Built independent app and Node 8 service');

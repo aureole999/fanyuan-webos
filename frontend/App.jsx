@@ -1,16 +1,16 @@
-import React,{useState,useEffect,useRef,useLayoutEffect} from 'react';
+import React,{useState,useEffect,useRef} from 'react';
 import {createRoot} from 'react-dom/client';
-import SidebarItem from './vendor/bilitv/components/SidebarItem';
-import {initKeyboardNav,onFocusChange,setFocus,getCurrentFocusId,setContentContext,focusFirstContent,focusSidebar,setLastSidebarFocus,setCustomKeyHandler,isPointerFocus,activateFocusScope} from './vendor/bilitv/hooks/useFocus';
-import {FocusButton,FocusSearchInput,PosterCard,TextCard,Icon,Empty,Loading} from './components';
+import SidebarItem from './SidebarItem';
+import ThemeDecorator from '@enact/sandstone/ThemeDecorator';
+import Popup from '@enact/sandstone/Popup';
+import {initKeyboardNav,onFocusChange,setFocus,getCurrentFocusId,setContentContext,focusFirstContent,focusSidebar,setLastSidebarFocus,isPointerFocus} from './focus';
+import {FocusButton,FocusSearchInput,PosterCard,TextCard,Icon,Empty,Loading,FocusContainer,ContentScroller} from './components';
 import {call} from './api';
 import {makeLibrary,cleanName,seriesKey} from './library.cjs';
 import Player from './Player';
 import Subscriptions from './Subscriptions';
 import DanmakuSettings from './DanmakuSettings';
 import {coverThumbnail} from '../src/images.cjs';
-import {remoteKey} from './navigation.cjs';
-import {invalidateGeometry} from './spatial-dom';
 import {DANMAKU_OPTIONS,matchOptionValue,danmakuOptionLabel,danmakuTypesSummary} from './danmaku.cjs';
 
 const library=makeLibrary(localStorage);
@@ -19,28 +19,21 @@ const DAY=['周一','周二','周三','周四','周五','周六','周日'];
 const today=(new Date().getDay()||7);
 function shortTime(seconds){const m=Math.floor((seconds||0)/60);return m?`${m} 分钟`:'刚刚开始';}
 function alternate(channel,episode){const sameType=e=>(e.type||'main').toLowerCase();return channel.episodes.find(e=>{const a=Number(e.sort),b=Number(episode.sort);return (Number.isFinite(a)&&Number.isFinite(b)?a===b:e.sort===episode.sort)&&sameType(e)===sameType(episode);});}
-function Dialog({title,options,onClose}){
+function Dialog({value,onClose}){
+  const last=useRef(value);if(value)last.current=value;
+  const {title='',options=[]}=value||last.current||{};
   const activeIndex=options.findIndex(o=>o.active);
-  useLayoutEffect(()=>activateFocusScope('dialog',options.length?'dialog-'+Math.max(0,activeIndex):'dialog-close'),[]);
-  useEffect(()=>{
-    setCustomKeyHandler(e=>{
-      const key=remoteKey(e);
-      if(['Escape','GoBack','Backspace'].includes(key)){e.preventDefault();if(!e.repeat)onClose();return true;}
-      return false;
-    });
-    return()=>setCustomKeyHandler(null);
-  },[onClose]);
-  return <div className="dialog-backdrop" onClick={e=>{if(e.target===e.currentTarget)onClose();}}><section className="dialog-box" onAnimationEnd={invalidateGeometry}><div className="dialog-heading"><h2>{title}</h2><FocusButton id="dialog-close" row={-1} group="dialog" className="dialog-close" onSelect={onClose} aria-label="关闭弹窗">×</FocusButton></div>{options.map((o,i)=><FocusButton key={i} id={'dialog-'+i} row={i} col={0} group="dialog" className={'dialog-option '+(o.active?'active':'')} onSelect={o.action}><span className="dialog-option-body"><strong>{o.label}</strong>{o.description&&<small>{o.description}</small>}</span>{o.active&&<span className="dialog-option-check">✓ 当前</span>}</FocusButton>)}</section></div>;
+  return <Popup open={!!value} position="center" spotlightId="dialog" className="selection-popup" css={{body:'popup-body'}} onClose={onClose} onShow={()=>setTimeout(()=>setFocus(options.length?'dialog-'+Math.max(0,activeIndex):'dialog-close'),0)}><div className="dialog-heading"><h2>{title}</h2><FocusButton id="dialog-close" className="dialog-close" row={-1} group="dialog" onSelect={onClose} aria-label="关闭弹窗"><Icon name="close"/></FocusButton></div><ContentScroller className="dialog-options" style={{height:Math.min(660,options.length*126)}}>{options.map((o,i)=><FocusButton key={i} id={'dialog-'+i} row={i} group="dialog" className="dialog-option" label={o.description} slotAfter={o.active?<Icon name="check"/>:null} onSelect={o.action}>{o.label}</FocusButton>)}</ContentScroller></Popup>;
 }
-function App(){
+function App({className}){
   const [page,setPage]=useState('home'),[sources,setSources]=useState([]),[sourceId,setSourceId]=useState(localStorage.getItem('sourceId')||'source-c');
   const [calendar,setCalendar]=useState([]),[day,setDay]=useState(today),[calendarError,setCalendarError]=useState(''),[calendarBusy,setCalendarBusy]=useState(true);
   const [keyword,setKeyword]=useState(''),[results,setResults]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[detail,setDetail]=useState(null),[meta,setMeta]=useState(null),[candidates,setCandidates]=useState([]),[channel,setChannel]=useState(0),[settings,setSettings]=useState(()=>library.settings()),[revision,setRevision]=useState(0),[dialog,setDialog]=useState(null),[player,setPlayer]=useState(null),[toast,setToast]=useState(''),[favFilter,setFavFilter]=useState('all');
-  const drawer=useRef(false),sidebarRef=useRef(null),previewTimer=useRef(null);
+  const drawer=useRef(false),previewTimer=useRef(null);
   const token=useRef(0),toastTimer=useRef(null),inputRef=useRef(null),scroller=useRef(null),lastPage=useRef('home'),lastCard=useRef(null),current=useRef({});
   current.current={page,drawer:drawer.current,sources,sourceId,calendar,results,detail,meta,channel,player,dialog,settings};
   const currentSource=sources.find(s=>s.id===sourceId);
-  function setDrawer(value){drawer.current=value;current.current.drawer=value;if(sidebarRef.current)sidebarRef.current.dataset.expanded=String(value);}
+  function setDrawer(value){drawer.current=value;current.current.drawer=value;const el=document.querySelector('.sidebar');if(el)el.dataset.expanded=String(value);}
   function notify(text){setToast(text);clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(''),3200);}
   function refresh(){setRevision(n=>n+1);}
   function updateSettings(patch){setSettings(library.setSettings(patch));}
@@ -63,7 +56,7 @@ function App(){
     const enter=e=>{const item=MENU.find(m=>'sidebar-'+m[0]===e.detail);if(item){if(current.current.page!==item[0])go(item[0],true);else{setDrawer(false);focusFirstContent();}}};
     const back=()=>{const s=current.current;if(s.player)return;if(s.dialog){setDialog(null);return;}if(s.page==='subscriptions'||s.page==='danmakuSettings'){go('settings',true);return;}if(s.page==='detail'){token.current++;setDetail(null);setMeta(null);setCandidates([]);setPage(lastPage.current);setContentContext(lastPage.current);setError('');setBusy(false);setTimeout(()=>lastCard.current?setFocus(lastCard.current):focusFirstContent(),50);}else if(s.drawer){if(s.page==='home'){if(window.webOS?.platformBack)webOS.platformBack();}else go('home',true);}else{setDrawer(true);focusSidebar();}};
     window.addEventListener('tv-enter-content',enter);window.addEventListener('tv-back',back);
-    setTimeout(()=>setFocus('sidebar-home'),100);
+    setTimeout(()=>{setDrawer(true);setFocus('sidebar-home');},100);
     return()=>{clearTimeout(previewTimer.current);off();window.removeEventListener('tv-enter-content',enter);window.removeEventListener('tv-back',back);};
   },[]);
 
@@ -120,13 +113,13 @@ function App(){
   function renderCards(items,startRow=1,historyItems=null){return <div className={'poster-grid cols-'+settings.gridCols}>{items.map((s,i)=><PosterCard key={(s.bgmId||s.url||s.id)+'-'+i} subject={s} row={startRow+Math.floor(i/settings.gridCols)} col={i%settings.gridCols} progress={historyItems?.[i]} actionLabel={historyItems?historyItems[i].episode.name+' · '+shortTime(historyItems[i].position):undefined} onSelect={()=>historyItems?resume(historyItems[i]):s.url?openSource(s):openTitle(s)}/>)}</div>;}
   const favorites=library.favorites(),history=library.history(),todayItems=calendar.find(d=>d.id===today)?.items||[],dayItems=calendar.find(d=>d.id===day)?.items||[];
   const title={home:'继续喜欢的故事',search:'搜索番剧',calendar:'新番时间表',favorites:'我的收藏',history:'观看历史',settings:'设置',subscriptions:'数据源订阅',danmakuSettings:'弹幕服务',detail:meta?.name||detail?.subject?.name||'番剧详情'}[page];
-  useEffect(()=>{window.__fanYuan={get state(){return current.current;},call,library,navigate:go,search:(q,id)=>runSearch(q,id),openTitle,openSource,diagnostics:()=>({version:'0.6.6',page:current.current.page,sourceId:current.current.sourceId,playing:!!current.current.player,results:current.current.results.length})};return()=>delete window.__fanYuan;},[page,sourceId,keyword,detail,meta,channel]);
-  return <div id="tv-frame">
+  useEffect(()=>{window.__fanYuan={get state(){return current.current;},call,library,navigate:go,search:(q,id)=>runSearch(q,id),openTitle,openSource,diagnostics:()=>({version:'0.7.0',page:current.current.page,sourceId:current.current.sourceId,playing:!!current.current.player,results:current.current.results.length})};return()=>delete window.__fanYuan;},[page,sourceId,keyword,detail,meta,channel]);
+  return <div id="tv-frame" className={className}>
     <div className="app-shell" aria-hidden={!!player}>
-      <aside className="sidebar" ref={sidebarRef} data-expanded={drawer.current}><div className="sidebar-brand" onClick={()=>go('home',true)}><span className="brand-symbol"><Icon name="tv" size={35}/></span><span className="brand-word">番源<small>你的本地追番空间</small></span></div><nav>{MENU.map((m,i)=><SidebarItem key={m[0]} id={'sidebar-'+m[0]} row={i} label={m[1]} icon={m[2]} active={page===m[0]||(page==='detail'&&lastPage.current===m[0])||((page==='subscriptions'||page==='danmakuSettings')&&m[0]==='settings')} onSelect={()=>go(m[0],true)}/>)}</nav><div className="sidebar-foot"><span className="local-dot"/><span className="sidebar-foot-label">本地收藏 · 无需服务器</span></div></aside>
-      <main className="main-content"><header className="page-header"><div><div className="page-eyebrow">FANYUAN / ANIME LIBRARY</div><h1>{title}</h1></div><div className="header-source"><FocusButton id="header-source" row={0} col={20} recoveryPriority={1} className="source-picker" onSelect={chooseSource}><Icon name="remix" size={21}/>{currentSource?.name||'选择视频源'}<span className="chevron-down"/></FocusButton></div></header>
-        <div className="content-scroller" ref={scroller}>
-          <div key={page+(page==='detail'?':'+(meta?.bgmId||meta?.name||''):'')} className="page-stage" onAnimationEnd={invalidateGeometry}>
+      <FocusContainer spotlightId="sidebar" spotlightDisabled={!!player||!!dialog} className="sidebar" data-expanded={drawer.current}><div className="sidebar-brand" onClick={()=>go('home',true)}><span className="brand-symbol"><Icon name="tv" size={35}/></span><span className="brand-word">番源<small>你的本地追番空间</small></span></div><nav>{MENU.map((m,i)=><SidebarItem key={m[0]} id={'sidebar-'+m[0]} row={i} label={m[1]} icon={m[2]} active={page===m[0]||(page==='detail'&&lastPage.current===m[0])||((page==='subscriptions'||page==='danmakuSettings')&&m[0]==='settings')} onSelect={()=>go(m[0],true)}/>)}</nav><div className="sidebar-foot"><span className="local-dot"/><span className="sidebar-foot-label">本地收藏 · 无需服务器</span></div></FocusContainer>
+      <FocusContainer spotlightId="content" spotlightDisabled={!!player||!!dialog} className="main-content"><header className="page-header"><div><div className="page-eyebrow">FANYUAN / ANIME LIBRARY</div><h1>{title}</h1></div><div className="header-source"><FocusButton id="header-source" row={0} col={20} recoveryPriority={1} className="source-picker" onSelect={chooseSource}><Icon name="remix" size={21}/>{currentSource?.name||'选择视频源'}<span className="chevron-down"/></FocusButton></div></header>
+        <ContentScroller apiRef={scroller}>
+          <div key={page+(page==='detail'?':'+(meta?.bgmId||meta?.name||''):'')} className="page-stage">
           {error&&<div className="error-banner"><span>{error}</span><FocusButton id="content-0-4" row={0} col={4} recoveryPriority={2} onSelect={chooseSource}>换一个源</FocusButton></div>}
           {page==='home'&&<>
             <div className="home-intro"><div className="home-intro-copy"><h2>随时开启今日追番时光</h2><p>从上次停下的地方接着看，或探索今日放送的新番。</p></div><FocusButton id="content-0-0" row={0} col={0} className="primary" onSelect={()=>{go('search',true);}}><Icon name="search" size={21}/>搜索番名</FocusButton></div>
@@ -138,12 +131,12 @@ function App(){
             {!results.length&&!busy&&!error&&<><h2 className="section-title">最近搜索</h2><div className="search-history">{(library.searchHistory().length?library.searchHistory():['葬送的芙莉莲','夏目友人帐','间谍过家家','孤独摇滚']).map((q,i)=><FocusButton key={q} id={`content-1-${i}`} row={1} col={i} onSelect={()=>runSearch(q)}>{q}</FocusButton>)}</div><Empty title="找到番剧，再选择播放线路">使用现有视频源规则，在电视端完成搜索和解析。</Empty></>}
             {busy?<Loading text={'正在搜索 '+keyword+'…'}/>:results.length>0&&<><h2 className="section-title">搜索结果 <span>{results.length} 部 · {currentSource?.name}</span></h2>{results.some(x=>x.cover)?renderCards(results):<div className="source-results">{results.map((x,i)=><TextCard key={x.url||x.id} subject={x} row={1+Math.floor(i/3)} col={i%3} onSelect={()=>openSource(x)}/>)}</div>}</>}
           </>}
-          {page==='calendar'&&<><div className="day-tabs">{DAY.map((d,i)=><FocusButton key={d} id={`content-0-${i}`} row={0} col={i} className={day===i+1?'active':''} onSelect={()=>{setDay(i+1);scroller.current.scrollTop=0;}}>{d}{today===i+1&&<small>今天</small>}</FocusButton>)}</div><div key={day} className="tab-stage" onAnimationEnd={invalidateGeometry}>{calendarBusy?<Loading/>:calendarError?<Empty title="时间表暂不可用">{calendarError}</Empty>:renderCards(dayItems)}</div></>}
-          {page==='favorites'&&<><div className="filter-tabs">{[['all','全部'],['wish','想看'],['watching','在看'],['done','看过']].map((x,i)=><FocusButton key={x[0]} id={`content-0-${i}`} row={0} col={i} className={favFilter===x[0]?'active':''} onSelect={()=>setFavFilter(x[0])}>{x[1]}</FocusButton>)}</div><div key={favFilter} className="tab-stage" onAnimationEnd={invalidateGeometry}>{favorites.length?renderCards(favorites.filter(x=>favFilter==='all'||(x.status||'wish')===favFilter)):<Empty title="收藏喜欢的番剧">打开番剧详情，选择“加入收藏”。数据仅保存在这台电视。</Empty>}</div></>}
+          {page==='calendar'&&<><div className="day-tabs">{DAY.map((d,i)=><FocusButton key={d} id={`content-0-${i}`} row={0} col={i} className={day===i+1?'active':''} onSelect={()=>{setDay(i+1);scroller.current.scrollTop=0;}}>{d}{today===i+1&&<small>今天</small>}</FocusButton>)}</div><div key={day} className="tab-stage">{calendarBusy?<Loading/>:calendarError?<Empty title="时间表暂不可用">{calendarError}</Empty>:renderCards(dayItems)}</div></>}
+          {page==='favorites'&&<><div className="filter-tabs">{[['all','全部'],['wish','想看'],['watching','在看'],['done','看过']].map((x,i)=><FocusButton key={x[0]} id={`content-0-${i}`} row={0} col={i} className={favFilter===x[0]?'active':''} onSelect={()=>setFavFilter(x[0])}>{x[1]}</FocusButton>)}</div><div key={favFilter} className="tab-stage">{favorites.length?renderCards(favorites.filter(x=>favFilter==='all'||(x.status||'wish')===favFilter)):<Empty title="收藏喜欢的番剧">打开番剧详情，选择“加入收藏”。数据仅保存在这台电视。</Empty>}</div></>}
           {page==='history'&&<><div className="section-toolbar"><p>自动保存播放进度，可一键续播。</p>{history.length>0&&<FocusButton id="content-0-0" row={0} col={0} className="quiet" onSelect={()=>setDialog({title:'清空观看历史？',options:[{label:'保留历史',action:()=>setDialog(null)},{label:'清空本地历史与进度',description:'收藏会保留。此操作不能撤销。',action:()=>{library.clearHistory();refresh();setDialog(null);}}]})}>清空历史</FocusButton>}</div>{history.length?renderCards(history.map(x=>x.subject),1,history):<Empty title="从第一集开始">播放过的番剧和进度会自动出现在这里。</Empty>}</>}
           {page==='detail'&&<>
             <section className="subject-hero">{meta?.cover?<img src={coverThumbnail(meta.cover)} className="subject-cover" alt=""/>:<div className="subject-cover blank"><Icon name="tv" size={70}/></div>}<div className="subject-info"><div className="subject-meta">{meta?.score>0&&<strong>★ {Number(meta.score).toFixed(1)}</strong>}{meta?.date&&<span>{meta.date}</span>}{meta?.episodeCount>0&&<span>全 {meta.episodeCount} 集</span>}</div><h2>{meta?.originalName||title}</h2><p className="subject-summary">{meta?.summary||'选择播放源与剧集。收藏和观看进度会保存在本机。'}</p>{meta?.tags?.length>0&&<div className="subject-tags">{meta.tags.slice(0,6).map(t=><span key={t}>{t}</span>)}</div>}<div className="subject-actions"><FocusButton id="content-0-0" row={0} col={0} className={library.isFavorite(meta||detail?.subject||{})?'active':'primary'} onSelect={toggleFavorite}><Icon name="star" size={21}/>{library.isFavorite(meta||detail?.subject||{})?'已收藏':'加入收藏'}</FocusButton><FocusButton id="content-0-1" row={0} col={1} className="quiet" onSelect={()=>{const s=meta||detail?.subject;if(!s)return;chooseOption('设置追番状态',library.favoriteStatus?.(s)||'wish',[{value:'wish',label:'想看',description:'加入想看列表，方便日后查找'},{value:'watching',label:'在看',description:'正在追更或观看中的番剧'},{value:'done',label:'看过',description:'已经看完的番剧'}],nextStatus=>{if(!library.isFavorite(s))library.toggleFavorite(s);library.setFavoriteStatus?.(s,nextStatus);refresh();notify('已更新本地追番状态');});}}>状态：{({wish:'想看',watching:'在看',done:'看过'})[library.favoriteStatus?.(meta||detail?.subject||{})||'wish']}</FocusButton></div></div></section>
-            {busy?<Loading text="正在读取线路和剧集…"/>:candidates.length>0?<><h2 className="section-title">选择对应番剧 <span>请核对季度和名称</span></h2><div className="source-results">{candidates.map((s,i)=><TextCard key={s.id} subject={s} row={2+Math.floor(i/3)} col={i%3} onSelect={()=>sourceDetail(s,s.sourceId,meta)}/>)}</div></>:detail&&<><div className="channel-tabs">{detail.channels.map((ch,i)=><FocusButton key={i} id={`content-1-${i}`} row={1} col={i} className={channel===i?'active':''} onSelect={()=>setChannel(i)}>{ch.name}<small>{ch.episodes.length} 集</small></FocusButton>)}</div><div key={channel} className="episode-grid tab-stage" onAnimationEnd={invalidateGeometry}>{detail.channels[channel].episodes.map((ep,i)=>{const progress=library.progress(detail.subject.sourceId||sourceId,detail.subject,ep);return <FocusButton key={ep.id} id={`content-${2+Math.floor(i/7)}-${i%7}`} row={2+Math.floor(i/7)} col={i%7} className={'episode-button '+(progress?.completed?'watched':'')} onSelect={()=>startPlay(ep)} onLongPress={()=>{library.markComplete(detail.subject.sourceId||sourceId,detail.subject,ep,!progress?.completed);refresh();notify(progress?.completed?'已取消已看标记':'已标记为看过');}}><span>{ep.name}</span>{progress?.completed?<small>✓ 已看</small>:progress?.position>0?<small>{shortTime(progress.position)}</small>:null}</FocusButton>;})}</div><p className="page-tip">OK 播放 / 续播 · 长按 OK 标记已看 · 返回保留浏览位置</p></>}
+            {busy?<Loading text="正在读取线路和剧集…"/>:candidates.length>0?<><h2 className="section-title">选择对应番剧 <span>请核对季度和名称</span></h2><div className="source-results">{candidates.map((s,i)=><TextCard key={s.id} subject={s} row={2+Math.floor(i/3)} col={i%3} onSelect={()=>sourceDetail(s,s.sourceId,meta)}/>)}</div></>:detail&&<><div className="channel-tabs">{detail.channels.map((ch,i)=><FocusButton key={i} id={`content-1-${i}`} row={1} col={i} className={channel===i?'active':''} onSelect={()=>setChannel(i)}>{ch.name}<small>{ch.episodes.length} 集</small></FocusButton>)}</div><div key={channel} className="episode-grid tab-stage">{detail.channels[channel].episodes.map((ep,i)=>{const progress=library.progress(detail.subject.sourceId||sourceId,detail.subject,ep);return <FocusButton key={ep.id} id={`content-${2+Math.floor(i/7)}-${i%7}`} row={2+Math.floor(i/7)} col={i%7} className={'episode-button '+(progress?.completed?'watched':'')} onSelect={()=>startPlay(ep)} onLongPress={()=>{library.markComplete(detail.subject.sourceId||sourceId,detail.subject,ep,!progress?.completed);refresh();notify(progress?.completed?'已取消已看标记':'已标记为看过');}}><span>{ep.name}</span>{progress?.completed?<small>✓ 已看</small>:progress?.position>0?<small>{shortTime(progress.position)}</small>:null}</FocusButton>;})}</div><p className="page-tip">OK 播放 / 续播 · 长按 OK 标记已看 · 返回保留浏览位置</p></>}
           </>}
           {page==='danmakuSettings'&&<DanmakuSettings notify={notify}/>}
           {page==='subscriptions'&&<Subscriptions onChanged={refreshSources} notify={notify} chooseOption={chooseOption}/>}
@@ -160,16 +153,17 @@ function App(){
             ['弹幕类型与色彩',danmakuTypesSummary(settings),()=>chooseDanmakuTypes(settings)],
             ['自动播放下一集',settings.autoplayNext?'开启':'关闭',()=>chooseOption('自动播放下一集',!!settings.autoplayNext,[{value:true,label:'开启',description:'本集播放结束后倒计时 5 秒自动连播下一集'},{value:false,label:'关闭',description:'本集播放结束后停留在当前剧集'}],v=>updateSettings({autoplayNext:v}))],
             ['每行番剧数量',settings.gridCols+' 部',()=>chooseOption('每行番剧数量',settings.gridCols,[{value:3,label:'3 部 / 行',description:'大尺寸海报卡片，适合较远观看距离'},{value:4,label:'4 部 / 行',description:'标准海报卡片尺寸（默认）'},{value:5,label:'5 部 / 行',description:'紧凑网格布局，单屏展示更多番剧'}],v=>updateSettings({gridCols:v}))],
-            ['默认视频源',currentSource?.name||'选择',chooseSource],['数据源订阅','在线更新与管理',()=>go('subscriptions',true)],['弹幕服务','服务与匹配',()=>go('danmakuSettings',true)],['版本与来源','番源 0.6.6',()=>setDialog({title:'番源 0.6.6 · 非官方',options:[{label:'BiliTV 界面组件',description:'复用 BiliTV v2.5.1 弹幕、图标和焦点系统，保留 MIT 许可与作者署名。',action:()=>{}},{label:'Animeko 原始源规则',description:'直接订阅原版在线视频源地址，每小时检查更新，保留原始 JSON。解析与播放代理均在电视上执行，不含 BT。',action:()=>{}},{label:'本地追番',description:'番剧资料来自 Bangumi，弹幕优先匹配弹弹play。没有账号同步。',action:()=>{}},{label:'关闭',action:()=>setDialog(null)}]})]
-          ].map((x,i)=><FocusButton key={x[0]} id={`content-${i+1}-0`} row={i+1} col={0} className="settings-row" onSelect={x[2]}><span>{x[0]}</span><strong>{x[1]}</strong><span>›</span></FocusButton>)}</div></>}
+            ['默认视频源',currentSource?.name||'选择',chooseSource],['数据源订阅','在线更新与管理',()=>go('subscriptions',true)],['弹幕服务','服务与匹配',()=>go('danmakuSettings',true)],['版本与来源','番源 0.7.0',()=>setDialog({title:'番源 0.7.0 · 非官方',options:[{label:'LG Enact / Sandstone',description:'官方按钮、海报、输入框、弹窗、滚动和焦点管理；滚动弹幕渲染保留 BiliTV 的 MIT 许可与作者署名。',action:()=>{}},{label:'Animeko 原始源规则',description:'直接订阅原版在线视频源地址，每小时检查更新，保留原始 JSON。解析与播放代理均在电视上执行，不含 BT。',action:()=>{}},{label:'本地追番',description:'番剧资料来自 Bangumi，弹幕优先匹配弹弹play。没有账号同步。',action:()=>{}},{label:'关闭',action:()=>setDialog(null)}]})]
+          ].map((x,i)=><FocusButton key={x[0]} id={`content-${i+1}-0`} row={i+1} col={0} className="settings-row" label={x[1]} slotAfter={<Icon name="arrow"/>} onSelect={x[2]}>{x[0]}</FocusButton>)}</div></>}
           </div>
-        </div>
+        </ContentScroller>
         <footer className="app-footer"><span><kbd>方向键</kbd> 移动　 <kbd>OK</kbd> 选择</span><span><kbd>返回</kbd> 返回侧栏</span></footer>
-      </main>
+      </FocusContainer>
     </div>
-    {dialog&&<Dialog title={dialog.title} options={dialog.options} onClose={()=>setDialog(null)}/>}
+    <Dialog value={dialog} onClose={()=>setDialog(null)}/>
     {player&&<Player key={player.key} item={player} library={library} settings={settings} onSettings={updateSettings} onClose={closePlayer} onNext={nextEpisode} onEpisode={ep=>startPlay(ep,player.channelIndex,0)} onSwitchChannel={switchPlayingChannel}/>}
     {toast&&<div className="toast">{toast}</div>}
   </div>;
 }
-createRoot(document.getElementById('root')).render(<App/>);
+const ThemedApp=ThemeDecorator({ri:false},App);
+createRoot(document.getElementById('root')).render(<ThemedApp locale="zh-Hans-CN"/>);

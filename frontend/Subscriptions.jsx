@@ -1,7 +1,6 @@
 import React,{useState,useEffect,useRef} from 'react';
 import {call} from './api';
-import {FocusButton,Empty,Loading} from './components';
-import {setFocus} from './vendor/bilitv/hooks/useFocus';
+import {FocusButton,Empty,Loading,TextInput} from './components';
 function stamp(t){return t?new Date(t).toLocaleString('zh-CN',{hour12:false}):'尚未成功更新';}
 export default function Subscriptions({onChanged,notify,chooseOption}){
   const [state,setState]=useState(null),[url,setUrl]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -20,8 +19,7 @@ export default function Subscriptions({onChanged,notify,chooseOption}){
   return <div className="subscriptions-page">
     <p className="subscription-intro">订阅会直接下载到这台电视。默认每小时检查更新，也可随时手动更新。</p>
     <form className="subscription-add" onSubmit={e=>{e.preventDefault();input.current?.blur();run('subscriptionAdd',{url:url.trim()});}}>
-      <input ref={input} value={url} onChange={e=>setUrl(e.target.value)} placeholder="输入 Animeko 订阅地址（HTTP / HTTPS）" onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();e.stopPropagation();e.target.blur();setFocus('content-0-1');}else if(e.key==='Enter'){e.preventDefault();e.stopPropagation();e.target.blur();run('subscriptionAdd',{url:url.trim()});}}}/>
-      <FocusButton id="content-0-0" row={0} col={0} onSelect={()=>input.current?.focus()}>输入地址</FocusButton>
+      <TextInput id="subscription-url" inputRef={input} className="subscription-input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="输入 Animeko 订阅地址（HTTP / HTTPS）" onSubmit={()=>run('subscriptionAdd',{url:url.trim()})}/>
       <FocusButton id="content-0-1" row={0} col={1} className="primary" onSelect={()=>run('subscriptionAdd',{url:url.trim()})}>添加订阅</FocusButton>
       <FocusButton id="content-0-2" row={0} col={2} onSelect={()=>run('subscriptionsUpdate',{force:true})}>全部更新</FocusButton>
     </form>

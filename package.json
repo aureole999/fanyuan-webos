@@ -1,14 +1,20 @@
 {
   "name": "fanyuan-webos",
-  "version": "0.6.6",
+  "version": "0.7.0",
   "private": true,
   "license": "AGPL-3.0",
   "scripts": {
     "test": "node --test test/engine.test.cjs test/transport-node8.test.cjs test/library.test.cjs test/navigation.test.cjs test/subscription.test.cjs test/danmaku.test.cjs test/custom-danmaku.test.cjs",
-    "build": "node build.cjs"
+    "build": "node build.cjs",
+    "test:ui": "node test/enact-ui.cjs"
   },
   "dependencies": {
+    "@enact/core": "4.9.5",
+    "@enact/i18n": "4.9.5",
+    "@enact/sandstone": "2.9.6",
     "@enact/spotlight": "4.9.5",
+    "@enact/ui": "4.9.5",
+    "@enact/webos": "4.9.5",
     "cheerio": "1.0.0-rc.12",
     "react": "18.3.1",
     "react-dom": "18.3.1"
