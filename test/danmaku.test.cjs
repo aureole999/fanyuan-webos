@@ -18,6 +18,26 @@ test('source-specific switches and delay apply before sorted rendering; fixed wi
  const raw=[{id:1,serviceId:'custom:dandan',time:10,mode:'TOP'},{id:2,serviceId:'bilibili',time:9,mode:'NORMAL'}];const r=renderItems(raw,{'custom:dandan':{shift:3},bilibili:{enabled:false}});assert.equal(r.length,1);assert.equal(r[0].time,13);assert.equal(r[0].mode,5);assert.equal(fixedWindow(r,14).length,1);assert.equal(fixedWindow(r,20).length,0);
 });
 
+test('top and bottom fixed comments have independent display slots',()=>{
+ const top={time:1,mode:5,text:'top'},bottom={time:1,mode:4,text:'bottom'};
+ const laterBottom=Array.from({length:5},(_,i)=>({time:1.1+i/10,mode:4,text:'bottom-'+i}));
+ const laterTop=Array.from({length:5},(_,i)=>({time:1.1+i/10,mode:5,text:'top-'+i}));
+ assert.deepEqual(fixedWindow([top,...laterBottom],2,5),[top]);
+ assert.deepEqual(fixedWindow([top,...laterBottom],2,4),laterBottom.slice(-4));
+ assert.deepEqual(fixedWindow([bottom,...laterTop],2,4),[bottom]);
+ assert.deepEqual(fixedWindow([bottom,...laterTop],2,5),laterTop.slice(-4));
+});
+
+test('per-type fixed comments respect track limits and seek-safe visibility boundaries',()=>{
+ const comments=[{time:1,mode:5},{time:2,mode:4},{time:3,mode:5},{time:4,mode:5},{time:6,mode:5}];
+ assert.deepEqual(fixedWindow(comments,4,5,2),comments.slice(2,4));
+ assert.deepEqual(fixedWindow(comments,5,5),comments.slice(2,4));
+ assert.deepEqual(fixedWindow(comments,6,4),[]);
+ assert.deepEqual(fixedWindow(comments,2,5),[comments[0]]);
+ assert.deepEqual(fixedWindow(comments,10,5),[]);
+ assert.deepEqual(fixedWindow(comments,4,5,0),[]);
+});
+
 test('disabled or unconfigured service performs zero metadata or danmaku network calls',async()=>{
  for(const customEnabled of [false,true]){
   let calls=0;const settings={status:()=>({customEnabled}),custom:()=>({})};

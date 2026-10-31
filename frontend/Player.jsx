@@ -89,9 +89,9 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   function button(label,action,icon,extra=''){const index=button._index++;return <FocusButton key={index} id={controlId(panel,index)} group="player" row={index} className={`player-button ${extra}`} onSelect={action}>{icon&&<Icon name={icon} size={23}/>}<span>{label}</span></FocusButton>;}
   button._index=0;
   const dmLayout=computeDanmakuLayout(settings);
-  const fixed=fixedWindow(fixedItems,current-offset).filter(d=>d.mode===5?dmLayout.enableTop:dmLayout.enableBottom);
-  const topFixed=fixed.filter(d=>d.mode===5).slice(0,Math.min(4,dmLayout.trackCount));
-  const bottomFixed=fixed.filter(d=>d.mode===4).slice(0,Math.min(4,dmLayout.trackCount));
+  const fixedLimit=Math.min(4,dmLayout.trackCount);
+  const topFixed=dmLayout.enableTop?fixedWindow(fixedItems,current-offset,5,fixedLimit):[];
+  const bottomFixed=dmLayout.enableBottom?fixedWindow(fixedItems,current-offset,4,fixedLimit):[];
   const fixedStrokeStyle={fontWeight:dmLayout.fontWeight,WebkitTextStroke:dmLayout.strokeWidthPx>0?`${dmLayout.strokeWidthPx}px rgba(0, 0, 0, 0.92)`:'0px transparent',textShadow:dmLayout.textShadow};
   return <section className="player-page" onMouseMove={show}>
     <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{setPaused(false);setMessage('');show();}} onPause={()=>{setPaused(true);save();setControls(true);}} onWaiting={()=>setMessage('正在缓冲…')} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){setMessage(`此线路播放失败（${videoRef.current.error?.code||'未知'}），可切换线路重试`);setControls(true);}}}/>
