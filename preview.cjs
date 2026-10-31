@@ -1,0 +1,3 @@
+const http=require('http'),fs=require('fs'),path=require('path');
+const root=path.join(__dirname,'dist/app');
+http.createServer((req,res)=>{let name;try{name=decodeURIComponent(req.url.split('?')[0]);}catch(e){res.writeHead(400);res.end();return;}if(name==='/')name='/index.html';const file=path.resolve(root,'.'+name);if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}fs.readFile(file,(e,b)=>{if(e){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'image/png');res.end(b);});}).listen(18765,'127.0.0.1',()=>console.log('Preview on http://127.0.0.1:18765'));

@@ -1,0 +1,16 @@
+{
+  "repository": "https://github.com/asdf17128/bili-webos",
+  "ref": "v2.5.1",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 yuanzhan and contributors",
+  "files": {
+    "app/src/player/DanmakuLayer.jsx": "7f886293f3dae3f90a65da2dcd5ce3a67b64eebe",
+    "app/src/components/SidebarItem.jsx": "2b00dc00fee4fa84ee298bedad5afcce01634a1b",
+    "app/src/components/Icon.jsx": "fac8f4ea0a991d9ce655e5a5f5597c857a578a40",
+    "app/src/hooks/useFocus.js": "1153537104c90fac7b9f712c37ce0ce5aa86c38a",
+    "app/src/utils/perf.js": "dc0bab411e3dfc14b407a0be0a57321d4ae10c79"
+  },
+  "localAdaptations": {
+    "hooks/useFocus.js": "Spotlight directional search core, cached DOM geometry, semantic IDs, scoped dialog/player focus, single scroll owner, async recovery, long-press and pointer ownership; BiliTV MIT attribution retained."
+  }
+}

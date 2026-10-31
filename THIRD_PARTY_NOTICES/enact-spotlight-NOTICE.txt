@@ -1,0 +1,9 @@
+Enact Spotlight 4.9.5
+Copyright (c) LG Electronics Inc. and contributors.
+https://github.com/enactjs/enact/tree/4.9.5/packages/spotlight
+Licensed under the Apache License, Version 2.0.
+
+This application bundles the unmodified @enact/spotlight/src/navigate.js
+directional search module. It is called with cached screen rectangles by the
+application's existing focus manager. Spotlight's global event listeners,
+React decorators and Enact UI widgets are not included in the runtime bundle.

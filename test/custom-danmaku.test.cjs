@@ -1,0 +1,120 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const {CustomDanmaku,validateBase,rankAnimes,parseComments}=require('../src/custom-danmaku.cjs');
+const {DanmakuSettings}=require('../src/danmaku-settings.cjs');const {DanmakuService}=require('../src/danmaku.cjs');
+const ctx={subjectId:1,subjectPrimaryName:'测试番',subjectNames:['测试番'],subjectPublishDate:'2023-10-01',episodeId:100,episodeSort:1,episodeEp:1,episodeName:'重逢',episodeNames:['重逢']};
+const anime=(id=1)=>({animeId:id,bangumiId:'platform-show',animeTitle:'测试番(2023)【日番】from youku',source:'youku',startDate:'2023-10-01'});
+function detail(id=11){return {success:true,bangumi:{animeTitle:anime().animeTitle,bangumiId:'platform-show',episodes:[{episodeId:id,episodeNumber:'1',episodeTitle:'【youku】 第1集 重逢'}]}};}
+const comments={count:1,comments:[{cid:7,p:'12.5,1,16777215,u',m:'测试弹幕'}],videoDuration:1500};
+function make(fn){return new CustomDanmaku({config:()=>({url:'https://self.example/prefix',token:'private-token'}),request:async(url,options)=>({text:JSON.stringify(await fn(new URL(url),options))})});}
+function normal(u){if(u.pathname.endsWith('/search/anime'))return {success:true,animes:[anime()]};if(u.pathname.includes('/bangumi/'))return detail();if(u.pathname.includes('/comment/'))return comments;throw Error('unexpected');}
+test('custom server uses its own path Token and explicit JSON format, never official signing credentials',async()=>{
+ const client=make((u,o)=>{assert.ok(u.pathname.startsWith('/prefix/private-token/api/v2/'));assert.equal(o.sameOriginRedirects,true);assert.equal(o.headers,undefined);if(u.pathname.includes('/comment/')){assert.equal(u.searchParams.get('format'),'json');assert.equal(u.searchParams.get('duration'),'true');}return normal(u);});
+ const r=await client.load(ctx);assert.equal(r.items.length,1);assert.equal(r.items[0].serviceId,'custom:youku');assert.equal(r.items[0].time,12.5);assert.equal(r.videoDuration,1500);
+});
+test('title ranking prefers exact current title and original language over unrelated and dubbed seasons',()=>{
+ const rows=[{name:'测试番 普通话(2023)【日番】from youku'},{name:'完全不同(2023)'},{name:'测试番(2023)【日番】from youku'}];assert.deepEqual(rankAnimes(rows,ctx),[rows[2]]);
+});
+test('Conan TV exact title outranks Dandan movies with unspaced source suffixes',()=>{
+ const r={subjectNames:['名侦探柯南'],subjectPrimaryName:'名侦探柯南',subjectPublishDate:'1996-01-08'};
+ const rows=[{name:'名侦探柯南VS怪盗基德(2024)【剧场版】from dandan&bahamut',source:'dandan',date:'2024-01-05'},{name:'名侦探柯南(1996)【动漫】from bahamut',source:'bahamut',date:'1996-01-01'}];
+ assert.equal(rankAnimes(rows,r)[0],rows[1]);
+});
+test('Conan episode labels override consecutive server indices when episodes are missing',async()=>{
+ const tv={animeId:30234,bangumiId:'30234',animeTitle:'名侦探柯南(1996)【动漫】from bahamut',source:'bahamut',startDate:'1996-01-01'},calls=[];
+ const c=make(u=>{calls.push(u.pathname);if(u.pathname.endsWith('/search/anime'))return {animes:[tv]};if(u.pathname.includes('/bangumi/'))return {bangumi:{animeTitle:tv.animeTitle,bangumiId:'30234',episodes:[{episodeId:101,episodeNumber:'720',episodeTitle:'【bahamut】 第764集'},{episodeId:102,episodeNumber:'764',episodeTitle:'【bahamut】 第815集'}]}};if(u.pathname.endsWith('/comment/101'))return comments;throw Error('Wrong episode requested');});
+ const r=await c.load({...ctx,subjectPrimaryName:'名侦探柯南',subjectNames:['名侦探柯南'],subjectPublishDate:'1996-01-08',episodeSort:764,episodeEp:764,episodeName:'柯南与平次 恋爱的暗号（后篇）'});
+ assert.equal(r.episodeId,'101');assert.equal(r.match.episodeName,'【bahamut】 第764集');assert.ok(!calls.some(p=>p.endsWith('/comment/102')));
+ const list=await c.episodeList({query:'名侦探柯南',subjectName:tv.animeTitle,source:'bahamut',sourceKey:'30234'});assert.equal(list[0].selection.episodeNumber,'764');
+});
+test('expired details trigger a new search and use regenerated IDs',async()=>{
+ let searches=0;const ids=[];const c=make(u=>{if(u.pathname.endsWith('/search/anime'))return {animes:[anime(++searches)]};if(u.pathname.endsWith('/bangumi/1')){const e=Error('源站返回 HTTP 404');throw e;}if(u.pathname.includes('/bangumi/'))return detail(99);if(u.pathname.includes('/comment/')){ids.push(u.pathname.split('/').pop());return comments;}});
+ const r=await c.load(ctx);assert.equal(searches,2);assert.deepEqual(ids,['99']);assert.equal(r.items.length,1);
+});
+test('a recycled 200-detail ID for a different show is rejected and resolved again',async()=>{
+ let count=0;const c=make(u=>{if(u.pathname.endsWith('/search/anime'))return {animes:[anime(++count)]};if(u.pathname.endsWith('/bangumi/1'))return {bangumi:{animeTitle:'另一部番',episodes:[]}};if(u.pathname.includes('/bangumi/'))return detail(55);return comments;});
+ assert.equal((await c.load(ctx)).episodeId,'55');assert.equal(count,2);
+});
+test('manual matching persists platform identity and episode number, never reuses saved transient IDs',async()=>{
+ const c=make(u=>u.pathname.endsWith('/search/anime')?{animes:[anime(909)]}:u.pathname.includes('/bangumi/')?detail(888):comments);
+ const selection={query:'测试番',subjectName:anime().animeTitle,source:'youku',sourceKey:'platform-show',episodeNumber:'1',episodeName:'重逢',id:'expired'};
+ const r=await c.load(ctx,selection);assert.equal(r.episodeId,'888');assert.equal(r.match.method,'manual');
+});
+test('auth and rate-limit errors are actionable, non-retryable, and never echo Token-bearing URLs',async()=>{
+ for(const status of [401,403,429]){let calls=0;const c=make(u=>{calls++;throw Error('源站返回 HTTP '+status+' '+u.href);});await assert.rejects(c.load(ctx),e=>e.statusCode===status&&e.noRetry&&!e.message.includes('private-token'));assert.equal(calls,1);}
+});
+test('transient comment 404 re-resolves IDs, while repeated successful loads reuse comment data',async()=>{
+ let searches=0,requests=0;const c=make(u=>{if(u.pathname.endsWith('/search/anime'))return {animes:[anime(++searches)]};if(u.pathname.includes('/bangumi/'))return detail(searches*10);if(u.pathname.includes('/comment/')){requests++;if(requests===1)throw Error('源站返回 HTTP 404');return comments;}});
+ assert.equal((await c.load(ctx)).items.length,1);assert.equal(requests,2);await c.load(ctx);assert.equal(requests,2);
+});
+test('manual source and episode listing is usable after server cache resets',async()=>{
+ const c=make(normal),sources=await c.search('测试番'),list=await c.episodeList({query:'测试番',subjectName:sources[0].name,source:sources[0].source,sourceKey:sources[0].sourceKey});
+ assert.equal(list[0].selection.episodeNumber,'1');assert.equal(list[0].selection.subjectName,anime().animeTitle);assert.equal(list[0].episodeName,'重逢');assert.equal(list[0].selection.id,undefined);
+});
+test('custom comment IDs are namespaced; malformed comments are dropped without corrupting modes',()=>{
+ const data={comments:[{cid:1,p:'1,5,255,[BiliBili]u',m:'顶'},{cid:1,p:'2,4,16711680,u',m:'底'},{cid:1,p:'2,4,16711680,u',m:'底'},{cid:5,p:'bad,1,1,u',m:'坏'}]};const r=parseComments(data,'youku');assert.equal(r.length,2);assert.equal(r[0].mode,'TOP');assert.equal(r[1].mode,'BOTTOM');assert.notEqual(r[0].id,r[1].id);
+});
+test('custom config migrates old settings, preserves Token on blank entry, and never exposes it in public status',async t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fanyuan-custom-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));fs.writeFileSync(path.join(dir,'danmaku-settings.json'),JSON.stringify({appId:'',appSecret:'',animeko:true,dandanplay:true}));
+ const s=new DanmakuSettings(dir);await s.init();await s.configure({customUrl:'https://self.example/',customToken:'secret-to-keep',customEnabled:true});await s.configure({customToken:''});
+ const reload=new DanmakuSettings(dir);await reload.init();assert.equal(reload.custom().token,'secret-to-keep');assert.equal(reload.status().customUrl,'https://self.example');assert.equal(reload.status().customEnabled,true);assert.ok(!JSON.stringify(reload.status()).includes('secret-to-keep'));await reload.configure({clearCustomToken:true});assert.equal(reload.status().hasCustomToken,false);
+ assert.throws(()=>validateBase('https://username:password@self.example/'));assert.throws(()=>validateBase('https://self.example/?token=abc'));
+});
+test('custom provider works by source title when Bangumi fails, with no independent provider requests',async()=>{
+ const settings={status:()=>({animeko:true,dandanplay:false,customEnabled:true}),credentials:()=>({}),custom:()=>({url:'https://self.example',token:'t'})};
+ const s=new DanmakuService({settings,request:async url=>{const u=new URL(url);if(u.hostname==='self.example')return {text:JSON.stringify(normal(u))};throw Error('Bangumi offline');}});
+ const r=await s.load({subject:{name:'测试番'},sort:1});assert.equal(r.providers.find(p=>p.id==='custom').status,'ok');assert.equal(r.items.length,1);
+});
+
+function platformAnime(source,id){return {...anime(id),source,bangumiId:source+'-show',animeTitle:'测试番(2023)【日番】from '+source};}
+function platformDetail(source,id){return {bangumi:{animeTitle:platformAnime(source,1).animeTitle,bangumiId:source+'-show',episodes:[{episodeId:id,episodeNumber:'1',episodeTitle:'第1话 重逢'}]}};}
+test('automatic matching prefers Dandanplay over earlier populated platform results',async()=>{
+ const calls=[];const c=make(u=>{calls.push(u.pathname);if(u.pathname.endsWith('/search/anime'))return {animes:[platformAnime('renren',1),platformAnime('dandan',2)]};if(u.pathname.endsWith('/bangumi/2'))return platformDetail('dandan',22);if(u.pathname.endsWith('/comment/22'))return comments;throw Error('Dandanplay should win');});
+ const r=await c.load(ctx);assert.equal(r.episodeId,'22');assert.equal(r.items[0].serviceId,'custom:dandan');assert.ok(!calls.some(p=>p.endsWith('/bangumi/1')));
+});
+test('empty or missing Dandanplay episodes fall back to another matching platform',async()=>{
+ for(const missing of [false,true]){
+  const c=make(u=>{if(u.pathname.endsWith('/search/anime'))return {animes:[platformAnime('renren',1),platformAnime('dandan',2)]};if(u.pathname.endsWith('/bangumi/2'))return missing?{bangumi:{...platformDetail('dandan',22).bangumi,episodes:[]}}:platformDetail('dandan',22);if(u.pathname.endsWith('/comment/22'))return {comments:[]};if(u.pathname.endsWith('/bangumi/1'))return platformDetail('renren',11);if(u.pathname.endsWith('/comment/11'))return comments;throw Error('unexpected');});
+  assert.equal((await c.load(ctx)).items[0].serviceId,'custom:renren');
+ }
+});
+test('explicit manual platform selection overrides automatic Dandanplay preference',async()=>{
+ const c=make(u=>u.pathname.endsWith('/search/anime')?{animes:[platformAnime('renren',1),platformAnime('dandan',2)]}:u.pathname.endsWith('/bangumi/1')?platformDetail('renren',11):comments);
+ const choice={query:'测试番',subjectName:platformAnime('renren',1).animeTitle,source:'renren',sourceKey:'renren-show',episodeNumber:'1',episodeName:'重逢'};
+ const r=await c.load(ctx,choice);assert.equal(r.match.method,'manual');assert.equal(r.items[0].serviceId,'custom:renren');
+});
+test('service only returns the custom provider and never contacts removed danmaku endpoints',async()=>{
+ const hosts=[];const settings={status:()=>({customEnabled:true,animeko:true,dandanplay:true}),custom:()=>({url:'https://self.example',token:'t'})};
+ const s=new DanmakuService({settings,request:async url=>{const u=new URL(url);hosts.push(u.hostname);if(u.hostname==='self.example')return {text:JSON.stringify(normal(u))};if(u.hostname==='api.bgm.tv')return {text:JSON.stringify({data:[{id:100,sort:1,ep:1,name_cn:'重逢'}],total:1})};throw Error('removed provider requested');}});
+ const r=await s.load({subjectId:1,sort:1,subject:{name:'测试番'}});assert.deepEqual(r.providers.map(x=>x.id),['custom']);assert.equal(r.items.length,1);assert.ok(hosts.every(h=>['self.example','api.bgm.tv'].includes(h)));
+});
+
+test('manual numeric episode identity survives leading zeros and blank titles never pick the wrong single episode',async()=>{
+ const c=make(u=>u.pathname.endsWith('/search/anime')?{animes:[anime()]}:u.pathname.includes('/bangumi/')?{bangumi:{...detail().bangumi,episodes:[{episodeId:31,episodeNumber:'1',episodeTitle:'【youku】 第03集'}]}}:comments);
+ const selection={query:'测试番',subjectName:anime().animeTitle,source:'youku',sourceKey:'platform-show',episodeNumber:'3',episodeName:''};
+ assert.equal((await c.load(ctx,selection)).episodeId,'31');await assert.rejects(c.load(ctx,{...selection,episodeNumber:'4'}),/剧集已变化/);
+});
+test('automatic matching rejects another season/part even when its title contains the expected name',()=>{
+ const r={...ctx,subjectNames:['测试番 第三季'],subjectPrimaryName:'测试番 第三季'};
+ const rows=[{name:'测试番 第三季 第2部分(未知)【TV动画】from dandan',source:'dandan'},{name:'测试番(2023)【TV动画】from dandan',source:'dandan'},{name:'测试番 第三季(2023)【动画】from renren',source:'renren'}];
+ assert.deepEqual(rankAnimes(rows,r),[rows[2]]);
+});
+test('searches declared aliases for preferred Dandanplay before accepting another platform',async()=>{
+ const queries=[];const c=make(u=>{if(u.pathname.endsWith('/search/anime')){const q=u.searchParams.get('keyword');queries.push(q);return {animes:[platformAnime(q==='Test alternate'?'dandan':'renren',q==='Test alternate'?2:1)]};}if(u.pathname.endsWith('/bangumi/2'))return platformDetail('dandan',22);if(u.pathname.endsWith('/comment/22'))return comments;throw Error('Should choose Dandanplay found via alias');});
+ const r=await c.load({...ctx,subjectNames:['测试番','Test alternate']});assert.equal(r.episodeId,'22');assert.deepEqual(queries,['测试番','Test alternate']);
+ assert.ok(!JSON.stringify(c.diagnostics()).includes('private-token'));
+});
+
+test('season numerals and explicit Chinese season labels share identity while part markers remain distinct',()=>{
+ const r={...ctx,subjectPrimaryName:'测试番 第二季 ～副标题～ 第2部分',subjectNames:['测试番 第二季 ～副标题～ 第2部分']};
+ const rows=[{name:'测试番Ⅱ ～副标题～ 第二部分(2024)【TV动画】from dandan',source:'dandan'},{name:'测试番Ⅲ ～副标题～ 第二部分(2024)【TV动画】from dandan',source:'dandan'},{name:'测试番Ⅱ ～副标题～(2024)【TV动画】from dandan',source:'dandan'}];assert.deepEqual(rankAnimes(rows,r),[rows[0]]);
+});
+test('service special/opening labels do not inflate main-episode counts or acquire numeric fallback identities',async()=>{
+ const c=make(u=>u.pathname.endsWith('/search/anime')?{animes:[anime()]}:{bangumi:{...detail().bangumi,episodes:[{episodeId:1,episodeNumber:'1',episodeTitle:'【youku】 第1话 正片'},{episodeId:2,episodeNumber:'2',episodeTitle:'【youku】 S1 番外編 特别故事'},{episodeId:3,episodeNumber:'3',episodeTitle:'【youku】 C1 Ending'}]}});
+ const list=await c.episodeList({query:'测试番',subjectName:anime().animeTitle,source:'youku',sourceKey:'platform-show'});assert.equal(list[0].number,'1');assert.equal(list[1].number,null);assert.equal(list[1].episodeName,'特别故事');assert.equal(list[2].number,null);assert.equal(list[2].episodeName,'Ending');
+});
+
+test('subtitle-free fallback query still validates the complete declared subject name',async()=>{
+ const name='测试番 ～长副标题～',queries=[];const a={...anime(),animeTitle:name+'(2023)【TV动画】from youku'};
+ const c=make(u=>{if(u.pathname.endsWith('/search/anime')){const q=u.searchParams.get('keyword');queries.push(q);if(q===name)throw Error('HTTP 503');return {animes:[a]};}if(u.pathname.includes('/bangumi/'))return {bangumi:{...detail().bangumi,animeTitle:a.animeTitle}};return comments;});
+ assert.equal((await c.load({...ctx,subjectPrimaryName:name,subjectNames:[name]})).items.length,1);assert.deepEqual(queries,[name,'测试番']);
+});
