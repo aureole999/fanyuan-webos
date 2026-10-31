@@ -31,14 +31,14 @@ npm run build
 ares-package dist/app dist/service -o .
 ```
 
-打包完成后会在当前目录生成 `com.local.animesources_0.6.5_all.ipk`。
+打包完成后会在当前目录生成 `com.local.animesources_0.6.6_all.ipk`。
 
 ### 2. 安装到电视
 
 确保电视已开启 Developer Mode 并通过 `ares-setup-device` 配置好设备名（如 `YOUR_TV`）：
 
 ```sh
-ares-install --device YOUR_TV com.local.animesources_0.6.5_all.ipk
+ares-install --device YOUR_TV com.local.animesources_0.6.6_all.ipk
 ares-launch --device YOUR_TV com.local.animesources
 ```
 
