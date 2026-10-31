@@ -21,7 +21,7 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await browser('open',process.env.FANYUAN_UI_URL||'http://127.0.0.1:'+server.address().port);
   await browser('set','viewport','1920','1080');await connect();await wait('!!window.__fanYuan');
   await wait('document.activeElement.dataset.focusId==="sidebar-home"');
-  assert.equal(await evaluate('document.querySelector(".poster-control").getBoundingClientRect().height'),244);
+  assert.equal(await evaluate('document.querySelector(".poster-art").getBoundingClientRect().height'),244);
   await key('ArrowDown');assert.equal(await evaluate('document.activeElement.dataset.focusId'),'sidebar-search');await key('ArrowRight');await wait('document.activeElement.dataset.focusId==="content-0-0"');
   console.log("UI: settings and popup");await page('settings');await wait('window.__focusState().current==="content-1-0"');
   await key('ArrowDown');await key('Enter');await wait('!!window.__fanYuan.state.dialog');

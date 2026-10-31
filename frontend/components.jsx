@@ -4,7 +4,7 @@ import Item from '@enact/sandstone/Item';
 import ImageItem from '@enact/sandstone/ImageItem';
 import SandstoneIcon from '@enact/sandstone/Icon';
 import InputField from '@enact/sandstone/Input/InputField';
-import Scroller,{ContentContainerDecorator} from '@enact/sandstone/Scroller';
+import Scroller from '@enact/sandstone/Scroller';
 import Spinner from '@enact/sandstone/Spinner';
 import ProgressBar from '@enact/sandstone/ProgressBar';
 import Slider from '@enact/sandstone/Slider';
@@ -14,8 +14,6 @@ import {useFocusable} from './focus';
 import {remoteKey} from './navigation.cjs';
 
 export const FocusContainer=SpotlightContainerDecorator('div');
-export const ScrollTarget=ContentContainerDecorator('div');
-const PosterArticle=ContentContainerDecorator('article');
 const ICONS={settings:'gear',tv:'tvguidefvp',home:'home',history:'timer',book:'list',remix:'repeatall',refresh:'refresh',live:'play',chat:'subtitle',search:'search',star:'star',play:'play',pause:'pause',arrow:'arrowlargeright',close:'closex',check:'check'};
 export function Icon({name,size=32,className=''}){return <SandstoneIcon className={('fy-icon '+className).trim()} style={{fontSize:size,width:size,height:size,lineHeight:size+'px'}}>{ICONS[name]||name}</SandstoneIcon>;}
 export function TextInput({id,inputRef,value,onChange,onSubmit,placeholder,type='text',className='',ariaLabel}){
@@ -42,14 +40,14 @@ const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://w
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
  const {props}=useFocusable({id:`content-${row}-${col}`,row,col,onSelect});
  const label=actionLabel||(subject.date?subject.date.slice(0,4)+' · ':'')+(subject.episodeCount?'全 '+subject.episodeCount+' 集':subject.originalName||'查看剧集');
- return <PosterArticle className="poster-entry"><ImageItem {...props} className="poster-control" role="button" orientation="vertical" src={subject.cover?coverThumbnail(subject.cover):placeholder} placeholder={placeholder} aria-label={subject.name} css={{image:'poster-art'}}/>
+ return <article className="poster-entry"><ImageItem {...props} className="poster-control" role="button" orientation="vertical" src={subject.cover?coverThumbnail(subject.cover):placeholder} placeholder={placeholder} aria-label={subject.name} css={{image:'poster-art'}}/>
   <div className="poster-hover"><span className="poster-play-badge"><Icon name="play" size={26}/></span></div>
   <div className="poster-body"><strong>{subject.name}</strong><small>{label}</small></div>{subject.score>0&&<span className="score-badge">★ {Number(subject.score).toFixed(1)}</span>}{progress?.position>0&&<ProgressBar className="card-progress" css={{fill:'progress-fill'}} progress={Math.min(1,progress.position/progress.duration)}/>}
- </PosterArticle>;
+ </article>;
 }
 export function TextCard({subject,row,col,onSelect}){return <FocusButton id={`content-${row}-${col}`} row={row} col={col} onSelect={onSelect} className="source-result" slotBefore={<span className="source-result-icon"><Icon name="tv" size={30}/></span>} slotAfter={<Icon name="arrow" size={24}/>} label="查看线路与剧集">{subject.name}</FocusButton>;}
 export function ContentScroller({apiRef,children,className='content-scroller',spotlightId,...rest}){
- return <Scroller {...rest} spotlightId={spotlightId} className={className} direction="vertical" horizontalScrollbar="hidden" focusableScrollbar={false} scrollToContentContainerOnFocus cbScrollTo={fn=>{if(apiRef)apiRef.current={set scrollTop(y){fn({y,animate:false});}};}}>{children}</Scroller>;
+ return <Scroller {...rest} spotlightId={spotlightId} className={className} direction="vertical" horizontalScrollbar="hidden" focusableScrollbar={false} cbScrollTo={fn=>{if(apiRef)apiRef.current={set scrollTop(y){fn({y,animate:false});}};}}>{children}</Scroller>;
 }
 export function PlaybackSlider({id,value,max,onChange}){const {props}=useFocusable({id,group:'player'});return <Slider {...props} className="player-progress" css={{fill:'slider-fill',bar:'slider-bar',knob:'slider-knob'}} value={Math.min(value,max||0)} min={0} max={max||1} step={10} onChange={e=>onChange(e.value)} aria-label="播放进度"/>;}
 export function Empty({title,children}){return <div className="empty-state"><Icon name="tv" size={64}/><h2>{title}</h2><p>{children}</p></div>;}
