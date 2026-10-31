@@ -15,7 +15,7 @@ import {remoteKey} from './navigation.cjs';
 
 export const FocusContainer=SpotlightContainerDecorator('div');
 const ICONS={settings:'gear',tv:'tvguidefvp',home:'home',history:'timer',book:'list',remix:'repeatall',refresh:'refresh',live:'play',chat:'subtitle',search:'search',star:'star',play:'play',pause:'pause',arrow:'arrowlargeright',close:'closex',check:'check'};
-export function Icon({name,size=32,className=''}){return <SandstoneIcon className={className} style={{fontSize:size,width:size,height:size,lineHeight:size+'px'}}>{ICONS[name]||name}</SandstoneIcon>;}
+export function Icon({name,size=32,className=''}){return <SandstoneIcon className={('fy-icon '+className).trim()} style={{fontSize:size,width:size,height:size,lineHeight:size+'px'}}>{ICONS[name]||name}</SandstoneIcon>;}
 export function TextInput({id,inputRef,value,onChange,onSubmit,placeholder,type='text',className='',ariaLabel}){
  const {props}=useFocusable({id});
  const submit=useRef(false);
@@ -32,18 +32,20 @@ export function FocusSearchInput(props){return <TextInput {...props} className="
 export function FocusButton({id,row=0,col=0,group='content',onSelect,onNavigate,onLongPress,recoveryPriority=0,className='',children,disabled=false,...rest}){
  const {props}=useFocusable({id,row,col,group,onSelect,onNavigate,onLongPress,recoveryPriority,disabled});
  const list=/\b(settings-row|dialog-option|source-result)\b/.test(className);
+ const isSettingsRow=/\bsettings-row\b/.test(className);
  const Control=list?Item:Button;
- return <Control {...props} {...rest} css={{bg:'control-bg',client:'control-client',content:'control-content',label:'control-label',slotAfter:'control-after'}} role="button" disabled={disabled} className={'fy-button '+(list?'fy-item ':'')+className} minWidth={list?undefined:false} selected={className.split(' ').includes('active')} labelPosition={list?'below':undefined}>{children}</Control>;
+ return <Control {...props} {...rest} css={{bg:'control-bg',client:'control-client',itemContent:'control-item-content',content:'control-content',label:'control-label',slotBefore:'control-before',slotAfter:'control-after'}} role="button" disabled={disabled} className={'fy-button '+(list?'fy-item ':'')+className} minWidth={list?undefined:false} selected={className.split(' ').includes('active')} labelPosition={list?(isSettingsRow?'after':'below'):undefined}>{children}</Control>;
 }
 const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420"><rect width="300" height="420" fill="#252525"/><path d="M105 160L205 210L105 260Z" fill="#888"/></svg>');
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
  const {props}=useFocusable({id:`content-${row}-${col}`,row,col,onSelect});
  const label=actionLabel||(subject.date?subject.date.slice(0,4)+' · ':'')+(subject.episodeCount?'全 '+subject.episodeCount+' 集':subject.originalName||'查看剧集');
  return <article className="poster-entry"><ImageItem {...props} className="poster-control" role="button" orientation="vertical" src={subject.cover?coverThumbnail(subject.cover):placeholder} placeholder={placeholder} aria-label={subject.name} css={{image:'poster-art'}}/>
+  <div className="poster-hover"><span className="poster-play-badge"><Icon name="play" size={26}/></span></div>
   <div className="poster-body"><strong>{subject.name}</strong><small>{label}</small></div>{subject.score>0&&<span className="score-badge">★ {Number(subject.score).toFixed(1)}</span>}{progress?.position>0&&<ProgressBar className="card-progress" css={{fill:'progress-fill'}} progress={Math.min(1,progress.position/progress.duration)}/>}
  </article>;
 }
-export function TextCard({subject,row,col,onSelect}){return <FocusButton id={`content-${row}-${col}`} row={row} col={col} onSelect={onSelect} className="source-result" slotBefore={<Icon name="tv"/>} label="查看线路与剧集">{subject.name}</FocusButton>;}
+export function TextCard({subject,row,col,onSelect}){return <FocusButton id={`content-${row}-${col}`} row={row} col={col} onSelect={onSelect} className="source-result" slotBefore={<span className="source-result-icon"><Icon name="tv" size={30}/></span>} slotAfter={<Icon name="arrow" size={24}/>} label="查看线路与剧集">{subject.name}</FocusButton>;}
 export function ContentScroller({apiRef,children,className='content-scroller',spotlightId,...rest}){
  return <Scroller {...rest} spotlightId={spotlightId} className={className} direction="vertical" horizontalScrollbar="hidden" focusableScrollbar={false} cbScrollTo={fn=>{if(apiRef)apiRef.current={set scrollTop(y){fn({y,animate:false});}};}}>{children}</Scroller>;
 }

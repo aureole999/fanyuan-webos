@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test test/engine.test.cjs test/transport-node8.test.cjs test/library.test.cjs test/navigation.test.cjs test/subscription.test.cjs test/danmaku.test.cjs test/custom-danmaku.test.cjs",
     "build": "node build.cjs",
-    "test:ui": "node test/enact-ui.cjs"
+    "test:ui": "node --experimental-websocket test/enact-ui.cjs"
   },
   "dependencies": {
     "@enact/core": "4.9.5",
