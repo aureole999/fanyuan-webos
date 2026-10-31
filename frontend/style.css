@@ -71,7 +71,6 @@ html, body, #root {
   outline: none;
   font-family: 'LG Smart UI SC', 'LG Smart UI', sans-serif;
   --button-height: 56px;
-  transition: color 0.16s ease;
 }
 
 #root .fy-button .control-client {
@@ -81,11 +80,10 @@ html, body, #root {
 
 #root .fy-button .control-bg {
   opacity: 1;
-  background: var(--sand-component-bg-color);
+  background-color: var(--sand-component-bg-color);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: inherit;
   box-shadow: none;
-  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.18s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s ease;
 }
 
 #root .fy-button:disabled {
@@ -99,9 +97,9 @@ html, body, #root {
 
 #root .fy-button:focus .control-bg {
   opacity: 1;
-  background: linear-gradient(135deg, #5c384b 0%, #462b3a 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.36);
-  box-shadow: var(--focus-shadow);
+  box-shadow: none;
 }
 
 #root .fy-button.primary {
@@ -110,9 +108,9 @@ html, body, #root {
 }
 
 #root .fy-button.primary .control-bg {
-  background: linear-gradient(135deg, #f986ae 0%, #f06897 100%);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 6px 20px rgba(247, 123, 166, 0.24);
+  background-color: #f478a3;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 #root .fy-button.primary:focus {
@@ -120,20 +118,20 @@ html, body, #root {
 }
 
 #root .fy-button.primary:focus .control-bg {
-  background: linear-gradient(135deg, #ffadc9 0%, #f67da7 100%);
-  border-color: rgba(255, 210, 226, 0.42);
-  box-shadow: 0 14px 32px rgba(247, 123, 166, 0.38);
+  background-color: #ff98bc;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 #root .fy-button.quiet .control-bg {
-  background: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.12);
 }
 
 #root .fy-button.quiet:focus .control-bg {
-  background: rgba(247, 123, 166, 0.28);
-  border-color: rgba(247, 123, 166, 0.42);
-  box-shadow: var(--focus-shadow);
+  background-color: var(--sand-focus-bg-color);
+  border-color: rgba(247, 123, 166, 0.38);
+  box-shadow: none;
 }
 
 #root .fy-button.active {
@@ -141,7 +139,7 @@ html, body, #root {
 }
 
 #root .fy-button.active .control-bg {
-  background: rgba(247, 123, 166, 0.2);
+  background-color: rgba(247, 123, 166, 0.2);
   border-color: rgba(247, 123, 166, 0.55);
 }
 
@@ -150,9 +148,9 @@ html, body, #root {
 }
 
 #root .fy-button.active:focus .control-bg {
-  background: linear-gradient(135deg, #683b53 0%, #502e41 100%);
+  background-color: #63394f;
   border-color: rgba(247, 123, 166, 0.55);
-  box-shadow: var(--focus-shadow);
+  box-shadow: none;
 }
 
 input {
@@ -220,21 +218,17 @@ input::placeholder {
 
 #root .page-stage {
   padding: 12px 12px 64px;
-  animation: page-enter 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #root .tab-stage {
-  animation: tab-enter 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  display: block;
 }
 
 #root .app-shell {
   width: 1920px;
   height: 1080px;
   display: flex;
-  background:
-    radial-gradient(1100px 540px at 16% -6%, rgba(247, 123, 166, 0.08), transparent 70%),
-    radial-gradient(900px 500px at 92% 6%, rgba(126, 114, 232, 0.06), transparent 70%),
-    var(--bg);
+  background: var(--bg);
 }
 
 #root .sidebar {
@@ -243,18 +237,17 @@ input::placeholder {
   top: 0;
   height: 1080px;
   width: 112px;
-  background: linear-gradient(180deg, #171920 0%, #12141a 100%);
+  background: #15171e;
   border-right: 1px solid rgba(255, 255, 255, 0.07);
   z-index: 30;
   padding-top: 30px;
   overflow: hidden;
-  transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, background-color 0.22s ease;
 }
 
 #root .sidebar[data-expanded=true] {
   width: 312px;
-  background: linear-gradient(180deg, #1b1d25 0%, #14161d 100%);
-  box-shadow: 28px 0 80px rgba(0, 0, 0, 0.65);
+  background: #181a22;
+  box-shadow: 12px 0 32px rgba(0, 0, 0, 0.5);
 }
 
 #root .sidebar-brand {
@@ -325,9 +318,8 @@ input::placeholder {
 #root .sidebar-item .sidebar-bg {
   opacity: 0;
   border-radius: inherit;
-  background: transparent;
+  background-color: transparent;
   box-shadow: none;
-  transition: opacity 0.16s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.16s ease, box-shadow 0.18s ease;
 }
 
 #root .sidebar-item .sidebar-icon {
@@ -345,26 +337,23 @@ input::placeholder {
   font-weight: 500;
   opacity: 0;
   visibility: hidden;
-  transform: translateX(-6px);
-  transition: opacity 0.16s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #root .sidebar[data-expanded=true] .sidebar-label {
   opacity: 1;
   visibility: visible;
-  transform: translateX(0);
 }
 
-#root .sidebar-item.active:not(:focus) {
+#root .sidebar:not(:focus-within) .sidebar-item.active {
   color: #ffacc8;
 }
 
-#root .sidebar-item.active:not(:focus) .sidebar-bg {
+#root .sidebar:not(:focus-within) .sidebar-item.active .sidebar-bg {
   opacity: 1;
-  background: rgba(247, 123, 166, 0.14);
+  background-color: rgba(247, 123, 166, 0.14);
 }
 
-#root .sidebar-item.active::before {
+#root .sidebar:not(:focus-within) .sidebar-item.active::before {
   content: '';
   position: absolute;
   left: -18px;
@@ -373,7 +362,6 @@ input::placeholder {
   width: 5px;
   background: var(--accent);
   border-radius: 0 999px 999px 0;
-  box-shadow: 0 0 12px rgba(247, 123, 166, 0.6);
 }
 
 #root .sidebar-item:focus {
@@ -383,9 +371,8 @@ input::placeholder {
 
 #root .sidebar-item:focus .sidebar-bg {
   opacity: 1;
-  background: linear-gradient(135deg, #ffa2c3 0%, #f06b99 100%);
-  box-shadow: 0 12px 26px rgba(247, 123, 166, 0.36);
-  transform: scale(1.04);
+  background-color: #f478a3;
+  box-shadow: none;
 }
 
 #root .sidebar-foot {
@@ -466,15 +453,15 @@ input::placeholder {
 }
 
 #root .source-picker .control-bg {
-  background: rgba(32, 35, 44, 0.88);
+  background-color: #20232c;
   border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  box-shadow: none;
 }
 
 #root .source-picker:focus .control-bg {
-  background: linear-gradient(135deg, #5c384b 0%, #462b3a 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.38);
-  box-shadow: var(--focus-shadow);
+  box-shadow: none;
 }
 
 #root .source-picker .chevron-down {
@@ -532,11 +519,8 @@ input::placeholder {
   margin: 0 0 34px;
   padding: 28px 34px;
   border-radius: 22px;
-  background:
-    radial-gradient(520px 220px at 0% 0%, rgba(247, 123, 166, 0.16), transparent 70%),
-    linear-gradient(135deg, #211d29 0%, #191c24 60%, #161820 100%);
+  background: #1c1924;
   border: 1px solid rgba(247, 123, 166, 0.18);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
 }
 
 #root .home-intro-copy h2 {
@@ -604,24 +588,19 @@ input::placeholder {
 #root .poster-entry {
   position: relative;
   min-width: 0;
-  background: linear-gradient(180deg, #1d2028 0%, #171920 100%);
+  background-color: #1a1d24;
   border: 1px solid rgba(255, 255, 255, 0.07);
   padding: 0;
   text-align: left;
   overflow: hidden;
   border-radius: 18px;
   display: block;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.26);
-  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.16s ease, background-color 0.16s ease;
 }
 
 #root .poster-entry:focus-within {
   outline: none;
-  background: linear-gradient(180deg, #4b3141 0%, #34232f 100%);
-  border-color: rgba(247, 123, 166, 0.38);
-  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.5);
-  transform: scale(1.04);
-  z-index: 2;
+  background-color: #462e3d;
+  border-color: rgba(247, 123, 166, 0.42);
 }
 
 #root .poster-entry .poster-control {
@@ -669,8 +648,11 @@ input::placeholder {
   flex-basis: 216px;
 }
 
+#root .poster-entry .poster-control::before {
+  display: none;
+}
+
 #root .poster-entry .poster-control:focus .poster-art {
-  transform: scale(1.045);
   box-shadow: none;
 }
 
@@ -702,10 +684,9 @@ input::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(12, 13, 18, 0.3);
+  background: rgba(12, 13, 18, 0.28);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.18s ease;
 }
 
 #root .cols-3 .poster-hover {
@@ -720,22 +701,15 @@ input::placeholder {
   width: 62px;
   height: 62px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff96bc 0%, #f06796 100%);
+  background-color: #f478a3;
   color: #1c0f15;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(255, 255, 255, 0.25);
-  transform: scale(0.82);
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #root .poster-entry:focus-within .poster-hover {
   opacity: 1;
-}
-
-#root .poster-entry:focus-within .poster-play-badge {
-  transform: scale(1);
 }
 
 #root .poster-body {
@@ -830,11 +804,10 @@ input::placeholder {
 
 #root .fy-input .input-bg {
   opacity: 1;
-  background: #1f222b;
+  background-color: #1f222b;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: inherit;
   box-shadow: none;
-  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #root .fy-input .input-text {
@@ -860,10 +833,9 @@ input::placeholder {
 #root .fy-input:focus .input-bg,
 #root .fy-input:focus-within .input-bg {
   opacity: 1;
-  background: #3d2a37;
+  background-color: #3d2a37;
   border-color: rgba(247, 123, 166, 0.42);
-  box-shadow: var(--focus-shadow);
-  transform: scale(1.012);
+  box-shadow: none;
 }
 
 #root .fy-input .input-text::placeholder {
@@ -910,7 +882,7 @@ input::placeholder {
 }
 
 #root .search-history .fy-button:focus .control-bg {
-  background: linear-gradient(135deg, #5c384b 0%, #462b3a 100%);
+  background-color: var(--sand-focus-bg-color);
 }
 
 #root .fy-item {
@@ -955,16 +927,15 @@ input::placeholder {
 }
 
 #root .source-result .control-bg {
-  background: linear-gradient(135deg, #25212e 0%, #1b1e26 100%);
+  background-color: #201e28;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+  box-shadow: none;
 }
 
 #root .source-result:focus .control-bg {
-  background: linear-gradient(135deg, #5c384b 0%, #432938 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.38);
-  box-shadow: var(--focus-shadow);
-  transform: scale(1.025);
+  box-shadow: none;
 }
 
 #root .source-result .control-before {
@@ -975,11 +946,9 @@ input::placeholder {
   margin-left: auto;
   padding-left: 16px;
   color: #989ead;
-  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), color 0.16s ease;
 }
 
 #root .source-result:focus .control-after {
-  transform: translateX(4px);
   color: #fff;
 }
 
@@ -1023,9 +992,9 @@ input::placeholder {
 
 #root .day-tabs .fy-button:focus .control-bg,
 #root .filter-tabs .fy-button:focus .control-bg {
-  background: linear-gradient(135deg, #5c384b 0%, #462b3a 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.36);
-  box-shadow: var(--focus-shadow);
+  box-shadow: none;
 }
 
 #root .day-tabs .fy-button.active,
@@ -1038,9 +1007,9 @@ input::placeholder {
 #root .day-tabs .fy-button.active .control-bg,
 #root .filter-tabs .fy-button.active .control-bg,
 #root .channel-tabs .fy-button.active .control-bg {
-  background: linear-gradient(135deg, #f986ae 0%, #ee6796 100%);
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 6px 18px rgba(247, 123, 166, 0.25);
+  background-color: #f478a3;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 #root .day-tabs .fy-button.active:focus,
@@ -1052,9 +1021,9 @@ input::placeholder {
 #root .day-tabs .fy-button.active:focus .control-bg,
 #root .filter-tabs .fy-button.active:focus .control-bg,
 #root .channel-tabs .fy-button.active:focus .control-bg {
-  background: linear-gradient(135deg, #ffadc9 0%, #f67da7 100%);
-  border-color: rgba(255, 210, 226, 0.42);
-  box-shadow: 0 14px 32px rgba(247, 123, 166, 0.38);
+  background-color: #ff98bc;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 #root .day-tabs small {
@@ -1077,9 +1046,9 @@ input::placeholder {
 }
 
 #root .channel-tabs .fy-button:focus .control-bg {
-  background: linear-gradient(135deg, #5c384b 0%, #462b3a 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.36);
-  box-shadow: var(--focus-shadow);
+  box-shadow: none;
 }
 
 #root .channel-tabs small {
@@ -1094,11 +1063,8 @@ input::placeholder {
   min-height: 296px;
   padding: 28px 32px;
   border-radius: 22px;
-  background:
-    radial-gradient(600px 260px at 0% 0%, rgba(247, 123, 166, 0.12), transparent 70%),
-    linear-gradient(135deg, #211e29 0%, #181a22 100%);
+  background: #1c1924;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
 }
 
 #root .subject-cover {
@@ -1252,9 +1218,9 @@ input::placeholder {
 }
 
 #root .episode-button:focus .control-bg {
-  background: linear-gradient(135deg, #5c384b 0%, #462b3a 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.38);
-  box-shadow: var(--focus-shadow);
+  box-shadow: none;
 }
 
 #root .episode-button.watched small {
@@ -1381,15 +1347,15 @@ input::placeholder {
 }
 
 #root .settings-row .control-bg {
-  background: #1b1e26;
+  background-color: #1b1e26;
   border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: none;
 }
 
 #root .settings-row:focus .control-bg {
-  background: linear-gradient(135deg, #553446 0%, #3f2836 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.36);
-  box-shadow: var(--focus-shadow);
-  transform: scale(1.018);
+  box-shadow: none;
 }
 
 #root .settings-row .control-item-content > div {
@@ -1418,11 +1384,9 @@ input::placeholder {
 #root .settings-row .control-after {
   color: #9399a6;
   margin-left: 18px;
-  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), color 0.16s ease;
 }
 
 #root .settings-row:focus .control-after {
-  transform: translateX(4px);
   color: #fff;
 }
 
@@ -1430,9 +1394,9 @@ input::placeholder {
   width: 980px;
   max-height: 900px;
   border-radius: 24px;
-  background: linear-gradient(180deg, #22242d, #1a1c24);
+  background: #1e2028;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
 }
 
 #root .selection-popup .popup-body {
@@ -1494,20 +1458,20 @@ input::placeholder {
 
 #root .dialog-option .control-bg {
   border-radius: 16px;
-  background: #272a34;
+  background-color: #272a34;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 #root .dialog-option.active .control-bg {
-  background: rgba(247, 123, 166, 0.16);
+  background-color: rgba(247, 123, 166, 0.16);
   border-color: rgba(247, 123, 166, 0.48);
 }
 
 #root .dialog-option:focus .control-bg {
-  background: linear-gradient(135deg, #593649 0%, #422938 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.38);
-  box-shadow: var(--focus-shadow);
-  transform: scale(1.018);
+  box-shadow: none;
 }
 
 #root .dialog-option-check {
@@ -1689,9 +1653,9 @@ input::placeholder {
 }
 
 #root .player-back:focus .control-bg {
-  background: linear-gradient(135deg, #f986ae 0%, #ec6594 100%);
-  border-color: rgba(255, 210, 226, 0.4);
-  box-shadow: 0 12px 28px rgba(247, 123, 166, 0.38);
+  background-color: #f478a3;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 #root .player-dm-status {
@@ -1781,9 +1745,9 @@ input::placeholder {
 }
 
 #root .player-button:focus .control-bg {
-  background: linear-gradient(135deg, #633a50 0%, #4b2d3e 100%);
+  background-color: var(--sand-focus-bg-color);
   border-color: rgba(247, 123, 166, 0.42);
-  box-shadow: var(--focus-shadow);
+  box-shadow: none;
 }
 
 #root .player-button.active {
