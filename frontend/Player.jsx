@@ -11,6 +11,8 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   const {sourceId,subject,episode,channels,channelIndex}=item;
   const videoRef=useRef(null),mounted=useRef(true),resumeApplied=useRef(false),lastSaved=useRef(0),generation=useRef(0),controlsRef=useRef(true),panelRef=useRef(''),panelHistory=useRef([]),panelTarget=useRef(null),timer=useRef(null),nextTimer=useRef(null),seekTimer=useRef(null),dmGeneration=useRef(0),customGeneration=useRef(0);
   const lastControlFocus=useRef('player-controls-0');
+  // Controls stay mounted for the fade-out, then unmount so clock updates stop re-rendering them.
+  const [controlsMounted,setControlsMounted]=useState(true);
   const seekSession=useRef(null);if(!seekSession.current)seekSession.current=createSeekSession();
   const [message,setMessage]=useState('正在解析播放地址…'),[current,setCurrent]=useState(0),[duration,setDuration]=useState(0),[paused,setPaused]=useState(true),[controls,setControls]=useState(true),[panel,setPanel]=useState(''),[rawDanmakus,setRawDanmakus]=useState([]),[dmInfo,setDmInfo]=useState('弹幕待匹配'),[offset,setOffset]=useState(()=>library.offset(subject)),[speed,setSpeed]=useState(1),[countdown,setCountdown]=useState(null);
   const [seekHint,setSeekHint]=useState(''),[dmError,setDmError]=useState('');
@@ -103,9 +105,11 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   const topFixed=dmLayout.enableTop?fixedWindow(fixedItems,current-offset,5,fixedLimit):[];
   const bottomFixed=dmLayout.enableBottom?fixedWindow(fixedItems,current-offset,4,fixedLimit):[];
   const fixedStrokeStyle={fontWeight:dmLayout.fontWeight,WebkitTextStroke:dmLayout.strokeWidthPx>0?`${dmLayout.strokeWidthPx}px rgba(0, 0, 0, 0.92)`:'0px transparent',textShadow:dmLayout.textShadow};
+  useEffect(()=>{if(controls){setControlsMounted(true);return;}const t=setTimeout(()=>setControlsMounted(false),220);return()=>clearTimeout(t);},[controls]);
+  const showUi=controls||controlsMounted;
   // Hidden controls are unmounted; visible menus do not rebuild on clock updates.
   const controlsMenu=useMemo(()=>{
-    if(!controls)return null;
+    if(!showUi)return null;
     let index=0;
     function button(label,action,icon,extra=''){const i=index++;return <FocusButton key={i} id={controlId(panel,i)} group="player" row={i} className={`player-button ${extra}`} onSelect={action}>{icon&&<Icon name={icon} size={23}/>}<span>{label}</span></FocusButton>;}
     return <div className="player-control-zone">
@@ -130,14 +134,14 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
 
           </ContentScroller>}
         </div>;
-  },[controls,panel,paused,speed,settings,offset,dmInfo,dmError,customBusy,customSubject,customSubjects,customEpisodes,dmSources,sourcePrefs,channels,channelIndex,episode,subject,sourceId,library,start,onSettings,onNext,onEpisode,onSwitchChannel,onClose]);
+  },[showUi,panel,paused,speed,settings,offset,dmInfo,dmError,customBusy,customSubject,customSubjects,customEpisodes,dmSources,sourcePrefs,channels,channelIndex,episode,subject,sourceId,library,start,onSettings,onNext,onEpisode,onSwitchChannel,onClose]);
   return <FocusContainer spotlightId="player" spotlightRestrict="self-only" className="player-page" onMouseMove={show}>
     <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{setPaused(false);setMessage('');if(controlsRef.current)show();}} onPause={()=>{setPaused(true);save();show();}} onWaiting={()=>setMessage('正在缓冲…')} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){setMessage(`此线路播放失败（${videoRef.current.error?.code||'未知'}），可切换线路重试`);setControls(true);}}}/>
     <div className="danmaku-wrap" style={{opacity:settings.danmakuOpacity}}><DanmakuLayer danmakus={danmakus} currentTime={current-offset} paused={paused} enabled={settings.danmaku} fontScale={settings.danmakuScale} settings={settings}/>{settings.danmaku&&topFixed.map((d,i)=><div key={'top-'+d.time+'-'+i} className="fixed-danmaku top" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}{settings.danmaku&&bottomFixed.map((d,i)=><div key={'bot-'+d.time+'-'+i} className="fixed-danmaku bottom" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${-i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}</div>
     {seekHint&&<div className="seek-hint">{seekHint}</div>}
     {!controls&&seekHint&&<div className="seek-progress" role="status" aria-label="跳转进度"><span>{time(current)}</span><div className="seek-progress-track"><i style={{width:`${duration?Math.min(100,Math.max(0,current/duration*100)):0}%`}}/></div><span>{time(duration)}</span></div>}
-    {message&&<div className="player-message">{message}</div>}
-    {controls&&<div className="player-ui visible">
+    {message&&!panel&&<div className="player-message">{message}</div>}
+    {showUi&&<div className={'player-ui'+(controls?' visible':'')}>
       <header className="player-heading"><FocusButton id="player-back" group="player" row={-1} className="player-back" onSelect={close} aria-label="退出播放">‹</FocusButton><div><h1>{subject.name}</h1><p>{episode.channelName} · {episode.name}</p></div><div className="player-dm-status">{dmInfo}</div></header>
       <div className="player-bottom">
         {countdown!==null&&<div className="next-countdown">{countdown} 秒后播放下一集 <FocusButton id="player-cancel-next" group="player" row={-1} onSelect={()=>{clearInterval(nextTimer.current);setCountdown(null);}}>取消</FocusButton></div>}

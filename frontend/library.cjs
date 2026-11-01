@@ -19,7 +19,7 @@ function makeLibrary(storage){
     toggleFavorite(subject){const key=seriesKey(subject),list=api.favorites(),found=list.some(x=>seriesKey(x)===key);set('favorites',found?list.filter(x=>seriesKey(x)!==key):[Object.assign(stableSubject(subject),{savedAt:Date.now()})].concat(list).slice(0,200));return !found;},
     history(){return get('history',[]);},
     progressLookup(){const snapshot=get('progress',{});return (sourceId,subject,episode)=>snapshot[episodeKey(sourceId,subject,episode)]||null;},
-    progress(sourceId,subject,episode){return (get('progress',{}))[episodeKey(sourceId,subject,episode)]||null;},
+    progress(sourceId,subject,episode){return api.progressLookup()(sourceId,subject,episode);},
     saveProgress(sourceId,subject,episode,position,duration,completed){
       if(!(duration>0)||!(position>=0)||!isFinite(duration)||!isFinite(position))return false;
       const key=episodeKey(sourceId,subject,episode),ts=Date.now(),entry={sourceId,subject:stableSubject(subject),episode:stableEpisode(episode),position:Math.floor(position),duration:Math.floor(duration),completed:completed===true,ts};

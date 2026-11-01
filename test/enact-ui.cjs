@@ -19,7 +19,9 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  try{
   await browser('open',process.env.FANYUAN_UI_URL||'http://127.0.0.1:'+server.address().port);
-  await browser('set','viewport','1920','1080');await connect();await wait('!!window.__fanYuan');
+  await browser('set','viewport','1920','1080');await connect();
+  // `set viewport` occasionally does not apply; pin the metrics the layout assertions depend on.
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});await wait('!!window.__fanYuan');
   await wait('document.activeElement.dataset.focusId==="sidebar-home"');
   assert.equal(await evaluate('document.querySelector(".poster-art").getBoundingClientRect().height'),244);
   await key('ArrowDown');assert.equal(await evaluate('document.activeElement.dataset.focusId'),'sidebar-search');await key('ArrowRight');await wait('document.activeElement.dataset.focusId==="content-0-0"');

@@ -216,8 +216,10 @@ input::placeholder {
   }
 }
 
+/* 12px around content leaves room for focus scaling; the extra 18px on the right is the
+   overlay scrollbar's track, which sits in the page gutter instead of over the last column. */
 #root .page-stage {
-  padding: 12px 12px 64px;
+  padding: 12px 30px 64px 12px;
 }
 
 #root .tab-stage {
@@ -375,37 +377,6 @@ input::placeholder {
   box-shadow: none;
 }
 
-#root .sidebar-foot {
-  position: absolute;
-  bottom: 46px;
-  left: 50px;
-  font-size: 16px;
-  color: #8f95a3;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-}
-
-#root .local-dot {
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 10px rgba(247, 123, 166, 0.65);
-  margin-right: 22px;
-  flex-shrink: 0;
-}
-
-#root .sidebar-foot-label {
-  opacity: 0;
-  transition: opacity 0.16s ease;
-}
-
-#root .sidebar[data-expanded=true] .sidebar-foot-label {
-  opacity: 1;
-}
-
 #root .main-content {
   width: 1808px;
   margin-left: 112px;
@@ -508,8 +479,8 @@ input::placeholder {
   height: 874px;
   overflow: hidden;
   padding: 0;
-  margin: 0 -12px;
-  width: calc(100% + 24px);
+  margin: 0 -30px 0 -12px;
+  width: calc(100% + 42px);
 }
 
 #root .app-footer {
@@ -1634,13 +1605,22 @@ input::placeholder {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
 }
 
+/* Freshly mounted controls have no previous opacity to transition from, so fade them in. */
 #root .player-ui.visible {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  transition: opacity 0.2s ease, visibility 0s;
+  animation: player-ui-in 0.2s ease;
+}
+
+@keyframes player-ui-in {
+  from {
+    opacity: 0;
+  }
 }
 
 #root .player-heading {
@@ -1831,7 +1811,7 @@ input::placeholder {
   background: linear-gradient(180deg, rgba(26, 28, 36, 0.96) 0%, rgba(19, 21, 27, 0.98) 100%);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 22px;
-  padding: 24px 28px;
+  padding: 16px 18px;
   height: 520px;
   max-height: 520px;
   overflow: hidden;
@@ -2133,4 +2113,9 @@ input::placeholder {
 #root .poster-control:focus .poster-art,
 #root .fy-button:focus .control-bg {
   will-change: transform;
+}
+
+/* The scroll viewport clips; leave room inside it for the focused button's scale. */
+#root .player-panel .scroller-body {
+  padding: 8px 28px 8px 10px;
 }

@@ -21,10 +21,10 @@ class SubjectIdentity{
   const wanted=positiveId(r.subjectId);if(!wanted)return null;const deadline=Date.now()+12000;
   const names=Array.from(new Set([r.subjectPrimaryName].concat(r.subjectNames||[]).filter(n=>typeof n==='string'&&n.trim()).map(n=>n.trim())));
   // Original Japanese titles tend to survive changes in translated season names.
-  const japanese=names.filter(n=>/[\u3040-\u30ff]/.test(n)),plan=Array.from(new Set(japanese.concat(names))).slice(0,4),seen=new Set();
+  const japanese=names.filter(n=>/[\u3040-\u30ff]/.test(n)),plan=Array.from(new Set(japanese.concat(names))).slice(0,4),seen=new Set();let reached=false;
   for(const query of plan){
    if(Date.now()>=deadline)break;
-   let result;try{result=await this.api('/v2/search/anime?keyword='+encodeURIComponent(query),deadline);}catch(e){continue;}
+   let result;try{result=await this.api('/v2/search/anime?keyword='+encodeURIComponent(query),deadline);reached=true;}catch(e){continue;}
    const candidates=[];for(const a of Array.isArray(result.animes)?result.animes:[]){const id=positiveId(a.animeId);if(!id||seen.has(id))continue;if(seen.size>=8||candidates.length>=4)break;seen.add(id);candidates.push(a);}
    const details=await Promise.all(candidates.map(async a=>{try{const b=(await this.api('/v2/bangumi/'+positiveId(a.animeId),deadline)).bangumi;if(!b||positiveId(b.animeId)!==positiveId(a.animeId)||!bangumiIds(b).has(wanted))return null;
     const title=String(b.animeTitle||a.animeTitle||'').trim();if(!title||title.length>200)return null;return {source:'dandan',sourceKey:positiveId(a.animeId),subjectId:wanted,query:title,subjectName:title};
@@ -32,12 +32,15 @@ class SubjectIdentity{
    const matches=details.filter(Boolean);if(matches.length===1){this.record('subjectIdentity',{subjectId:wanted,source:'dandan',sourceKey:matches[0].sourceKey,name:matches[0].subjectName});return matches[0];}
    if(matches.length>1){this.record('subjectIdentityAmbiguous',{subjectId:wanted});return null;}
   }
-  this.record('subjectIdentityMissing',{subjectId:wanted});return null;
+  this.record('subjectIdentityMissing',{subjectId:wanted,reached});
+  // Unreachable mirror: retry soon. Mirror answered without a match: remember that like a hit.
+  if(!reached)throw Error('Metadata mirror unreachable');return null;
  }
  cached(r){const old=this.cache.get(positiveId(r.subjectId));return old&&old.until>Date.now()?old.value:null;}
  resolve(r){
   const id=positiveId(r.subjectId);if(!id)return Promise.resolve(null);const old=this.cache.get(id);if(old&&old.until>Date.now())return Promise.resolve(old.value);if(this.pending.has(id))return this.pending.get(id);
-  const task=this.discover(r).then(value=>{this.cache.set(id,{value,until:Date.now()+(value?1800000:60000)});if(this.cache.size>30)this.cache.delete(this.cache.keys().next().value);this.pending.delete(id);return value;},()=>{this.pending.delete(id);return null;});this.pending.set(id,task);return task;
+  const remember=(value,ttl)=>{this.cache.set(id,{value,until:Date.now()+ttl});if(this.cache.size>30)this.cache.delete(this.cache.keys().next().value);this.pending.delete(id);return value;};
+  const task=this.discover(r).then(value=>remember(value,1800000),()=>remember(null,60000));this.pending.set(id,task);return task;
  }
 }
 module.exports={SubjectIdentity,bangumiIds};

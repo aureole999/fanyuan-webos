@@ -162,3 +162,18 @@ test('identity caching never carries a renamed season into another Bangumi subje
  const {client,current}=identityFixture();assert.equal((await client.load({...current,episodeSort:49,episodeEp:1})).items.length,1);
  const other=await client.load({...current,subjectId:89,episodeSort:49,episodeEp:1});assert.equal(other.items.length,0);assert.ok(!other.match||!other.match.method.includes('subjectId'));
 });
+test('an empty manual choice is kept when recovery is unverified or the mirror is offline',async()=>{
+ for(const options of [{otherSubject:true},{offline:true}]){
+  const {client,current}=identityFixture(options),selection={query:'星旅 第三季',subjectName:'星旅 第三季(2026)【动画】from renren',source:'renren',sourceKey:'renren-show',episodeNumber:3,episodeName:''};
+  const r=await client.load({...current,episodeSort:51,episodeEp:3},selection);assert.equal(r.items.length,0);assert.equal(r.match.method,'manual');assert.equal(r.match.subjectName,selection.subjectName);
+ }
+});
+test('a mirror answer without a matching subject is remembered across episodes',async()=>{
+ const {client,current,state}=identityFixture({otherSubject:true});
+ await client.load({...current,episodeId:201,episodeSort:49,episodeEp:1});const searches=state.metadataSearch;assert.ok(searches>0);
+ await client.load({...current,episodeId:202,episodeSort:50,episodeEp:2});assert.equal(state.metadataSearch,searches);
+});
+test('verified recovery does not repeat a title search that already ran',async()=>{
+ const {client,current,state}=identityFixture();await client.load({...current,episodeSort:49,episodeEp:1});
+ assert.equal(state.customQueries.filter(q=>q==='星旅 续篇').length,1);
+});

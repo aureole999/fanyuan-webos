@@ -58,6 +58,11 @@ function recover(anchor){
  const id=recoverTarget(entries,scope()||anchor?.group||'content',anchor);
  if(id)setFocus(id);
 }
+function leftmostHeader(){
+ let best=null,left=Infinity;
+ for(const k of registry.keys()){if(!isHeader(k)||!eligible(k))continue;const x=element(k).getBoundingClientRect().left;if(x<left){left=x;best=k;}}
+ return best;
+}
 function clearHold(){if(hold)clearTimeout(hold.timer);hold=null;}
 export function initKeyboardNav(){
  if(initialized)return;initialized=true;
@@ -74,9 +79,10 @@ export function initKeyboardNav(){
   if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter'].includes(key))return;
   claimRemoteFocus();cancelContentFocus();
   const id=getCurrentFocusId(),meta=registry.get(id);
-  // Left-edge navigation is an application action, not a geometric search.
-  const firstHeader=key==='ArrowLeft'&&isHeader(id)&&['header-search','header-clear-history','header-source'].find(k=>registry.has(k));
-  if(key==='ArrowLeft'&&meta?.group==='content'&&!scope()&&(meta.col===0||id===firstHeader)){
+  // Left-edge navigation is an application action, not a geometric search: column 0, or the
+  // leftmost header control, returns to the sidebar. Other controls without a grid column are
+  // covered by PageFocusContainer's leaveFor.
+  if(key==='ArrowLeft'&&meta?.group==='content'&&!scope()&&(isHeader(id)?leftmostHeader()===id:meta.col===0)){
    e.preventDefault();e.stopImmediatePropagation();window.dispatchEvent(new CustomEvent('tv-enter-sidebar'));return;
   }
   if(key==='ArrowRight'&&meta?.group==='sidebar'&&!scope()){
