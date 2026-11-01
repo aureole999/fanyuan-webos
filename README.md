@@ -32,14 +32,14 @@ npm run build
 ares-package dist/app dist/service -o .
 ```
 
-打包完成后会在当前目录生成 `com.local.animesources_0.7.0_all.ipk`。
+打包完成后会在当前目录生成 `com.local.animesources_0.7.4_all.ipk`。
 
 ### 2. 安装到电视
 
 确保电视已开启 Developer Mode 并通过 `ares-setup-device` 配置好设备名（如 `YOUR_TV`）：
 
 ```sh
-ares-install --device YOUR_TV com.local.animesources_0.7.0_all.ipk
+ares-install --device YOUR_TV com.local.animesources_0.7.4_all.ipk
 ares-launch --device YOUR_TV com.local.animesources
 ```
 
@@ -64,3 +64,7 @@ npm run test:ui
 - 滚动弹幕渲染复用自 [`asdf17128/bili-webos`](https://github.com/asdf17128/bili-webos)（MIT 许可证，详见 [`frontend/vendor/bilitv/LICENSE`](frontend/vendor/bilitv/LICENSE)）。
 - 第三方依赖许可证保存在 [`THIRD_PARTY_NOTICES/`](THIRD_PARTY_NOTICES/)。
 - 本项目为非官方实验移植版，与 Animeko、BiliTV 或 LG 官方无关。
+
+### 弹幕作品身份核验
+
+自动匹配在首个名称查询未找到优先弹弹play条目时，通过只读的弹弹play镜像作品资料核对 Bangumi 作品 ID，识别译名或季度命名不同的同一作品。身份关联按作品缓存 30 分钟；切集时重新解析当前服务的剧集 ID，区分季内集号与累计集号。镜像仅查询搜索和作品资料，全部弹幕仍从已配置的自建服务获取，不需要新增账号或密钥。旧的手动关联若返回空弹幕，会尝试自动恢复；有数据的手动关联保持优先。

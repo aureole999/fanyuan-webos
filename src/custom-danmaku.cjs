@@ -2,6 +2,7 @@
 require('./compat.cjs');
 const URL=require('url').URL,crypto=require('crypto'),transport=require('./transport.cjs');
 const {normalize,sameSubjectName,title:normalizeEpisode,splitMatcher,matchEpisodes}=require('./danmaku-match.cjs');
+const {SubjectIdentity}=require('./danmaku-identity.cjs');
 const LABEL='弹幕';
 const PLATFORM_NAMES={dandan:'弹弹play',bahamut:'巴哈姆特',youku:'优酷',iqiyi:'爱奇艺',qiyi:'爱奇艺',renren:'人人视频',bilibili:'哔哩哔哩',bilibili1:'哔哩哔哩',douban:'豆瓣',hanjutv:'韩剧TV','360':'360'};
 function error(message,status){const e=Error(message);if(status)e.statusCode=status;if([401,403,429].includes(status))e.noRetry=true;return e;}
@@ -23,7 +24,7 @@ function sameAnime(a,selection){
 function rankAnimes(rows,r){
  const rawNames=(r.subjectNames||[]).concat(r.subjectPrimaryName||'').filter(Boolean),names=rawNames.map(normalize),split=splitMatcher(r),dub=/普通话|国语|中配|配音版/;
  const wantedDub=(r.subjectNames||[]).some(n=>dub.test(n));
- return rows.map((a,index)=>{const canonical=canonicalName(a.name),name=normalize(canonical),exact=rawNames.some(n=>sameSubjectName(n,canonical));let score=exact?100:names.some(n=>name.includes(n)||n.includes(name))?70:0;
+ return rows.map((a,index)=>{const canonical=canonicalName(a.name),name=normalize(canonical),confirmed=!!r.subjectId&&String(a.confirmedSubjectId)===String(r.subjectId),exact=confirmed||rawNames.some(n=>sameSubjectName(n,canonical));let score=confirmed?200:exact?100:names.some(n=>name.includes(n)||n.includes(name))?70:0;
   if(!wantedDub&&dub.test(a.name))score-=100;const year=String(r.subjectPublishDate||'').slice(0,4);if(year&&a.date&&a.date.slice(0,4)!==year)score-=10;
   const kind=split?split.classify(canonicalName(a.name)):null;
   return {anime:a,score,index,exact,allowed:exact||(kind==='own'||kind==='season')};}).filter(x=>x.score>0&&x.allowed).sort((a,b)=>Number(b.exact)-Number(a.exact)||b.score-a.score||Number(b.anime.source==='dandan')-Number(a.anime.source==='dandan')||a.index-b.index).map(x=>x.anime);
@@ -41,7 +42,7 @@ function parseComments(data,fallbackSource){
  return items.sort((a,b)=>a.time-b.time);
 }
 class CustomDanmaku{
- constructor(options){options=options||{};this.request=options.request||transport.request;this.config=options.config||(()=>({}));this.cache=new Map();this.pending=new Map();this.events=[];}
+ constructor(options){options=options||{};this.request=options.request||transport.request;this.config=options.config||(()=>({}));this.cache=new Map();this.pending=new Map();this.events=[];this.identity=new SubjectIdentity(this.request,(event,data)=>this.record(event,data));}
  record(event,data){this.events.push(Object.assign({time:Date.now(),event},data));if(this.events.length>80)this.events.shift();}
  diagnostics(){return this.events.slice();}
  configured(){return !!this.config().url;}
@@ -95,27 +96,41 @@ class CustomDanmaku{
    return await this.comments(anime,episode,'manual');
   }catch(e){if(e.statusCode!==404||attempt)throw e;}
  }
+ async recoverSubject(r,all){
+  const identity=await this.identity.resolve(r);if(!identity)return false;
+  const resolved=(await this.search(identity.query)).filter(a=>a.source===identity.source&&a.sourceKey===identity.sourceKey);
+  for(const a of resolved){a.confirmedSubjectId=identity.subjectId;const previous=all.find(x=>x.source===a.source&&x.sourceKey===a.sourceKey);if(previous)Object.assign(previous,a);else all.push(a);}
+  return resolved.length>0;
+ }
  async automatic(r){
   let lastError,emptyResult;
   const queries=[],seenQueries=new Set();for(const name of [r.subjectPrimaryName].concat(r.subjectNames||[])){if(typeof name!=='string'||!name.trim())continue;const key=normalize(name);if(!seenQueries.has(key)){seenQueries.add(key);queries.push(name.trim());}}
   if(!queries.length)return this.empty('noMatch','缺少番剧名，请手动匹配');
   const compact=[];for(const name of queries){const prefix=name.split(/[～~:：]/)[0].trim();if(prefix.length>=2&&prefix!==name&&!seenQueries.has(normalize(prefix))){seenQueries.add(normalize(prefix));compact.push(prefix);}}
-  const plan=queries.slice(0,3).concat(compact.slice(0,4));
+  const plan=queries.slice(0,6).concat(compact.slice(0,4));
   for(let recovery=0;recovery<2;recovery++){
    const all=[],identities=new Set(),attempted=[];
-   for(const query of plan){
+   const known=this.identity.cached(r);
+   if(known){try{const rows=await this.search(known.query);for(const a of rows)if(a.source===known.source&&a.sourceKey===known.sourceKey){a.confirmedSubjectId=known.subjectId;identities.add(a.source+'|'+a.sourceKey);all.push(a);}attempted.push(known.query);}catch(e){if(e.noRetry)throw e;lastError=e;}}
+   for(const query of rankAnimes(all,r).some(a=>a.confirmedSubjectId)?[]:plan){
     attempted.push(query);try{for(const a of await this.search(query)){const key=a.source+'|'+(a.sourceKey||a.name);if(!identities.has(key)){identities.add(key);all.push(a);}}}
     catch(e){if(e.noRetry)throw e;lastError=e;}
     if(rankAnimes(all,r).some(a=>a.source==='dandan'))break;
+    if(attempted.length===1){try{if(await this.recoverSubject(r,all))break;}catch(e){if(e.noRetry)throw e;lastError=e;}}
+   }
+   // An exact title remains the fast path. Missing/renamed preferred entries
+   // are recovered by a cross-database ID, never by guessing a sequel number.
+   if(!rankAnimes(all,r).some(a=>a.source==='dandan')){
+    try{await this.recoverSubject(r,all);}catch(e){if(e.noRetry)throw e;lastError=e;}
    }
    const candidates=rankAnimes(all,r).slice(0,4);this.record('candidates',{queries:attempted,episodeSort:r.episodeSort,episodeEp:r.episodeEp,total:all.length,candidates:candidates.map(a=>({source:a.source,name:a.name}))});
    if(!candidates.length){if(lastError)throw lastError;return this.empty('noMatch','未找到同名番剧和季度，请手动匹配');}
    let stale=false,commentRequests=0;
    for(const anime of candidates)try{
-    const rows=await this.detail(anime),found=matchEpisodes(r,rows,false);
+    const rows=await this.detail(anime),found=matchEpisodes(r,rows,!!anime.confirmedSubjectId);
     if(!found||found.method==='fuzzyEpisode'){this.record('episodeMissing',{source:anime.source,subject:anime.name,episodeSort:r.episodeSort,episodeEp:r.episodeEp,available:rows.length});continue;}
     if(++commentRequests>2)break;
-    const result=await this.comments(anime,found.episode,'auto:'+found.method);if(result.items.length)return result;emptyResult=result;
+    const result=await this.comments(anime,found.episode,'auto:'+(anime.confirmedSubjectId?'subjectId:':'')+found.method);if(result.items.length)return result;emptyResult=result;
    }catch(e){if(e.noRetry)throw e;if(e.statusCode===404){stale=true;break;}lastError=e;}
    if(!stale)break;
   }
@@ -126,7 +141,7 @@ class CustomDanmaku{
  load(r,selection){
   const cfg=this.config(),key=crypto.createHash('sha256').update(JSON.stringify([cfg.url,cfg.token,r.subjectId,r.subjectPrimaryName,r.episodeId,r.episodeSort,r.episodeEp,selection||null])).digest('hex'),old=this.cache.get(key);
   if(old&&old.until>Date.now())return Promise.resolve(old.value);if(this.pending.has(key))return this.pending.get(key);
-  const task=(selection?this.manual(r,selection):this.automatic(r)).then(value=>{if(value.items.length){this.cache.set(key,{value,until:Date.now()+600000});if(this.cache.size>20)this.cache.delete(this.cache.keys().next().value);}this.pending.delete(key);return value;},e=>{this.pending.delete(key);throw e;});
+  const task=(async()=>{if(!selection)return this.automatic(r);const result=await this.manual(r,selection);if(result.items.length)return result;const recovered=await this.automatic(r);return recovered.items.length?recovered:result;})().then(value=>{if(value.items.length){this.cache.set(key,{value,until:Date.now()+600000});if(this.cache.size>20)this.cache.delete(this.cache.keys().next().value);}this.pending.delete(key);return value;},e=>{this.pending.delete(key);throw e;});
   this.pending.set(key,task);return task;
  }
 }

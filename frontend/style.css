@@ -1312,6 +1312,12 @@ input::placeholder {
   color: #b9bec8;
 }
 
+/* Sandstone sizes the spinner disc before its padding. Keep that local
+   content box so the ring stays centered under the app's border-box reset. */
+#root .loading-spinner > div:first-child {
+  box-sizing: content-box;
+}
+
 #root .error-banner {
   display: flex;
   align-items: center;
@@ -2115,4 +2121,16 @@ input::placeholder {
 
 #root .fy-button .control-client > * {
   flex-shrink: 0;
+}
+
+/* Keep official transform effects without reserving layers for every idle control. */
+#root .poster-control .poster-art,
+#root .fy-button .control-bg,
+#root .sidebar-item .sidebar-bg {
+  will-change: auto;
+}
+
+#root .poster-control:focus .poster-art,
+#root .fy-button:focus .control-bg {
+  will-change: transform;
 }

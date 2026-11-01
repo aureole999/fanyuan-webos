@@ -16,7 +16,7 @@ export function eligible(id){
 export function isTopContentRow(id){
  if(isHeader(id))return true;
  const meta=registry.get(id);if(!meta||meta.group!=='content')return false;
- for(const [k,m] of registry)if(m.group==='content'&&!isHeader(k)&&eligible(k)&&m.row<meta.row)return false;
+ for(const [k,m] of registry)if(m.group==='content'&&m.context===context&&!isHeader(k)&&m.row<meta.row&&eligible(k))return false;
  return true;
 }
 function noteFocus(id){
@@ -74,6 +74,11 @@ export function initKeyboardNav(){
   if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter'].includes(key))return;
   claimRemoteFocus();cancelContentFocus();
   const id=getCurrentFocusId(),meta=registry.get(id);
+  // Left-edge navigation is an application action, not a geometric search.
+  const firstHeader=key==='ArrowLeft'&&isHeader(id)&&['header-search','header-clear-history','header-source'].find(k=>registry.has(k));
+  if(key==='ArrowLeft'&&meta?.group==='content'&&!scope()&&(meta.col===0||id===firstHeader)){
+   e.preventDefault();e.stopImmediatePropagation();window.dispatchEvent(new CustomEvent('tv-enter-sidebar'));return;
+  }
   if(key==='ArrowRight'&&meta?.group==='sidebar'&&!scope()){
    e.preventDefault();e.stopImmediatePropagation();window.dispatchEvent(new CustomEvent('tv-enter-content',{detail:id}));return;
   }

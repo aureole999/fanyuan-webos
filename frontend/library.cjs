@@ -18,6 +18,7 @@ function makeLibrary(storage){
     setFavoriteStatus(subject,status){if(!['wish','watching','done'].includes(status))return false;return set('favorites',api.favorites().map(x=>seriesKey(x)===seriesKey(subject)?Object.assign({},x,{status}):x));},
     toggleFavorite(subject){const key=seriesKey(subject),list=api.favorites(),found=list.some(x=>seriesKey(x)===key);set('favorites',found?list.filter(x=>seriesKey(x)!==key):[Object.assign(stableSubject(subject),{savedAt:Date.now()})].concat(list).slice(0,200));return !found;},
     history(){return get('history',[]);},
+    progressLookup(){const snapshot=get('progress',{});return (sourceId,subject,episode)=>snapshot[episodeKey(sourceId,subject,episode)]||null;},
     progress(sourceId,subject,episode){return (get('progress',{}))[episodeKey(sourceId,subject,episode)]||null;},
     saveProgress(sourceId,subject,episode,position,duration,completed){
       if(!(duration>0)||!(position>=0)||!isFinite(duration)||!isFinite(position))return false;

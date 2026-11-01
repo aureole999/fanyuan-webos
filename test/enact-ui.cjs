@@ -13,7 +13,7 @@ async function connect(){
 }
 async function evaluate(code){const r=await cdp('Runtime.evaluate',{expression:code,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text+': '+r.exceptionDetails.exception?.description);return r.result.value;}
 async function wait(code){const until=Date.now()+8000;do{if(await evaluate('Boolean('+code+')'))return;await new Promise(r=>setTimeout(r,80));}while(Date.now()<until);throw Error('UI wait timed out: '+code);}
-async function key(k){const keyCode={Enter:13,Escape:27,ArrowLeft:37,ArrowUp:38,ArrowRight:39,ArrowDown:40}[k];for(const type of ['keyDown','keyUp'])await cdp('Input.dispatchKeyEvent',{type,key:k,code:k,windowsVirtualKeyCode:keyCode});}
+async function key(k){const keyCode={Enter:13,Escape:27,ArrowLeft:37,ArrowUp:38,ArrowRight:39,ArrowDown:40}[k];for(const type of ['keyDown','keyUp'])await cdp('Input.dispatchKeyEvent',{type,key:k,code:k,windowsVirtualKeyCode:keyCode,...(k==='Enter'&&type==='keyDown'?{text:'\r'}:{})});}
 async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.stringify(name)},true)`);await wait(`window.__fanYuan.state.page===${JSON.stringify(name)}`);await wait('!!document.querySelector("[data-focus-group=content]")');}
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -27,10 +27,11 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await key('ArrowDown');await key('Enter');await wait('!!window.__fanYuan.state.dialog');
   await wait('window.__focusState().current==="dialog-2"');await key('ArrowDown');assert.equal(await evaluate('window.__focusState().current'),'dialog-3');
   await key('Escape');await wait('!document.querySelector(".selection-popup")');assert.equal(await evaluate('window.__focusState().current'),'content-2-0');
-  console.log('UI: direct search');await page('search');await wait('window.__focusState().current==="content-0-0"');await key('Enter');await cdp('Input.insertText',{text:'测试番'});await key('Enter');await wait('window.__fanYuan.state.results.length===1');assert.equal(await evaluate('window.__focusState().paused'),false);
+  console.log('UI: direct search');await page('search');await wait('window.__focusState().current==="content-0-0"');await key('Enter');await cdp('Input.insertText',{text:'测试番'});await key('Enter');await wait('window.__fanYuan.state.results.length===1');assert.equal(await evaluate('window.__focusState().paused'),false);assert.equal(await evaluate('window.__fixture.calls.search'),1);assert.equal(await evaluate('window.__fixture.calls.bangumiSearch'),1);
   await key('ArrowUp');assert.equal(await evaluate('window.__focusState().current'),'content-0-0');
   console.log('UI: calendar');await page('calendar');await wait('window.__focusState().current==="content-0-0"');await key('ArrowRight');await key('ArrowRight');await key('ArrowDown');assert.match(await evaluate('window.__focusState().current'),/^content-[1-9]/);
   console.log('UI: subscriptions');await page('subscriptions');await wait('!!document.querySelector("[data-focus-id=subscription-url]")');
+  await evaluate('document.querySelector("[data-focus-id=subscription-url]").focus()');await key('Enter');await cdp('Input.insertText',{text:'https://example.invalid/extra.json'});await key('Enter');await wait('window.__fixture.calls.subscriptionAdd===1');await wait('!window.__focusState().paused');assert.equal(await evaluate('window.__fixture.calls.subscriptionAdd'),1);
   console.log('UI: service settings');await page('danmakuSettings');await wait('!!document.querySelector("[data-focus-id=danmaku-url]")');
   await evaluate('window.__fixture.failDetail=true;window.__fanYuan.openSource({id:"fixture",name:"测试番剧",url:"https://example.invalid/fixture",sourceId:"fixture"})');
   await wait('window.__fanYuan.state.page==="detail"&&!window.__fanYuan.state.player&&!!document.querySelector(".error-banner")');await wait('window.__focusState().current==="content-0-4"');
@@ -43,12 +44,25 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
    const frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),key=(type,name,repeat=false)=>window.dispatchEvent(new KeyboardEvent(type,{key:name,repeat,bubbles:true}));
    await frame();v.dispatchEvent(new Event('playing'));await frame();key('keydown','Escape');key('keyup','Escape');await frame();
    key('keydown','ArrowRight');await frame();for(let i=0;i<3;i++){v.dispatchEvent(new Event('waiting'));await frame();v.dispatchEvent(new Event('playing'));await frame();key('keydown','ArrowRight',true);await frame();}
-   key('keyup','ArrowRight');return {pos,controls:document.querySelector('.player-ui').classList.contains('visible'),progress:!!document.querySelector('.seek-progress')};
+   key('keyup','ArrowRight');return {pos,controls:!!document.querySelector('.player-ui.visible'),progress:!!document.querySelector('.seek-progress')};
   })()`);
   assert.deepEqual(playback,{pos:70,controls:false,progress:true});
   await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-0"');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-1');
+  await evaluate('window.__reviewVideo=document.querySelector("video");true');await key('Escape');await wait('!document.querySelector(".player-ui")');
+  assert.equal(await evaluate('document.querySelectorAll("[data-focus-group=player]").length'),0);
+  await new Promise(r=>setTimeout(r,600));assert.equal(await evaluate('document.querySelector("video")===window.__reviewVideo'),true);
+  await evaluate('document.querySelector("video").currentTime=125');await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-1"');assert.equal(await evaluate('document.querySelector(".player-time span").textContent'),'02:05');
   await key('ArrowRight');await key('Enter');await wait('!!document.querySelector(".player-panel")');await key('Escape');await wait('!document.querySelector(".player-panel")');
+  await key('Escape');await key('Escape');await wait('!window.__fanYuan.state.player');
+  console.log('UI: current-page sidebar exits');
+  for(const [name,id,menu] of [['home','content-4-0','home'],['calendar','content-3-0','calendar'],['settings','content-4-0','settings'],['favorites','content-0-0','favorites'],['history','content-1-0','history'],['history','header-search','history'],['subscriptions','subscription-url','settings'],['danmakuSettings','danmaku-url','settings']]){
+   await page(name);await wait(`!!document.querySelector('[data-focus-id="${id}"]')`);
+   await evaluate(`document.querySelector('[data-focus-id="${id}"]').focus()`);await new Promise(r=>setTimeout(r,100));await key('ArrowLeft');
+   await wait(`document.activeElement.dataset.focusId==="sidebar-${menu}"`);assert.equal(await evaluate('document.querySelector(".sidebar").dataset.expanded'),'true');await new Promise(r=>setTimeout(r,150));assert.equal(await evaluate('window.__fanYuan.state.page'),name);await key('ArrowRight');await wait('document.activeElement.dataset.focusGroup==="content"');assert.equal(await evaluate('window.__fanYuan.state.page'),name);
+  }
+  await page('calendar');await wait('!!document.querySelector("[data-focus-id=content-1-1]")');await evaluate('document.querySelector("[data-focus-id=content-1-1]").focus()');await key('ArrowLeft');assert.equal(await evaluate('document.activeElement.dataset.focusId'),'content-1-0');
+  await page('calendar');await evaluate('window.__fanYuan.openSource({id:"fixture",name:"测试番剧",url:"https://example.invalid/fixture",sourceId:"fixture"})');await wait('!!document.querySelector(".episode-button")');await evaluate('document.querySelector("[data-focus-id=content-0-0]").focus()');await key('ArrowLeft');await wait('document.activeElement.dataset.focusId==="sidebar-calendar"');await new Promise(r=>setTimeout(r,150));assert.equal(await evaluate('window.__fanYuan.state.page'),'detail');
   assert.deepEqual(await evaluate('window.__fixture.errors'),[]);
-  console.log('PASS: official settings/popups, focus restoration, direct search input, calendar geometry, subscriptions, service settings, empty episodes, player focus, held seeking and panel navigation');
+  console.log('PASS: official settings/popups, focus restoration, direct search input, calendar geometry, subscriptions, service settings, empty episodes, player focus, held seeking and panel navigation, current-page sidebar exits and internal horizontal navigation');
  }catch(e){console.error('UI STATE',JSON.stringify(await evaluate('({page:window.__fanYuan?.state.page,focus:window.__focusState?.(),errors:window.__fixture?.errors,rects:Array.from(document.querySelectorAll("[data-focus-group=player]")).map(e=>({id:e.dataset.focusId,rect:e.getBoundingClientRect().toJSON()}))})').catch(()=>null),null,2));throw e;}finally{socket?.close();await browser('close').catch(()=>{});server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

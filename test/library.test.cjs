@@ -15,3 +15,11 @@ test('per-source visibility and timing persist independently',()=>{
 test('custom manual match saves stable source identity and episode number instead of service cache IDs',()=>{
  const st=store(),a=makeLibrary(st),choice={query:'测试番',subjectName:'测试番 from youku',source:'youku',sourceKey:'show-code',episodeNumber:'1',episodeName:'重逢'};a.setCustomDanmakuMapping(subject,ep,choice);const b=makeLibrary(st);assert.deepEqual(b.customDanmakuMapping(subject,ep),choice);assert.equal(b.customDanmakuMapping(subject,{...ep,sort:2}),null);b.setCustomDanmakuMapping(subject,ep,null);assert.equal(b.customDanmakuMapping(subject,ep),null);
 });
+
+test('episode list reads one progress snapshot, with fresh data after a write',()=>{
+ const st=store(),lib=makeLibrary(st);lib.saveProgress('one',subject,ep,30,1400);
+ let reads=0;const get=st.getItem;st.getItem=k=>{if(k==='fanyuan_progress')reads++;return get(k);};
+ const lookup=lib.progressLookup();for(let i=0;i<1100;i++)assert.equal(lookup('one',subject,{id:'missing-'+i}),null);
+ assert.equal(lookup('one',subject,ep).position,30);assert.equal(reads,1);assert.equal(lookup('two',subject,ep),null);
+ lib.saveProgress('one',subject,ep,60,1400);assert.equal(lib.progressLookup()('one',subject,ep).position,60);
+});

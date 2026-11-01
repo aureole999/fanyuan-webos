@@ -82,10 +82,10 @@ test('explicit manual platform selection overrides automatic Dandanplay preferen
  const choice={query:'测试番',subjectName:platformAnime('renren',1).animeTitle,source:'renren',sourceKey:'renren-show',episodeNumber:'1',episodeName:'重逢'};
  const r=await c.load(ctx,choice);assert.equal(r.match.method,'manual');assert.equal(r.items[0].serviceId,'custom:renren');
 });
-test('service only returns the custom provider and never contacts removed danmaku endpoints',async()=>{
+test('service uses one comment provider; additional mirror requests are metadata-only',async()=>{
  const hosts=[];const settings={status:()=>({customEnabled:true,animeko:true,dandanplay:true}),custom:()=>({url:'https://self.example',token:'t'})};
- const s=new DanmakuService({settings,request:async url=>{const u=new URL(url);hosts.push(u.hostname);if(u.hostname==='self.example')return {text:JSON.stringify(normal(u))};if(u.hostname==='api.bgm.tv')return {text:JSON.stringify({data:[{id:100,sort:1,ep:1,name_cn:'重逢'}],total:1})};throw Error('removed provider requested');}});
- const r=await s.load({subjectId:1,sort:1,subject:{name:'测试番'}});assert.deepEqual(r.providers.map(x=>x.id),['custom']);assert.equal(r.items.length,1);assert.ok(hosts.every(h=>['self.example','api.bgm.tv'].includes(h)));
+ const s=new DanmakuService({settings,request:async url=>{const u=new URL(url);hosts.push(u.hostname);if(u.hostname==='api.danmaku.weeblify.app'){assert.match(u.searchParams.get('path'),/^\/v2\/(?:search\/anime\?|bangumi\/)/);assert.ok(!url.includes('/t/'));return {text:JSON.stringify({animes:[]})};}if(u.hostname==='self.example')return {text:JSON.stringify(normal(u))};if(u.hostname==='api.bgm.tv')return {text:JSON.stringify({data:[{id:100,sort:1,ep:1,name_cn:'重逢'}],total:1})};throw Error('removed provider requested');}});
+ const r=await s.load({subjectId:1,sort:1,subject:{name:'测试番'}});assert.deepEqual(r.providers.map(x=>x.id),['custom']);assert.equal(r.items.length,1);assert.ok(hosts.every(h=>['self.example','api.bgm.tv','api.danmaku.weeblify.app'].includes(h)));
 });
 
 test('manual numeric episode identity survives leading zeros and blank titles never pick the wrong single episode',async()=>{
@@ -117,4 +117,48 @@ test('subtitle-free fallback query still validates the complete declared subject
  const name='测试番 ～长副标题～',queries=[];const a={...anime(),animeTitle:name+'(2023)【TV动画】from youku'};
  const c=make(u=>{if(u.pathname.endsWith('/search/anime')){const q=u.searchParams.get('keyword');queries.push(q);if(q===name)throw Error('HTTP 503');return {animes:[a]};}if(u.pathname.includes('/bangumi/'))return {bangumi:{...detail().bangumi,animeTitle:a.animeTitle}};return comments;});
  assert.equal((await c.load({...ctx,subjectPrimaryName:name,subjectNames:[name]})).items.length,1);assert.deepEqual(queries,[name,'测试番']);
+});
+
+function identityFixture(options={}){
+ const state={metadataSearch:0,metadataDetails:0,customQueries:[],comments:[],generation:0};
+ const current={...ctx,subjectId:88,subjectPrimaryName:'星旅 第三季',subjectNames:['星旅 第三季','星の旅 第3期','Star Journey Season 3'],subjectPublishDate:'2026-10-02',episodeName:'',episodeNames:[]};
+ const client=make(u=>{
+  if(u.hostname==='api.danmaku.weeblify.app'){
+   assert.ok(!u.href.includes('private-token'));const path=u.searchParams.get('path');
+   if(path.startsWith('/v2/search/anime?')){state.metadataSearch++;if(options.offline)throw Error('metadata offline');return {animes:[{animeId:700,animeTitle:'星旅 续篇'}]};}
+   assert.equal(path,'/v2/bangumi/700');state.metadataDetails++;return {bangumi:{animeId:700,animeTitle:'星旅 续篇',bangumiUrl:options.falseHost?'https://bangumi.tv.attacker.example/subject/88':'https://bgm.tv/subject/'+(options.otherSubject?89:88)}};
+  }
+  assert.equal(u.hostname,'self.example');
+  if(u.pathname.endsWith('/search/anime')){
+   const q=u.searchParams.get('keyword');state.customQueries.push(q);state.generation++;
+   if(q==='星旅 续篇')return {animes:[{animeId:100+state.generation,bangumiId:'700',animeTitle:'星旅 续篇(2026)【TV动画】from dandan',source:'dandan',startDate:'2026-10-02'}]};
+   return {animes:[{animeId:1,bangumiId:'future-part',animeTitle:'星旅 第三季 第2部分(未知)【TV动画】from dandan',source:'dandan'},{animeId:2,bangumiId:'renren-show',animeTitle:'星旅 第三季(2026)【动画】from renren',source:'renren'}]};
+  }
+  if(u.pathname.includes('/bangumi/')){
+   const verified=Number(u.pathname.split('/').pop())>100;
+   return {bangumi:{animeTitle:verified?'星旅 续篇(2026)【TV动画】from dandan':'星旅 第三季(2026)【动画】from renren',bangumiId:verified?'700':'renren-show',episodes:[...Array.from({length:5},(_,i)=>({episodeId:(verified?state.generation*1000:200)+i+1,episodeNumber:i+1,episodeTitle:'第'+(i+1)+'话'})),...(options.cumulative?[{episodeId:999,episodeNumber:53,episodeTitle:'第53话'}]:[])]}};
+  }
+  if(u.pathname.includes('/comment/')){const id=Number(u.pathname.split('/').pop());state.comments.push(id);return id>1000?comments:{comments:[]};}
+  throw Error('unexpected request');
+ });return {client,current,state};
+}
+test('cross-database subject identity resolves a renamed season for all five episodes and caches only its stable identity',async()=>{
+ const {client,current,state}=identityFixture();const results=[];
+ for(let n=1;n<=5;n++){const r=await client.load({...current,episodeId:100+n,episodeSort:48+n,episodeEp:n});results.push(r);assert.equal(r.items.length,1);assert.equal(r.match.method,'auto:subjectId:exactEp');assert.equal(r.match.episodeName,'第'+n+'话');assert.equal(r.items[0].serviceId,'custom:dandan');}
+ assert.equal(state.metadataSearch,1);assert.equal(state.metadataDetails,1);assert.equal(new Set(results.map(r=>r.episodeId)).size,5);assert.ok(results.every((r,i)=>Number(r.episodeId)%1000===i+1));
+ assert.ok(state.customQueries.slice(-4).every(q=>q==='星旅 续篇'));assert.ok(!JSON.stringify(client.diagnostics()).includes('private-token'));
+});
+test('same franchise or matching year never substitutes for an exact cross-database subject ID',async()=>{
+ for(const options of [{otherSubject:true},{falseHost:true},{offline:true}]){const {client,current,state}=identityFixture(options);const r=await client.load({...current,episodeSort:53,episodeEp:5});assert.equal(r.items.length,0);assert.ok(state.comments.every(id=>id<1000));assert.ok(!state.customQueries.includes('星旅 续篇'));}
+});
+test('an empty old manual episode mapping recovers the verified whole-season identity while populated manual choices keep precedence',async()=>{
+ const {client,current}=identityFixture(),selection={query:'星旅 第三季',subjectName:'星旅 第三季(2026)【动画】from renren',source:'renren',sourceKey:'renren-show',episodeNumber:3,episodeName:''};
+ const r=await client.load({...current,episodeSort:51,episodeEp:3},selection);assert.equal(r.items.length,1);assert.equal(r.match.method,'auto:subjectId:exactEp');assert.equal(r.match.episodeName,'第3话');
+});
+test('a confirmed season uses its local episode number ahead of another valid cumulative number',async()=>{
+ const {client,current}=identityFixture({cumulative:true});const r=await client.load({...current,episodeSort:53,episodeEp:5});assert.equal(r.items.length,1);assert.equal(r.match.episodeName,'第5话');assert.notEqual(r.episodeId,'999');
+});
+test('identity caching never carries a renamed season into another Bangumi subject',async()=>{
+ const {client,current}=identityFixture();assert.equal((await client.load({...current,episodeSort:49,episodeEp:1})).items.length,1);
+ const other=await client.load({...current,subjectId:89,episodeSort:49,episodeEp:1});assert.equal(other.items.length,0);assert.ok(!other.match||!other.match.method.includes('subjectId'));
 });

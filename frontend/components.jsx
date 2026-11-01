@@ -14,6 +14,8 @@ import {useFocusable,isTopContentRow,eligible} from './focus';
 import {remoteKey} from './navigation.cjs';
 
 export const FocusContainer=SpotlightContainerDecorator('div');
+// Resolve a left exit to the page's menu item, independent of its screen position.
+export const PageFocusContainer=SpotlightContainerDecorator({leaveFor:{left:'.sidebar-item[aria-current="page"]'}},'div');
 const ICONS={settings:'gear',tv:'tvguidefvp',home:'home',history:'timer',book:'list',remix:'repeatall',refresh:'refresh',live:'play',chat:'subtitle',search:'search',star:'star',play:'play',pause:'pause',arrow:'arrowlargeright',close:'closex',check:'check'};
 export function Icon({name,size=32,className=''}){return <SandstoneIcon className={('fy-icon '+className).trim()} style={{fontSize:size,width:size,height:size,lineHeight:size+'px'}}>{ICONS[name]||name}</SandstoneIcon>;}
 export function TextInput({id,inputRef,value,onChange,onSubmit,placeholder,type='text',className='',ariaLabel}){
@@ -51,4 +53,4 @@ export function ContentScroller({apiRef,children,className='content-scroller',sp
 }
 export function PlaybackSlider({id,value,max,onChange}){const {props}=useFocusable({id,group:'player'});return <Slider {...props} className="player-progress" css={{fill:'slider-fill',bar:'slider-bar',knob:'slider-knob'}} value={Math.min(value,max||0)} min={0} max={max||1} step={10} onChange={e=>onChange(e.value)} aria-label="播放进度"/>;}
 export function Empty({title,children}){return <div className="empty-state"><Icon name="tv" size={64}/><h2>{title}</h2><p>{children}</p></div>;}
-export function Loading({text='正在加载…'}){return <div className="loading-state"><Spinner>{text}</Spinner></div>;}
+export function Loading({text='正在加载…'}){return <div className="loading-state"><Spinner className="loading-spinner">{text}</Spinner></div>;}

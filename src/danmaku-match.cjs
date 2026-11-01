@@ -34,6 +34,7 @@ function matchEpisodes(r,rows,mappedToSelf){
  if(split){if(exact)return {episode:exact,method:'exactTitle'};const groups=new Map();for(const e of rows){if(!groups.has(e.subjectName))groups.set(e.subjectName,[]);groups.get(e.subjectName).push(e);}for(const [name,list] of groups){const e=split.match(name,list,mappedToSelf);if(e)return {episode:e,method:'splitSeasonNumber'};}return null;}
  exact=exact||candidates.find(e=>e.number!=null&&Number(e.number)===r.episodeSort)||candidates.find(e=>e.number!=null&&Number(e.number)===r.episodeEp);
  if(exact)return {episode:exact,method:'exactTitle'};
+ if(mappedToSelf&&r.episodeEp!=null){const own=rows.find(e=>e.number!=null&&String(e.number)===String(r.episodeEp));if(own)return {episode:own,method:'exactEp'};}
  for(const [n,method] of [[r.episodeSort,'exactSort'],[r.episodeEp,'exactEp']]){if(n==null)continue;const e=rows.find(e=>e.number!=null&&String(e.number)===String(n));if(e)return {episode:e,method};}
  return {episode:mostRelevant(rows,r),method:'fuzzyEpisode'};
 }

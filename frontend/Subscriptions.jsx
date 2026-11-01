@@ -18,7 +18,7 @@ export default function Subscriptions({onChanged,notify,chooseOption}){
   }
   return <div className="subscriptions-page">
     <p className="subscription-intro">订阅会直接下载到这台电视。默认每小时检查更新，也可随时手动更新。</p>
-    <form className="subscription-add" onSubmit={e=>{e.preventDefault();input.current?.blur();run('subscriptionAdd',{url:url.trim()});}}>
+    <form className="subscription-add" onSubmit={e=>e.preventDefault()}>
       <TextInput id="subscription-url" inputRef={input} className="subscription-input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="输入 Animeko 订阅地址（HTTP / HTTPS）" onSubmit={()=>run('subscriptionAdd',{url:url.trim()})}/>
       <FocusButton id="content-0-1" row={0} col={1} className="primary" onSelect={()=>run('subscriptionAdd',{url:url.trim()})}>添加订阅</FocusButton>
       <FocusButton id="content-0-2" row={0} col={2} onSelect={()=>run('subscriptionsUpdate',{force:true})}>全部更新</FocusButton>

@@ -4,11 +4,11 @@ function fixture(){
  const episodes=Array.from({length:12},(_,i)=>({id:'ep'+(i+1),name:'第'+(i+1)+'集',sort:i+1,type:'main',url:'https://example.invalid/ep'+i}));
  const settings={customEnabled:true,customUrl:'https://example.invalid',hasCustomToken:true};
  const subscription={id:'fixture-sub',url:'https://example.invalid/sub.json',enabled:true,updatePeriod:3600000,metadata:{name:'测试订阅'},sourceCount:2};
- window.__fixture={failDetail:false,errors:[]};
+ window.__fixture={failDetail:false,errors:[],calls:{}};
  window.addEventListener('error',e=>window.__fixture.errors.push(e.message));
  window.addEventListener('unhandledrejection',e=>window.__fixture.errors.push(String(e.reason)));
  window.fetch=async(url,options)=>{
-  const method=String(url).split('/').pop(),p=JSON.parse(options?.body||'{}');let data={};
+  const method=String(url).split('/').pop(),p=JSON.parse(options?.body||'{}');window.__fixture.calls[method]=(window.__fixture.calls[method]||0)+1;let data={};
   if(method==='sources')data={sources:[{id:'fixture',name:'测试视频源',factoryId:'web-selector'},{id:'fixture2',name:'备用视频源',factoryId:'web-selector'}]};
   if(method==='calendar')data={days:Array.from({length:7},(_,i)=>({id:i+1,items:Array.from({length:18},(_,n)=>({...subject,id:'card'+n,name:'测试番剧 '+(n+1)}))}))};
   if(method==='search')data={items:[subject]};
