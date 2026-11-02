@@ -8,7 +8,7 @@ function makeLibrary(storage){
   const prefix='fanyuan_';
   function get(key,fallback){try{const raw=storage.getItem(prefix+key);return raw?JSON.parse(raw):fallback;}catch(e){return fallback;}}
   function set(key,value){try{storage.setItem(prefix+key,JSON.stringify(value));return true;}catch(e){return false;}}
-  const defaults={danmaku:true,danmakuScale:1,danmakuOpacity:0.85,danmakuArea:0.33,danmakuLineGap:10,danmakuSpeed:1,danmakuDensity:'medium',danmakuWeight:600,danmakuStroke:1,danmakuFloating:true,danmakuTop:true,danmakuBottom:false,danmakuColor:true,autoplayNext:true,gridCols:4};
+  const defaults={danmaku:true,danmakuScale:1,danmakuOpacity:0.85,danmakuArea:0.33,danmakuLineGap:10,danmakuSpeed:1,danmakuDensity:'medium',danmakuWeight:600,danmakuStroke:1,danmakuFloating:true,danmakuTop:true,danmakuBottom:false,danmakuColor:true,autoplayNext:true,skipShortcut:true,gridCols:4};
   const api={
     settings(){return Object.assign({},defaults,get('settings',{}));},
     setSettings(patch){const value=Object.assign({},api.settings(),patch);set('settings',value);return value;},
