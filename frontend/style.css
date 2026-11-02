@@ -2552,7 +2552,8 @@ input::placeholder {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* App-wide button sheen (sidebar and player included): a soft top gradient and 1px inner highlight.
+/* App-wide button sheen (sidebar and player included): a soft top gradient over a fixed 16px and a
+   1px inner highlight.
    It lives on a pseudo-element so each button variant keeps its own fill and border
    rules; it is static (no transition) and adds no compositing layer, so focus changes repaint
    only the button, as they already did. */
@@ -2565,14 +2566,14 @@ input::placeholder {
   bottom: 0;
   left: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 25%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0) 16px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   pointer-events: none;
 }
 
 #root .fy-button:focus .control-bg::after,
 #root .sidebar-item:focus .sidebar-bg::after {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 25%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0, rgba(255, 255, 255, 0) 16px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
