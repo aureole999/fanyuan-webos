@@ -48,25 +48,17 @@ export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
  </article>;
 }
 export function TextCard({subject,row,col,onSelect}){return <FocusButton id={`content-${row}-${col}`} row={row} col={col} onSelect={onSelect} className="source-result" slotBefore={<span className="source-result-icon"><Icon name="tv" size={30}/></span>} slotAfter={<Icon name="arrow" size={24}/>} label="查看线路与剧集">{subject.name}</FocusButton>;}
+// Layout rule for scrolled content: Sandstone's focus scroll reveals the focused control, or its
+// nearest spotlight container when that container fits in the viewport. Text that describes a
+// control therefore lives in the same ScrollGroup as the control (a heading with its first row,
+// a card with its buttons); page-level notes live in the fixed header or footer instead.
+export const ScrollGroup=SpotlightContainerDecorator('div');
 // Enact measures scroll bounds only when the Scroller itself re-renders. Content that grows
 // inside a child's own state (subscriptions, async lists) would otherwise never become reachable.
-// Focus scrolling only reveals the focused control, so text above the first row or below the
-// last row (intros, tips) is unreachable by remote. Reaching an edge row scrolls to that end.
-function edgeOf(body,target){
- const r=target.getBoundingClientRect();let above=false,below=false;
- for(const el of body.querySelectorAll('.spottable')){if(el===target||target.contains(el)||!el.getClientRects().length)continue;const q=el.getBoundingClientRect();if(q.bottom<=r.top+1)above=true;else if(q.top>=r.bottom-1)below=true;if(above&&below)return null;}
- return !above?'top':!below?'bottom':null;
-}
 export function ContentScroller({apiRef,children,className='content-scroller',spotlightId,...rest}){
- const body=useRef(null),scrollTo=useRef(null),edgeTimer=useRef(null),[,remeasure]=useReducer(n=>n+1,0);
+ const body=useRef(null),[,remeasure]=useReducer(n=>n+1,0);
  useLayoutEffect(()=>{const el=body.current;if(!el||typeof ResizeObserver!=='function')return;let height=el.offsetHeight;const observer=new ResizeObserver(()=>{if(el.offsetHeight!==height){height=el.offsetHeight;remeasure();}});observer.observe(el);return()=>observer.disconnect();},[]);
- useLayoutEffect(()=>()=>clearTimeout(edgeTimer.current),[]);
- function revealEdge(e){
-  const target=e.target;clearTimeout(edgeTimer.current);
-  // Run after Sandstone's own focus scroll so the edge alignment wins.
-  edgeTimer.current=setTimeout(()=>{if(!body.current||!scrollTo.current||!body.current.contains(target)||document.activeElement!==target)return;const edge=edgeOf(body.current,target);if(edge)scrollTo.current({align:edge,animate:true});},0);
- }
- return <Scroller {...rest} spotlightId={spotlightId} className={className} direction="vertical" horizontalScrollbar="hidden" focusableScrollbar={false} cbScrollTo={fn=>{scrollTo.current=fn;if(apiRef)apiRef.current={set scrollTop(y){fn({position:{y},animate:false});}};}}><div ref={body} className="scroller-body" onFocus={revealEdge}>{children}</div></Scroller>;
+ return <Scroller {...rest} spotlightId={spotlightId} className={className} direction="vertical" horizontalScrollbar="hidden" cbScrollTo={fn=>{if(apiRef)apiRef.current={set scrollTop(y){fn({position:{y},animate:false});}};}}><div ref={body} className="scroller-body">{children}</div></Scroller>;
 }
 export function PlaybackSlider({id,value,max,onChange}){const {props}=useFocusable({id,group:'player'});return <Slider {...props} className="player-progress" css={{fill:'slider-fill',bar:'slider-bar',knob:'slider-knob'}} value={Math.min(value,max||0)} min={0} max={max||1} step={10} onChange={e=>onChange(e.value)} aria-label="播放进度"/>;}
 export function Empty({title,children}){return <div className="empty-state"><Icon name="tv" size={64}/><h2>{title}</h2><p>{children}</p></div>;}

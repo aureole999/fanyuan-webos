@@ -102,6 +102,21 @@ html, body, #root {
   box-shadow: none;
 }
 
+/* Sandstone grows the focused background with scale(1.05), which is proportional to width:
+   a wide match or settings row overflows by 15–35px and gets clipped by its scroll viewport.
+   Grow by a fixed outset instead, so every button needs the same small margin. */
+#root .fy-button .control-bg {
+  transition: top 0.2s ease-out, right 0.2s ease-out, bottom 0.2s ease-out, left 0.2s ease-out;
+}
+
+#root .fy-button:focus .control-bg {
+  transform: none;
+  top: -2px;
+  right: -5px;
+  bottom: -2px;
+  left: -5px;
+}
+
 #root .fy-button.primary {
   color: #1e1017;
   font-weight: 600;
@@ -217,9 +232,11 @@ input::placeholder {
 }
 
 /* 12px around content leaves room for focus scaling; the extra 18px on the right is the
-   overlay scrollbar's track, which sits in the page gutter instead of over the last column. */
+   overlay scrollbar's track, which sits in the page gutter instead of over the last column.
+   The bottom stays under Sandstone's 48px edge threshold, so focusing the last row snaps the
+   scroller to its very end instead of stopping a few pixels short. */
 #root .page-stage {
-  padding: 12px 30px 64px 12px;
+  padding: 12px 30px 24px 12px;
 }
 
 #root .tab-stage {
@@ -404,6 +421,17 @@ input::placeholder {
   overflow: hidden;
 }
 
+#root .page-subtitle {
+  font-size: 19px;
+  line-height: 1.4;
+  color: #9ca2b0;
+  margin: 6px 0 0;
+  max-width: 1180px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 #root .page-eyebrow {
   font-size: 13px;
   font-weight: 600;
@@ -563,6 +591,27 @@ input::placeholder {
   display: grid;
   grid-gap: 24px;
   margin-bottom: 40px;
+}
+
+#root .poster-grid:last-child {
+  margin-bottom: 0;
+}
+
+/* A grid section is a heading plus its first row (one ScrollGroup), then the remaining rows. */
+#root .grid-section {
+  margin-bottom: 40px;
+}
+
+#root .grid-section:last-child {
+  margin-bottom: 0;
+}
+
+#root .grid-section > .poster-grid {
+  margin-top: 24px;
+}
+
+#root .grid-section > .source-results {
+  margin-top: 22px;
 }
 
 #root .poster-grid.cols-3 {
@@ -1223,12 +1272,6 @@ input::placeholder {
   background: rgba(124, 212, 168, 0.12);
 }
 
-#root .page-tip {
-  font-size: 18px;
-  color: #848b99;
-  margin: 26px 0;
-}
-
 #root .section-toolbar {
   display: flex;
   align-items: center;
@@ -1309,26 +1352,6 @@ input::placeholder {
   border-radius: 12px;
   flex-shrink: 0;
   margin-left: 20px;
-}
-
-#root .settings-intro {
-  margin: 6px 0 28px;
-  padding: 24px 30px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #211e29 0%, #181b22 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-#root .settings-intro h2 {
-  font-size: 28px;
-  font-weight: 600;
-  margin: 0 0 8px;
-}
-
-#root .settings-intro p {
-  font-size: 20px;
-  color: #9ca2b0;
-  margin: 0;
 }
 
 #root .settings-list {
@@ -1826,6 +1849,17 @@ input::placeholder {
   margin-bottom: 18px;
 }
 
+#root .panel-heading {
+  flex: 1;
+  min-width: 0;
+  margin-right: 24px;
+}
+
+#root .panel-heading .panel-description,
+#root .panel-heading .error-text {
+  margin: 8px 0 0;
+}
+
 #root .panel-title h2 {
   font-size: 27px;
   font-weight: 600;
@@ -1934,13 +1968,6 @@ input::placeholder {
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, #f77ba6, #ffa1c3);
-}
-
-#root .subscription-intro {
-  font-size: 21px;
-  color: #adb3c2;
-  line-height: 1.6;
-  margin: 0 0 24px;
 }
 
 #root .subscription-add {
@@ -2069,13 +2096,9 @@ input::placeholder {
   color: #b5b8c3;
 }
 
-#root .player-source-list section {
+#root .player-source {
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-#root .danmaku-settings-page .page-tip {
-  line-height: 1.8;
 }
 
 #root .fy-icon {
@@ -2110,12 +2133,11 @@ input::placeholder {
   will-change: auto;
 }
 
-#root .poster-control:focus .poster-art,
-#root .fy-button:focus .control-bg {
+#root .poster-control:focus .poster-art {
   will-change: transform;
 }
 
-/* The scroll viewport clips; leave room inside it for the focused button's scale. */
+/* The scroll viewport clips; leave room inside it for the focused button's fixed outset. */
 #root .player-panel .scroller-body {
   padding: 8px 28px 8px 10px;
 }

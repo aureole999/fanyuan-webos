@@ -56,6 +56,30 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await evaluate('document.querySelector("video").currentTime=125');await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-1"');assert.equal(await evaluate('document.querySelector(".player-time span").textContent'),'02:05');
   await key('ArrowRight');await key('Enter');await wait('!!document.querySelector(".player-panel")');await key('Escape');await wait('!document.querySelector(".player-panel")');
   await key('Escape');await key('Escape');await wait('!window.__fanYuan.state.player');
+  console.log('UI: remote-only scrolling');
+  // Arrow keys alone must reach both ends of a page; every move scrolls in one direction only
+  // (no bounce from competing scrolls) and keeps the focused control's ScrollGroup in view.
+  const scrollerOf=sel=>`[...document.querySelectorAll('${sel} *')].find(e=>e.scrollHeight>e.clientHeight+1&&getComputedStyle(e).overflowY==='auto')`;
+  async function walk(direction,sel){
+   const sign=direction==='ArrowDown'?1:-1;let at=null;
+   for(let i=0;i<60;i++){
+    const before=await evaluate('window.__focusState().current');
+    await evaluate(`(()=>{const s=${scrollerOf(sel)};window.__trace=new Promise(r=>{const out=[],t0=performance.now();(function f(){out.push(s?s.scrollTop:0);performance.now()-t0<700?requestAnimationFrame(f):r(out);})();});return true;})()`);
+    await key(direction);const trace=await evaluate('window.__trace'),after=await evaluate('window.__focusState().current');
+    for(let k=1;k<trace.length;k++)assert.ok((trace[k]-trace[k-1])*sign>=-1,`${before}→${after} scrolled back: ${trace.join(',')}`);
+    const view=await evaluate(`(()=>{const s=${scrollerOf(sel)},el=document.activeElement;if(!s||!s.contains(el))return {inside:false};const g=el.closest('[data-spotlight-container]'),t=g&&s.contains(g)?g:el,r=t.getBoundingClientRect(),v=s.getBoundingClientRect();return {inside:true,top:Math.round(s.scrollTop),max:s.scrollHeight-s.clientHeight,visible:r.height>v.height||(r.top>=v.top-2&&r.bottom<=v.bottom+2)};})()`);
+    if(!view.inside)break;
+    assert.ok(view.visible,`${after}: its group is not fully visible`);at=view;
+    if(after===before)break;
+   }
+   return at;
+  }
+  await evaluate('window.__fanYuan.library.saveProgress("fixture",{id:"fixture",name:"测试番剧",url:"https://example.invalid/fixture",sourceId:"fixture"},{id:"ep1",name:"第1集",sort:1},30,600);true');
+  for(const name of ['home','settings','calendar']){
+   await page(name);await new Promise(r=>setTimeout(r,400));
+   const bottom=await walk('ArrowDown','.content-scroller');assert.ok(bottom&&bottom.max>0,name+' should scroll');assert.ok(Math.abs(bottom.top-bottom.max)<=1,`${name}: last row did not reach the end (${bottom.top}/${bottom.max})`);
+   const top=await walk('ArrowUp','.content-scroller');assert.equal(top.top,0,name+': first row did not reach the top');
+  }
   console.log('UI: current-page sidebar exits');
   for(const [name,id,menu] of [['home','content-4-0','home'],['calendar','content-3-0','calendar'],['settings','content-4-0','settings'],['favorites','content-0-0','favorites'],['history','content-1-0','history'],['history','header-search','history'],['subscriptions','subscription-url','settings'],['danmakuSettings','danmaku-url','settings']]){
    await page(name);await wait(`!!document.querySelector('[data-focus-id="${id}"]')`);
