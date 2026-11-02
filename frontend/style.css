@@ -690,7 +690,15 @@ input::placeholder {
   display: none;
 }
 
+/* Sandstone's ImageItem animates transform and box-shadow on the art when focused. On the C1 the
+   box-shadow animation repaints the image every frame and the transform promotes a layer that
+   forces its overlapping title and badge onto layers too. Measured on the TV while walking the
+   home grid: 19–24 → 53 fps, key-to-frame p50 100 → 22 ms, long tasks 16 → 0. The card's
+   accent fill marks focus instead. */
+#root .poster-entry .poster-control .poster-art,
 #root .poster-entry .poster-control:focus .poster-art {
+  transition: none;
+  transform: none;
   box-shadow: none;
 }
 
@@ -2116,9 +2124,7 @@ input::placeholder {
   will-change: auto;
 }
 
-#root .poster-control:focus .poster-art {
-  will-change: transform;
-}
+
 
 /* The scroll viewport clips; leave room inside it for the focused button's fixed outset. */
 #root .player-panel .scroller-body {
