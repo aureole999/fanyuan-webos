@@ -1,4 +1,4 @@
-import React,{useState,useEffect,useRef} from 'react';
+import React,{useState,useEffect,useRef,useMemo} from 'react';
 import {createRoot} from 'react-dom/client';
 import SidebarItem from './SidebarItem';
 import ThemeDecorator from '@enact/sandstone/ThemeDecorator';
@@ -29,6 +29,21 @@ function Dialog({value,onClose}){
   const activeIndex=options.findIndex(o=>o.active);
   return <Popup open={!!value} position="center" spotlightId="dialog" className="selection-popup" css={{body:'popup-body'}} onClose={onClose} onShow={()=>setTimeout(()=>setFocus(options.length?'dialog-'+Math.max(0,activeIndex):'dialog-close'),0)}><div className="dialog-heading"><h2>{title}</h2><FocusButton id="dialog-close" className="dialog-close" row={-1} group="dialog" onSelect={onClose} aria-label="关闭弹窗"><Icon name="close" size={24}/></FocusButton></div><ContentScroller className="dialog-options" verticalScrollbar="hidden" style={{height:Math.min(640,Math.max(180,options.length*118))}}><div className="dialog-options-inner">{options.map((o,i)=><FocusButton key={i} id={'dialog-'+i} row={i} group="dialog" className={'dialog-option'+(o.active?' active':'')} label={o.description} slotAfter={o.active?<span className="dialog-option-check"><Icon name="check" size={18}/> 当前</span>:null} onSelect={o.action}>{o.label}</FocusButton>)}</div></ContentScroller></Popup>;
 }
+// Moving through the sidebar previews a page only after the remote rests on it; passing over an
+// item must not render that page (a page switch costs 300–500 ms of main thread on the C1).
+const PREVIEW_DELAY=300;
+// Shell parts re-render only when their own props change. Before, every page switch rebuilt all
+// Sandstone controls in the sidebar and header too. Handlers come from a stable `actions` object.
+const Sidebar=React.memo(function Sidebar({active,disabled,expanded,actions}){
+  const select=useMemo(()=>Object.fromEntries(MENU.map(m=>[m[0],()=>actions.go(m[0],true)])),[actions]);
+  return <FocusContainer spotlightId="sidebar" spotlightDisabled={disabled} className="sidebar" data-expanded={expanded}><div className="sidebar-brand" onClick={select.home}><span className="brand-symbol"><Icon name="tv" size={35}/></span><span className="brand-word">番源<small>你的本地追番空间</small></span></div><nav>{MENU.map((m,i)=><SidebarItem key={m[0]} id={'sidebar-'+m[0]} row={i} label={m[1]} icon={m[2]} active={active===m[0]} onSelect={select[m[0]]}/>)}</nav></FocusContainer>;
+});
+const PageHeader=React.memo(function PageHeader({title,subtitle,page,sourceName,actions}){
+  return <header className="page-header"><div><div className="page-eyebrow">FANYUAN / ANIME LIBRARY</div><h1>{title}</h1>{subtitle&&<p className="page-subtitle">{subtitle}</p>}</div><div className="header-source">{page!=='search'&&<FocusButton id="header-search" row={0} col={18} recoveryPriority={1} className="header-search primary" onSelect={actions.search} aria-label="搜索番剧"><Icon name="search" size={24}/></FocusButton>}{page==='history'&&<FocusButton id="header-clear-history" row={0} col={19} recoveryPriority={1} className="source-picker" onSelect={actions.clearHistory}>清空历史</FocusButton>}<FocusButton id="header-source" row={0} col={20} recoveryPriority={1} className="source-picker" onSelect={actions.chooseSource}><Icon name="remix" size={21}/>{sourceName||'选择视频源'}<span className="chevron-down"/></FocusButton></div></header>;
+});
+const PageFooter=React.memo(function PageFooter({page}){
+  return <footer className="app-footer">{page==='detail'?<span><kbd>OK</kbd> 播放 / 续播　 <kbd>长按 OK</kbd> 标记已看</span>:<span><kbd>方向键</kbd> 移动　 <kbd>OK</kbd> 选择</span>}<span><kbd>返回</kbd> {page==='detail'?'回到上一页，保留浏览位置':SETTINGS_PAGES.includes(page)?'回到设置':'返回侧栏'}</span></footer>;
+});
 function App({className}){
   const [page,setPage]=useState('home'),[sources,setSources]=useState([]),[sourceId,setSourceId]=useState(localStorage.getItem('sourceId')||'source-c');
   const [calendar,setCalendar]=useState([]),[day,setDay]=useState(today),[calendarError,setCalendarError]=useState(''),[calendarBusy,setCalendarBusy]=useState(true);
@@ -54,7 +69,7 @@ function App({className}){
         setDrawer(true);setLastSidebarFocus(id);
         const item=MENU.find(m=>'sidebar-'+m[0]===id);
         if(item&&!isPointerFocus()&&menuPage()!==item[0]){
-          previewTimer.current=setTimeout(()=>go(item[0]),100);
+          previewTimer.current=setTimeout(()=>go(item[0]),PREVIEW_DELAY);
         }
       }else if(id?.startsWith('content-')||id?.startsWith('header-')){
         setDrawer(false);
@@ -129,10 +144,13 @@ function App({className}){
   const resultsHeading=<h2 className="section-title">搜索结果 <span>{results.length} 部 · {currentSource?.name}</span></h2>;
   const title={home:'继续喜欢的故事',search:'搜索番剧',calendar:'新番时间表',favorites:'我的收藏',history:'观看历史',settings:'设置',subscriptions:'数据源订阅',danmakuSettings:'弹幕服务',danmakuStyle:'弹幕样式',detail:meta?.name||detail?.subject?.name||'番剧详情'}[page];
   useEffect(()=>{window.__fanYuan={get state(){return current.current;},call,library,navigate:go,search:(q,id)=>runSearch(q,id),openTitle,openSource,diagnostics:()=>({version:APP_VERSION,page:current.current.page,sourceId:current.current.sourceId,playing:!!current.current.player,results:current.current.results.length})};return()=>delete window.__fanYuan;},[page,sourceId,keyword,detail,meta,channel]);
+  const shell=useRef({});
+  shell.current={go,chooseSource,clearHistory(){if(!history.length){notify('暂无观看历史');return;}setDialog({title:'清空观看历史？',options:[{label:'保留历史',action:()=>setDialog(null)},{label:'清空本地历史与进度',description:'收藏会保留。此操作不能撤销。',action:()=>{library.clearHistory();refresh();setDialog(null);}}]});}};
+  const actions=useMemo(()=>({go:(p,enter)=>shell.current.go(p,enter),search:()=>shell.current.go('search',true),chooseSource:()=>shell.current.chooseSource(),clearHistory:()=>shell.current.clearHistory()}),[]);
   return <div id="tv-frame" className={className}>
     <div className="app-shell" aria-hidden={!!player}>
-      <FocusContainer spotlightId="sidebar" spotlightDisabled={!!player||!!dialog} className="sidebar" data-expanded={drawer.current}><div className="sidebar-brand" onClick={()=>go('home',true)}><span className="brand-symbol"><Icon name="tv" size={35}/></span><span className="brand-word">番源<small>你的本地追番空间</small></span></div><nav>{MENU.map((m,i)=><SidebarItem key={m[0]} id={'sidebar-'+m[0]} row={i} label={m[1]} icon={m[2]} active={menuPage()===m[0]} onSelect={()=>go(m[0],true)}/>)}</nav></FocusContainer>
-      <PageFocusContainer spotlightId="content" spotlightDisabled={!!player||!!dialog} className="main-content"><header className="page-header"><div><div className="page-eyebrow">FANYUAN / ANIME LIBRARY</div><h1>{title}</h1>{subtitle&&<p className="page-subtitle">{subtitle}</p>}</div><div className="header-source">{page!=='search'&&<FocusButton id="header-search" row={0} col={18} recoveryPriority={1} className="header-search primary" onSelect={()=>go('search',true)} aria-label="搜索番剧"><Icon name="search" size={24}/></FocusButton>}{page==='history'&&<FocusButton id="header-clear-history" row={0} col={19} recoveryPriority={1} className="source-picker" onSelect={()=>{if(!history.length){notify('暂无观看历史');return;}setDialog({title:'清空观看历史？',options:[{label:'保留历史',action:()=>setDialog(null)},{label:'清空本地历史与进度',description:'收藏会保留。此操作不能撤销。',action:()=>{library.clearHistory();refresh();setDialog(null);}}]});}}>清空历史</FocusButton>}<FocusButton id="header-source" row={0} col={20} recoveryPriority={1} className="source-picker" onSelect={chooseSource}><Icon name="remix" size={21}/>{currentSource?.name||'选择视频源'}<span className="chevron-down"/></FocusButton></div></header>
+      <Sidebar active={menuPage()} disabled={!!player||!!dialog} expanded={drawer.current} actions={actions}/>
+      <PageFocusContainer spotlightId="content" spotlightDisabled={!!player||!!dialog} className="main-content"><PageHeader title={title} subtitle={subtitle} page={page} sourceName={currentSource?.name} actions={actions}/>
         <ContentScroller apiRef={scroller}>
           <div key={page+(page==='detail'?':'+(meta?.bgmId||meta?.name||''):'')} className="page-stage">
           {error&&<div className="error-banner"><span>{error}</span><FocusButton id="content-0-4" row={0} col={4} recoveryPriority={2} onSelect={chooseSource}>换一个源</FocusButton></div>}
@@ -164,7 +182,7 @@ function App({className}){
           {page==='danmakuStyle'&&settingsGroups(DANMAKU_GROUPS.map(g=>[g.title,g.fields.map(f=>[DANMAKU_FIELDS[f].label,danmakuFieldValue(f,settings),()=>chooseDanmakuField(f)])]))}
           </div>
         </ContentScroller>
-        <footer className="app-footer">{page==='detail'?<span><kbd>OK</kbd> 播放 / 续播　 <kbd>长按 OK</kbd> 标记已看</span>:<span><kbd>方向键</kbd> 移动　 <kbd>OK</kbd> 选择</span>}<span><kbd>返回</kbd> {page==='detail'?'回到上一页，保留浏览位置':SETTINGS_PAGES.includes(page)?'回到设置':'返回侧栏'}</span></footer>
+        <PageFooter page={page}/>
       </PageFocusContainer>
     </div>
     <Dialog value={dialog} onClose={()=>setDialog(null)}/>
