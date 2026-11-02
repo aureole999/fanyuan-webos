@@ -23,6 +23,10 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   // `set viewport` occasionally does not apply; pin the metrics the layout assertions depend on.
   await cdp('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});await wait('!!window.__fanYuan');
   await wait('document.activeElement.dataset.focusId==="sidebar-home"');
+  await wait('document.querySelectorAll(".section-title").length>=3');
+  // Discovery rows follow 今日放送: two rows each of 本季热门 and the daily 高分经典 pick.
+  assert.deepEqual(JSON.parse(await evaluate('JSON.stringify([...document.querySelectorAll(".section-title")].map(e=>e.firstChild.textContent.trim()))')).slice(-2),['本季热门','高分经典']);
+  assert.equal(await evaluate('[...document.querySelectorAll(".poster-body strong")].filter(e=>/^(热门番|经典番)/.test(e.textContent)).length'),16);
   assert.equal(await evaluate('document.querySelector(".poster-art").getBoundingClientRect().height'),244);
   for(let i=0;i<4;i++)await key('ArrowDown');assert.equal(await evaluate('document.activeElement.dataset.focusId'),'sidebar-search');await key('ArrowRight');await wait('document.activeElement.dataset.focusId==="content-0-0"');
   console.log("UI: settings and popup");await page('danmakuStyle');await wait('window.__focusState().current==="content-1-0"');

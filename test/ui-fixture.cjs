@@ -14,6 +14,8 @@ function fixture(){
   if(method==='search')data={items:[subject]};
   if(method==='detail')data=window.__fixture.failDetail?{returnValue:false,errorText:'没有可用剧集，请更换视频源'}:{subject,channels:[{name:'线路1',episodes},{name:'线路2',episodes:episodes.map(e=>({...e,id:e.id+'b'}))}]};
   if(method==='bangumiSearch')data={items:[]};
+  if(method==='bangumiPopular')data={items:Array.from({length:10},(_,n)=>({...subject,id:'hot'+n,bgmId:9000+n,name:'热门番 '+(n+1)}))};
+  if(method==='bangumiClassics')data={items:Array.from({length:40},(_,n)=>({...subject,id:'classic'+n,bgmId:8000+n,name:'经典番 '+(n+1)}))};
   if(method==='subscriptions'||method.startsWith('subscription'))data={subscriptions:[subscription]};
   if(method==='danmakuSettings')data=settings;
   if(method==='danmakuConfigure'){Object.assign(settings,p);data=settings;}

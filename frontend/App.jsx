@@ -1,6 +1,7 @@
 import React,{useState,useEffect,useRef,useMemo} from 'react';
 import {createRoot} from 'react-dom/client';
 import SidebarItem from './SidebarItem';
+import {dailyPick,dayKey} from './discover.cjs';
 import ThemeDecorator from '@enact/sandstone/ThemeDecorator';
 import Popup from '@enact/sandstone/Popup';
 import {initKeyboardNav,onFocusChange,setFocus,getCurrentFocusId,setContentContext,focusFirstContent,focusSidebar,setLastSidebarFocus,isPointerFocus} from './focus';
@@ -49,6 +50,10 @@ const PageFooter=React.memo(function PageFooter({page}){
 });
 function App({className}){
   const [page,setPage]=useState('home'),[sources,setSources]=useState([]),[sourceId,setSourceId]=useState(localStorage.getItem('sourceId')||'source-c');
+  const [popular,setPopular]=useState([]),[classics,setClassics]=useState([]),[discoverShown,setDiscoverShown]=useState(false);
+  // The discovery rows start below the fold: mount them after home has painted, so switching to home
+  // (or previewing it from the sidebar) costs what it did before they existed.
+  useEffect(()=>{if(page!=='home'){setDiscoverShown(false);return;}let t;const f=requestAnimationFrame(()=>{t=setTimeout(()=>setDiscoverShown(true),0);});return()=>{cancelAnimationFrame(f);clearTimeout(t);};},[page]);
   const [calendar,setCalendar]=useState([]),[day,setDay]=useState(today),[calendarError,setCalendarError]=useState(''),[calendarBusy,setCalendarBusy]=useState(true);
   const [keyword,setKeyword]=useState(''),[results,setResults]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[detail,setDetail]=useState(null),[meta,setMeta]=useState(null),[candidates,setCandidates]=useState([]),[channel,setChannel]=useState(0),[settings,setSettings]=useState(()=>library.settings()),[revision,setRevision]=useState(0),[dialog,setDialog]=useState(null),[player,setPlayer]=useState(null),[toast,setToast]=useState(''),[favFilter,setFavFilter]=useState('all');
   const drawer=useRef(true),previewTimer=useRef(null);
@@ -62,10 +67,12 @@ function App({className}){
   function updateSettings(patch){setSettings(library.setSettings(patch));}
   function go(next,enter=false){clearTimeout(previewTimer.current);if(next===current.current.page){setDrawer(!enter);if(enter)focusFirstContent();return;}token.current++;setContentContext(next);setPage(next);setDrawer(!enter);setDetail(null);setMeta(null);setCandidates([]);setError('');setBusy(false);if(scroller.current)scroller.current.scrollTop=0;if(enter)focusFirstContent();}
   async function refreshSources(){const r=await call('sources');setSources(r.sources);const selected=current.current.sourceId;if(r.sources.length&&!r.sources.some(s=>s.id===selected)){setSourceId(r.sources[0].id);localStorage.setItem('sourceId',r.sources[0].id);}return r;}
+  // Home discovery rows; a failure just leaves a row out.
+  function loadDiscover(){call('bangumiPopular').then(r=>setPopular(r.items||[])).catch(()=>{});call('bangumiClassics').then(r=>setClassics(r.items||[])).catch(()=>{});}
   async function loadCalendar(){setCalendarBusy(true);setCalendarError('');try{const r=await call('calendar');setCalendar(r.days);}catch(e){setCalendarError(e.message);}finally{setCalendarBusy(false);}}
   useEffect(()=>{
     initKeyboardNav();
-    refreshSources().then(()=>call('subscriptionsUpdate',{force:false})).then(refreshSources).catch(e=>notify(e.message));loadCalendar();
+    refreshSources().then(()=>call('subscriptionsUpdate',{force:false})).then(refreshSources).catch(e=>notify(e.message));loadCalendar();loadDiscover();
     const off=onFocusChange(id=>{
       clearTimeout(previewTimer.current);
       if(id?.startsWith('sidebar-')){
@@ -144,6 +151,10 @@ function App({className}){
   // Page-level notes sit in the fixed header, outside the scroller, so they never need focus to be seen.
   const subtitle={settings:'设置与追番数据仅保存在本机，不需要登录账号。',subscriptions:'订阅直接下载到这台电视，应用运行时每小时检查更新；下载失败会保留缓存，不导入 BT。',danmakuSettings:'自动匹配优先选择弹弹play，其他平台作为备用；播放时可在弹幕设置里调整偏移或手动匹配。',danmakuStyle:'对所有番剧生效；播放时在弹幕面板里修改的也是同一套设置。'}[page];
   const todayHeading=<h2 className="section-title">今日放送 <span>{DAY[today-1]} · Bangumi</span></h2>,todayRow=history.length?2:1;
+  // 本季热门 and 高分经典 follow 今日放送; 高分经典 is a daily pick from Bangumi's top 300 minus shows
+  // already watched, saved or listed as popular.
+  const cols=settings.gridCols,popularRow=todayRow+(calendarBusy||calendarError?1:Math.max(1,Math.ceil(Math.min(todayItems.length,20)/cols))),popularItems=popular.slice(0,cols*2),classicsRow=popularRow+(popularItems.length?Math.ceil(popularItems.length/cols):0);
+  const classicItems=page==='home'&&discoverShown?dailyPick(classics,history.map(x=>x.subject.bgmId).concat(favorites.map(x=>x.bgmId),popularItems.map(x=>x.bgmId)),cols*2,dayKey(new Date())):[];
   const resultsHeading=<h2 className="section-title">搜索结果 <span>{results.length} 部 · {currentSource?.name}</span></h2>;
   const title={home:'继续喜欢的故事',search:'搜索番剧',calendar:'新番时间表',favorites:'我的收藏',history:'观看历史',settings:'设置',subscriptions:'数据源订阅',danmakuSettings:'弹幕服务',danmakuStyle:'弹幕样式',detail:meta?.name||detail?.subject?.name||'番剧详情'}[page];
   useEffect(()=>{window.__fanYuan={get state(){return current.current;},call,library,navigate:go,search:(q,id)=>runSearch(q,id),openTitle,openSource,diagnostics:()=>({version:APP_VERSION,page:current.current.page,sourceId:current.current.sourceId,playing:!!current.current.player,results:current.current.results.length})};return()=>delete window.__fanYuan;},[page,sourceId,keyword,detail,meta,channel]);
@@ -160,6 +171,8 @@ function App({className}){
           {page==='home'&&<>
             {history.length>0&&cardSection(<h2 className="section-title">继续观看 <span>已在这台电视上保存</span></h2>,history.slice(0,settings.gridCols).map(x=>x.subject),1,history.slice(0,settings.gridCols))}
             {calendarBusy||calendarError?<section className="grid-section"><ScrollGroup className="section-lead">{todayHeading}{calendarBusy?<Loading/>:<><Empty title="时间表暂未加载">{calendarError}</Empty><FocusButton id="content-calendar-retry" row={todayRow} onSelect={loadCalendar}>重新加载</FocusButton></>}</ScrollGroup></section>:cardSection(todayHeading,todayItems.slice(0,20),todayRow)}
+            {discoverShown&&popularItems.length>0&&cardSection(<h2 className="section-title">本季热门 <span>Bangumi 热度</span></h2>,popularItems,popularRow)}
+            {classicItems.length>0&&cardSection(<h2 className="section-title">高分经典 <span>每天换一批</span></h2>,classicItems,classicsRow)}
           </>}
           {page==='search'&&<>
             <form className="search-form" onSubmit={e=>e.preventDefault()}><FocusSearchInput id="content-0-0" inputRef={inputRef} value={keyword} onChange={e=>setKeyword(e.target.value)} onSubmit={()=>runSearch()}/><FocusButton id="content-0-1" row={0} col={1} className="primary search-submit" aria-label="搜索" onSelect={()=>runSearch()}><Icon name="search" size={30}/></FocusButton></form>

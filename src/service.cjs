@@ -41,6 +41,8 @@ async function action(name,p){
   if(name==='customDanmakuTest'){const items=await danmaku.custom.search(p.name||'葬送的芙莉莲');return {count:items.length,names:items.slice(0,3).map(a=>a.name)};}
   if(name==='calendar')return catalogApi.calendar();
   if(name==='bangumiSearch')return catalogApi.search(p.keyword);
+  if(name==='bangumiPopular')return catalogApi.popular();
+  if(name==='bangumiClassics')return catalogApi.classics();
   if(name==='bangumiDetail')return catalogApi.detail(p.id);
   if(name==='danmaku')return danmaku.load(p);
   if(name==='diagnostics'||name==='ping')return diagnostics();
@@ -51,7 +53,7 @@ if(process.env.ANIMEKO_LOCAL_DEV==='1'){
   http.createServer(function(req,res){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','Content-Type');if(req.method==='OPTIONS'){res.end();return;}let body='';req.on('data',function(b){body+=b;if(body.length>100000)req.destroy();});req.on('end',function(){let p;try{p=JSON.parse(body||'{}');}catch(e){res.writeHead(400);res.end();return;}action(req.url.slice(1),p).then(function(v){res.end(JSON.stringify(Object.assign({returnValue:true},v)));},function(e){res.end(JSON.stringify({returnValue:false,errorText:cleanError(e)}));});});}).listen(18764,'127.0.0.1');
 }else{
   const Service=require('webos-service'),service=new Service('com.local.animesources.service');
-  ['sources','search','detail','resolve','danmaku','calendar','bangumiSearch','bangumiDetail','diagnostics','ping','subscriptions','subscriptionsUpdate','subscriptionUpdate','subscriptionAdd','subscriptionConfigure','subscriptionRemove','danmakuSettings','danmakuConfigure','customDanmakuSearch','customDanmakuEpisodes','customDanmakuTest'].forEach(function(name){service.register(name,function(message){action(name,message.payload).then(function(v){message.respond(Object.assign({returnValue:true},v));},function(e){const entry=Object.assign({method:name,sourceId:message.payload&&message.payload.sourceId||'',time:Date.now()},errorDetails(e));recent.push(entry);console.error('[FanYuan]',JSON.stringify(entry));if(recent.length>20)recent.shift();message.respond({returnValue:false,errorCode:e.code||'SOURCE_ERROR',errorText:cleanError(e)});});});});
+  ['sources','search','detail','resolve','danmaku','calendar','bangumiSearch','bangumiPopular','bangumiClassics','bangumiDetail','diagnostics','ping','subscriptions','subscriptionsUpdate','subscriptionUpdate','subscriptionAdd','subscriptionConfigure','subscriptionRemove','danmakuSettings','danmakuConfigure','customDanmakuSearch','customDanmakuEpisodes','customDanmakuTest'].forEach(function(name){service.register(name,function(message){action(name,message.payload).then(function(v){message.respond(Object.assign({returnValue:true},v));},function(e){const entry=Object.assign({method:name,sourceId:message.payload&&message.payload.sourceId||'',time:Date.now()},errorDetails(e));recent.push(entry);console.error('[FanYuan]',JSON.stringify(entry));if(recent.length>20)recent.shift();message.respond({returnValue:false,errorCode:e.code||'SOURCE_ERROR',errorText:cleanError(e)});});});});
   let keepAlive;service.activityManager.create('keepAlive',function(activity){keepAlive=activity;});
 }
 module.exports={action:action};
