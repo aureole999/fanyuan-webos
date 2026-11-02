@@ -2310,19 +2310,10 @@ input::placeholder {
   min-height: 76px;
   padding: 0;
   border-radius: 50%;
-  margin-right: 18px;
 }
 
 #root .player-primary .fy-icon {
   margin: 0 !important;
-}
-
-#root .player-sep {
-  align-self: center;
-  width: 1px;
-  height: 34px;
-  margin: 0 18px 12px 6px;
-  background: rgba(255, 255, 255, 0.2);
 }
 
 #root .player-switch {
@@ -2385,4 +2376,53 @@ input::placeholder {
 
 #root .player-back {
   padding: 0;
+}
+
+/* Centered control bar: content | previous · play · next | danmaku and speed. The outer sections
+   share the remaining width equally, so play/pause sits at the exact center of the screen. */
+#root .player-control-row {
+  flex-wrap: nowrap;
+  margin-bottom: 12px;
+}
+
+#root .player-section {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#root .player-section.center {
+  flex: 0 0 auto;
+  margin: 0 24px;
+}
+
+#root .player-section.end {
+  justify-content: flex-end;
+}
+
+#root .player-control-row .player-button {
+  margin: 0 6px;
+}
+
+#root .player-section.start .player-button:first-child {
+  margin-left: 0;
+}
+
+#root .player-section.end .player-button:last-child {
+  margin-right: 0;
+}
+
+#root .player-section.center .player-primary {
+  margin: 0 18px;
+}
+
+/* The previous-episode icon is the next-episode glyph mirrored, so the pair matches exactly. */
+#root .player-prev .fy-icon {
+  transform: scaleX(-1);
+}
+
+#root .lite-btn.disabled {
+  opacity: 0.38;
+  cursor: default;
 }

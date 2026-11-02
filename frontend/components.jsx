@@ -56,9 +56,9 @@ const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://w
 const cssUrl=u=>'url("'+String(u).replace(/["\\\n]/g,encodeURIComponent)+'")';
 // A button without Sandstone's Button stack (23 components: Tooltip, Marquee, Touchable, …). Same
 // fy-button classes, so focus and state styling are shared with every other control.
-export function LiteButton({id,group='content',row=0,col=0,onSelect,className='',label,children,...rest}){
- const {props}=useFocusable({id,row,col,group,onSelect});
- return <SpottableDiv {...props} {...voice(label)} role="button" aria-label={rest['aria-label']||label} className={'fy-button lite-btn '+className}><div className="control-bg"/>{children}</SpottableDiv>;
+export function LiteButton({id,group='content',row=0,col=0,onSelect,className='',label,disabled=false,children,...rest}){
+ const {props}=useFocusable({id,row,col,group,onSelect,disabled});
+ return <SpottableDiv {...props} {...voice(label)} role="button" aria-label={rest['aria-label']||label} aria-disabled={disabled||undefined} spotlightDisabled={disabled} className={'fy-button lite-btn '+(disabled?'disabled ':'')+className}><div className="control-bg"/>{children}</SpottableDiv>;
 }
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
  const id=`content-${row}-${col}`,{props}=useFocusable({id,row,col,onSelect,onNavigate:dir=>dir==='up'&&isTopContentRow(id)?(eligible('header-search')?'header-search':'header-source'):null});

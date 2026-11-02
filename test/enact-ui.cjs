@@ -41,7 +41,9 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await evaluate('window.__fixture.failDetail=false;window.__fanYuan.openSource({id:"fixture",name:"测试番剧",url:"https://example.invalid/fixture",sourceId:"fixture"})');await wait('!!document.querySelector(".episode-button")');
   await wait('window.__focusState().current==="content-2-0"');await key('Enter');await wait('!!window.__fanYuan.state.player');await wait('window.__focusState().current==="player-controls-0"');
   // The fixture stream cannot decode: the error box offers 重试 and 切换线路 and takes focus; the bar has 7 controls.
-  await wait('window.__focusState().current==="player-retry"');assert.equal(await evaluate('!!document.querySelector("[data-focus-id=player-retry-channel]")'),true);assert.equal(await evaluate('document.querySelectorAll(".player-control-row .player-button").length'),7);
+  await wait('window.__focusState().current==="player-retry"');assert.equal(await evaluate('!!document.querySelector("[data-focus-id=player-retry-channel]")'),true);assert.equal(await evaluate('document.querySelectorAll(".player-control-row .player-button").length'),8);
+  // Play/pause sits at the horizontal center of the screen.
+  assert.ok(Math.abs(await evaluate('(()=>{const r=document.querySelector(".player-primary").getBoundingClientRect();return r.left+r.width/2})()')-960)<=2);
   const playback=await evaluate(`(async()=>{
    const v=document.querySelector('video');v.removeAttribute('src');v.load();let pos=30;
    Object.defineProperties(v,{duration:{configurable:true,get:()=>600},currentTime:{configurable:true,get:()=>pos,set:n=>pos=n},paused:{configurable:true,get:()=>false}});
@@ -56,7 +58,8 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   assert.equal(await evaluate('document.querySelectorAll("[data-focus-group=player]").length'),0);
   await new Promise(r=>setTimeout(r,600));assert.equal(await evaluate('document.querySelector("video")===window.__reviewVideo'),true);
   await evaluate('document.querySelector("video").currentTime=125');await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-1"');assert.equal(await evaluate('document.querySelector(".player-time span").textContent'),'02:05');
-  await key('ArrowRight');await key('Enter');await wait('!!document.querySelector(".player-panel")');await key('Escape');await wait('!document.querySelector(".player-panel")');
+  // 下一集 → 弹幕 (toggle) → 弹幕设置 (panel)
+  await key('ArrowRight');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-6');await key('Enter');await wait('!!document.querySelector(".player-panel")');await key('Escape');await wait('!document.querySelector(".player-panel")');
   await key('Escape');await key('Escape');await wait('!window.__fanYuan.state.player');
   console.log('UI: remote-only scrolling');
   // Arrow keys alone must reach both ends of a page; every move scrolls in one direction only

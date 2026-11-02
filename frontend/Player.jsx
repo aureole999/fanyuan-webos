@@ -127,13 +127,21 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     // Notes and errors sit beside the panel title (the first focus row), never below the last control.
     const note={danmakuMore:'与「设置 → 弹幕样式」是同一套设置，对所有番剧生效。',types:'点击即可切换开关；关闭彩色弹幕后所有弹幕统一显示为白色。',sources:'每个平台可单独开关和调整时间；整部番剧的偏移在弹幕面板的「本集弹幕」里。',customMatch:customBusy?'正在查询…':customSubject?'当前番剧：'+customSubject.name:'选择对应番剧和剧集；自动匹配不准时可在这里调整。'}[panel];
     const panelError=(panel==='danmaku'||panel==='customMatch')&&dmError;
-    function button(label,action,icon,extra='',opts={}){const i=index++;return <LiteButton key={i} id={controlId(panel,i)} group="player" row={i} label={label} className={`player-button ${extra}`} onSelect={action}>{icon&&<Icon name={icon} size={opts.iconOnly?34:23}/>}{!opts.iconOnly&&<span>{label}</span>}{opts.after}</LiteButton>;}
+    function button(label,action,icon,extra='',opts={}){const i=index++;return <LiteButton key={i} id={controlId(panel,i)} group="player" row={i} label={label} disabled={!!opts.disabled} className={`player-button ${extra}`} onSelect={action}>{icon&&<Icon name={icon} size={opts.iconOnly?34:23}/>}{!opts.iconOnly&&<span>{label}</span>}{opts.after}</LiteButton>;}
     function styleButton(f){return button(DANMAKU_FIELDS[f].label+'：'+danmakuFieldValue(f,settings),()=>openPanel(f==='types'?'types':'opt-'+f));}
     const matched=dmSources.find(s=>s.match?.episodeName),dmSummary=[dmInfo,matched&&cleanTitle(matched.match.subjectName)+' · '+matched.match.episodeName].filter(Boolean).join(' · ');
     return <div className="player-control-zone">
-          {!panel?<div className="player-control-row">
-            {button(paused?'播放':'暂停',toggle,paused?'play':'pause','player-primary',{iconOnly:true})}{button('下一集',()=>{save();onNext();},'next')}<span className="player-sep"/>{button('选集',()=>openPanel('episodes'),'episodes')}{button('线路',()=>openPanel('channels'),'channel')}<span className="player-sep"/>{button('弹幕',()=>onSettings({danmaku:!settings.danmaku}),'chat','player-toggle',{after:<span className={'player-switch'+(settings.danmaku?' on':'')} aria-hidden="true"/>})}{button('弹幕设置',()=>openPanel('danmaku'),'settings')}<span className="player-sep"/>{button(speedLabel(speed),()=>openPanel('speed'),'speed')}
-          </div>:<ContentScroller className="player-panel" spotlightId={'panel-'+panel}><div className="panel-title"><div className="panel-heading"><h2>{panelTitle(panel)}</h2>{note&&<p className="panel-description">{note}</p>}{panelError&&<p className="error-text">{dmError}</p>}</div>{button(panelHistory.current.length>1?'返回上一级':'返回控制栏',hidePanel)}</div>
+          {!panel?(()=>{
+            // Ids follow focus priority (play is index 0, 下一集 1); the layout is centered: content on
+            // the left, previous / play / next in the middle, danmaku and speed on the right.
+            const eps=channels[channelIndex]?.episodes||[],at=eps.findIndex(e=>e.id===episode.id);
+            const play=button(paused?'播放':'暂停',toggle,paused?'play':'pause','player-primary',{iconOnly:true});
+            const next=button('下一集',()=>{save();onNext();},'next','player-next',{disabled:!item.hasNext});
+            const prev=button('上一集',()=>{if(at>0){save();onEpisode(eps[at-1]);}},'next','player-prev',{disabled:!(at>0)});
+            const list=button('选集',()=>openPanel('episodes'),'episodes'),line=button('线路',()=>openPanel('channels'),'channel');
+            const dm=button('弹幕',()=>onSettings({danmaku:!settings.danmaku}),'chat','player-toggle',{after:<span className={'player-switch'+(settings.danmaku?' on':'')} aria-hidden="true"/>});
+            const dmSet=button('弹幕设置',()=>openPanel('danmaku'),'settings'),rate=button(speedLabel(speed),()=>openPanel('speed'),'speed');
+            return <div className="player-control-row"><div className="player-section start">{list}{line}</div><div className="player-section center">{prev}{play}{next}</div><div className="player-section end">{dm}{dmSet}{rate}</div></div>;})():<ContentScroller className="player-panel" spotlightId={'panel-'+panel}><div className="panel-title"><div className="panel-heading"><h2>{panelTitle(panel)}</h2>{note&&<p className="panel-description">{note}</p>}{panelError&&<p className="error-text">{dmError}</p>}</div>{button(panelHistory.current.length>1?'返回上一级':'返回控制栏',hidePanel)}</div>
             {panel==='episodes'&&<div className="player-episode-grid">{(channels[channelIndex]?.episodes||[]).map(ep=>button(ep.name,()=>{save();onEpisode(ep);},null,ep.id===episode.id?'active':''))}</div>}
             {panel==='channels'&&<div className="player-channel-grid">{channels.map((ch,i)=>button(ch.name,()=>{save();onSwitchChannel(i);},null,i===channelIndex?'active':''))}</div>}
             {panel==='speed'&&<div className="player-settings-grid">{[[0.75,'0.75×'],[1,'1.0× · 正常'],[1.25,'1.25×'],[1.5,'1.5×'],[2,'2.0×']].map(([v,label])=>button(label,()=>applySpeed(v),null,speed===v?'active':''))}</div>}
