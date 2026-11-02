@@ -2119,6 +2119,12 @@ input::placeholder {
 
 
 
+/* Sandstone's scroll container inherits the panel background; two translucent layers would
+   show as a darker inner box. */
+#root .player-panel > * {
+  background: none;
+}
+
 /* The scroll viewport clips; leave room inside it for the focused button's fixed outset. */
 #root .player-panel .scroller-body {
   padding: 8px 28px 8px 10px;
@@ -2282,14 +2288,18 @@ input::placeholder {
 /* Lightweight button (LiteButton): the layering Sandstone's Button used to provide. */
 #root .lite-btn {
   position: relative;
+  isolation: isolate;
 }
 
+/* Under the label: a bare text child (e.g. 取消) is not positioned, so a positioned background
+   would otherwise paint over it. The button is its own stacking context, so -1 stays inside it. */
 #root .lite-btn .control-bg {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
+  z-index: -1;
 }
 
 #root .lite-btn > :not(.control-bg) {
