@@ -1,15 +1,15 @@
-import React,{useLayoutEffect,useReducer,useRef} from 'react';
+import React,{useEffect,useLayoutEffect,useReducer,useRef} from 'react';
 import Button from '@enact/sandstone/Button';
 import Item from '@enact/sandstone/Item';
 import iconList from '@enact/sandstone/Icon/IconList';
-import InputField from '@enact/sandstone/Input/InputField';
 import Scroller from '@enact/sandstone/Scroller';
 import ContentContainerDecorator from '@enact/sandstone/Scroller/ContentContainerDecorator';
 import Spinner from '@enact/sandstone/Spinner';
+import Spotlight from '@enact/spotlight';
 import SpotlightContainerDecorator from '@enact/spotlight/SpotlightContainerDecorator';
 import Spottable from '@enact/spotlight/Spottable';
 import {coverThumbnail} from '../src/images.cjs';
-import {useFocusable,isTopContentRow,eligible} from './focus';
+import {useFocusable,isTopContentRow,eligible,setFocus} from './focus';
 import {remoteKey} from './navigation.cjs';
 
 export const FocusContainer=SpotlightContainerDecorator('div');
@@ -21,17 +21,31 @@ const ICONS={pause:'pause',next:'skip',episodes:'list',channel:'channel',speed:'
 // Sandstone's icon font glyph in a plain span: Sandstone's Icon is a kind()/Skinnable stack whose
 // mount cost adds up on pages with one icon per card.
 export function Icon({name,size=32,className=''}){const code=iconList[ICONS[name]||name];return <span aria-hidden="true" className={('fy-icon '+className).trim()} style={{fontSize:size,width:size,height:size,lineHeight:size+'px'}}>{code?String.fromCodePoint(code):name}</span>;}
+// Lightweight text field: a Spottable well around a native input. OK starts typing (focusing the
+// input opens the webOS keyboard). Enter submits; Back, Up/Down or the keyboard being hidden end
+// typing. Each way out hands remote focus back to the well, so the arrows navigate again instead of
+// moving the caret of an input that still holds focus.
 export function TextInput({id,inputRef,value,onChange,onSubmit,placeholder,type='text',className='',ariaLabel}){
- const {props}=useFocusable({id});
- const submit=useRef(false);
- useLayoutEffect(()=>{if(inputRef)inputRef.current=document.querySelector('[data-focus-id="'+id+'"] input');return()=>{if(inputRef)inputRef.current=null;};},[id,inputRef]);
- return <InputField {...props} className={'fy-input '+className} css={{bg:'input-bg',input:'input-text'}} value={value} type={type} placeholder={placeholder} aria-label={ariaLabel||placeholder} dismissOnEnter onChange={e=>onChange({target:{value:e.value}})} onDeactivate={()=>{
-  if(submit.current){submit.current=false;setTimeout(()=>onSubmit?.(),0);}
- }} onKeyDown={e=>{
-  if(e.nativeEvent?.isComposing||e.keyCode===229)return;
-  const key=remoteKey(e);
-  submit.current=key==='Enter'&&e.target.tagName==='INPUT'&&!e.target.readOnly&&!!onSubmit;
- }}/>
+ const field=useRef(null),{props}=useFocusable({id,onSelect:()=>field.current?.focus()});
+ useLayoutEffect(()=>{if(inputRef)inputRef.current=field.current;return()=>{if(inputRef)inputRef.current=null;};},[inputRef]);
+ const finish=(submit,move)=>{const f=field.current;if(!f)return;if(document.activeElement===f)f.blur();setFocus(id);if(move)Spotlight.move(move);if(submit&&onSubmit)setTimeout(onSubmit,0);};
+ const finishRef=useRef(finish);finishRef.current=finish;
+ useEffect(()=>{
+  const hidden=e=>{if(e.detail&&e.detail.visibility===false&&document.activeElement===field.current)finishRef.current(false);};
+  document.addEventListener('keyboardStateChange',hidden);window.addEventListener('keyboardStateChange',hidden);
+  return()=>{document.removeEventListener('keyboardStateChange',hidden);window.removeEventListener('keyboardStateChange',hidden);};
+ },[]);
+ const label=ariaLabel||placeholder;
+ return <SpottableDiv {...props} {...voice(label)} role="group" aria-label={label} className={'fy-input '+className}>
+  <input ref={field} className="input-text" type={type} value={value} placeholder={placeholder} aria-label={label} tabIndex={-1} onChange={e=>onChange({target:{value:e.target.value}})} onKeyDown={e=>{
+   if(e.nativeEvent.isComposing||e.keyCode===229)return;
+   const key=remoteKey(e);
+   // Stop here: the well's Spottable must not see this Enter, or its keyup would start typing again.
+   if(key==='Enter'){e.preventDefault();e.stopPropagation();finish(true);}
+   else if(e.keyCode===461||key==='Escape'||key==='GoBack'){e.preventDefault();e.stopPropagation();finish(false);}
+   else if(key==='ArrowUp'||key==='ArrowDown'){e.preventDefault();e.stopPropagation();finish(false,key==='ArrowUp'?'up':'down');}
+  }}/>
+ </SpottableDiv>;
 }
 export function FocusSearchInput(props){return <TextInput {...props} className="search-field" ariaLabel="搜索番名" placeholder="搜索你想看的番剧"/>;}
 export function FocusButton({id,row=0,col=0,group='content',onSelect,onNavigate,onLongPress,recoveryPriority=0,className='',children,disabled=false,...rest}){

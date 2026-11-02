@@ -41,6 +41,12 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   console.log('UI: direct search');await page('search');await wait('window.__focusState().current==="content-0-0"');await key('Enter');await cdp('Input.insertText',{text:'测试番'});await key('Enter');await wait('window.__fanYuan.state.results.length===1');assert.equal(await evaluate('window.__focusState().paused'),false);assert.equal(await evaluate('window.__fixture.calls.search'),1);assert.equal(await evaluate('window.__fixture.calls.bangumiSearch'),1);
   await key('ArrowUp');assert.equal(await evaluate('window.__focusState().current'),'content-0-0');
   console.log('UI: calendar');await page('calendar');await wait('window.__focusState().current==="content-0-0"');await key('ArrowRight');await key('ArrowRight');await key('ArrowDown');assert.match(await evaluate('window.__focusState().current'),/^content-[1-9]/);
+  // Ending typing hands remote focus back to the field, so the arrows navigate again.
+  const typing='document.activeElement.tagName==="INPUT"',onField='document.activeElement.dataset.focusId==="content-0-0"';
+  await page('search');await evaluate('document.querySelector("[data-focus-id=content-0-0]").focus()');await key('Enter');await wait(typing);await cdp('Input.insertText',{text:'x'});
+  await key('Escape');await wait(onField);assert.equal(await evaluate('window.__fanYuan.state.page'),'search');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'content-0-1');
+  await key('ArrowLeft');await key('Enter');await wait(typing);await evaluate('document.dispatchEvent(new CustomEvent("keyboardStateChange",{detail:{visibility:false}})),1');await wait(onField);
+  await key('Enter');await wait(typing);await key('ArrowDown');await wait('document.activeElement.tagName!=="INPUT"&&window.__focusState().current!=="content-0-0"');
   console.log('UI: subscriptions');await page('subscriptions');await wait('!!document.querySelector("[data-focus-id=subscription-url]")');
   await evaluate('document.querySelector("[data-focus-id=subscription-url]").focus()');await key('Enter');await cdp('Input.insertText',{text:'https://example.invalid/extra.json'});await key('Enter');await wait('window.__fixture.calls.subscriptionAdd===1');await wait('!window.__focusState().paused');assert.equal(await evaluate('window.__fixture.calls.subscriptionAdd'),1);
   console.log('UI: service settings');await page('danmakuSettings');await wait('!!document.querySelector("[data-focus-id=danmaku-url]")');

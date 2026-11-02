@@ -839,77 +839,53 @@ input::placeholder {
   margin-bottom: 26px;
 }
 
+/* Lightweight text field (TextInput): an inset well, darker than the page with a hairline edge and
+   no sheen, so it reads as a place to type rather than a button. Focus lights only the edge; while
+   typing (the native input focused) the edge stays lit and the caret is pink. */
 #root .fy-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
   height: 70px;
   margin: 0 18px 0 0;
   padding: 0 22px;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  background: transparent;
+  background: #0b0c10;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
   min-width: 0;
   flex: 1;
   color: var(--text);
+  cursor: text;
 }
 
-/* Sandstone's InputField does not expose its background as a public class, so css={{bg}} never
-   renames it; reach the layer (always the first child) directly to match the 16px buttons. */
-#root .fy-input > :first-child {
-  border-radius: inherit;
-}
-
-#root .fy-input .input-bg {
-  opacity: 1;
-  background-color: #1f222b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: inherit;
-  box-shadow: none;
+#root .fy-input:focus,
+#root .fy-input:focus-within {
+  outline: none;
+  border-color: var(--focus-bg);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--focus-bg);
 }
 
 #root .fy-input .input-text {
-  height: 66px;
-  min-height: 0;
-  line-height: 66px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   font-size: 25px;
   font-weight: 400;
   padding: 0;
   margin: 0;
   border: 0;
+  outline: none;
   background: transparent;
-  box-shadow: none;
   color: var(--text);
+  caret-color: var(--focus-bg);
   font-family: 'LG Smart UI SC', 'LG Smart UI', sans-serif;
 }
 
-#root .fy-input:focus,
-#root .fy-input:focus-within {
-  color: var(--focus-fg);
-}
-
-#root .fy-input:focus .input-bg,
-#root .fy-input:focus-within .input-bg {
-  opacity: 1;
-  background-color: var(--focus-bg);
-  border-color: transparent;
-  box-shadow: none;
-}
-
 #root .fy-input .input-text::placeholder {
-  color: #7d8492;
+  color: #6f7684;
   font-weight: 400;
-}
-
-#root .fy-input:focus .input-text::placeholder,
-#root .fy-input:focus-within .input-text::placeholder {
-  color: var(--focus-sub);
-  font-weight: 400;
-}
-
-#root .search-field {
-  cursor: pointer;
-}
-
-#root .search-field input:read-only {
-  cursor: pointer;
 }
 
 #root .search-form > .fy-button {
