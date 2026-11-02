@@ -2060,6 +2060,13 @@ input::placeholder {
 }
 
 #root .fy-icon {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  font-family: "Sandstone Icons";
+  font-style: normal;
+  font-weight: normal;
   margin: 0;
   vertical-align: -2px;
   flex-shrink: 0;

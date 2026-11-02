@@ -1,7 +1,7 @@
 import React,{useLayoutEffect,useReducer,useRef} from 'react';
 import Button from '@enact/sandstone/Button';
 import Item from '@enact/sandstone/Item';
-import SandstoneIcon from '@enact/sandstone/Icon';
+import iconList from '@enact/sandstone/Icon/IconList';
 import InputField from '@enact/sandstone/Input/InputField';
 import Scroller from '@enact/sandstone/Scroller';
 import ContentContainerDecorator from '@enact/sandstone/Scroller/ContentContainerDecorator';
@@ -18,7 +18,9 @@ export const ControlRow=SpotlightContainerDecorator({restrict:'self-only'},'div'
 // Resolve a left exit to the page's menu item, independent of its screen position.
 export const PageFocusContainer=SpotlightContainerDecorator({leaveFor:{left:'.sidebar-item[aria-current="page"]'}},'div');
 const ICONS={pause:'pause',next:'skip',episodes:'list',channel:'channel',speed:'playspeed',back:'arrowlargeleft',settings:'gear',tv:'tvguidefvp',home:'home',history:'timer',book:'list',remix:'repeatall',refresh:'refresh',live:'play',chat:'subtitle',search:'search',star:'star',play:'play',pause:'pause',arrow:'arrowlargeright',close:'closex',check:'check'};
-export function Icon({name,size=32,className=''}){return <SandstoneIcon className={('fy-icon '+className).trim()} style={{fontSize:size,width:size,height:size,lineHeight:size+'px'}}>{ICONS[name]||name}</SandstoneIcon>;}
+// Sandstone's icon font glyph in a plain span: Sandstone's Icon is a kind()/Skinnable stack whose
+// mount cost adds up on pages with one icon per card.
+export function Icon({name,size=32,className=''}){const code=iconList[ICONS[name]||name];return <span aria-hidden="true" className={('fy-icon '+className).trim()} style={{fontSize:size,width:size,height:size,lineHeight:size+'px'}}>{code?String.fromCodePoint(code):name}</span>;}
 export function TextInput({id,inputRef,value,onChange,onSubmit,placeholder,type='text',className='',ariaLabel}){
  const {props}=useFocusable({id});
  const submit=useRef(false);
