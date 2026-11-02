@@ -102,3 +102,21 @@ test('one style definition covers every option set and drives grouped labels and
  const bottom=d.DANMAKU_TYPES.find(t=>t.key==='danmakuBottom'),top=d.DANMAKU_TYPES.find(t=>t.key==='danmakuTop');
  assert.deepEqual(d.danmakuTypePatch(bottom,s),{danmakuBottom:true});assert.deepEqual(d.danmakuTypePatch(top,s),{danmakuTop:false});
 });
+
+test('a source page that continues into the next season maps to the Bangumi sequel subject',async()=>{
+ const eps=(first,ep0=1)=>Array.from({length:12},(_,i)=>({id:first*100+i,sort:first+i,ep:ep0+i,name_cn:'第'+(i+1)+'集'}));
+ const run=async seasonTwo=>{const urls=[];const s=new DanmakuService({request:async url=>{urls.push(url);const u=new URL(url);
+   if(u.pathname==='/v0/subjects/1/subjects')return {text:JSON.stringify([{relation:'衍生',type:2,id:9},{relation:'续集',type:2,id:2,name_cn:'某番 第二季',name:'ナニカ 2nd',date:'2025-04-01'}])};
+   if(u.pathname==='/v0/subjects/2/subjects')return {text:JSON.stringify([])};
+   const id=u.searchParams.get('subject_id');const data=id==='1'?eps(1):id==='2'?seasonTwo:[];return {text:JSON.stringify({total:data.length,data})};}});
+  return {r:await s.context({subjectId:1,sort:15,subject:{name:'某番',date:'2024-01-01'}}),urls};};
+ // The sequel restarts at 1: 15 on the source page is its third episode.
+ const restart=await run(eps(1));assert.equal(restart.r.subjectId,2);assert.equal(restart.r.episodeSort,3);assert.equal(restart.r.mappingMethod,'sequelSubject');
+ assert.equal(restart.r.subjectPrimaryName,'某番 第二季');assert.ok(!restart.r.subjectNames.includes('某番'));assert.equal(restart.r.subjectPublishDate,'2025-04-01');
+ // The sequel keeps counting: 15 is its sort directly.
+ const continued=await run(eps(13));assert.equal(continued.r.episodeSort,15);assert.equal(continued.r.episodeEp,3);
+ // Beyond the last known season there is no guess.
+ const s=new DanmakuService({request:async url=>{const u=new URL(url);if(u.pathname.endsWith('/subjects'))return {text:'[]'};return {text:JSON.stringify({total:12,data:eps(1)})};}});
+ await assert.rejects(s.context({subjectId:1,sort:15,subject:{name:'某番'}}),/未匹配到此集号/);
+});
+
