@@ -16,9 +16,16 @@
   --sand-text-sub-color: #9399a6;
   --sand-component-bg-color: #232731;
   --sand-component-text-color-rgb: 243, 245, 248;
-  --sand-focus-bg-color: #563547;
-  --sand-focus-bg-color-rgb: 86, 53, 71;
-  --sand-component-focus-text-color-rgb: 255, 255, 255;
+  /* Focus is the one bright element on screen: accent fill, dark text. Unfocused controls stay
+     neutral; a primary action only tints its text, a current value adds accent text and a bar. */
+  --focus-bg: #f478a3;
+  --focus-fg: #1e1017;
+  --focus-sub: rgba(30, 16, 23, 0.72);
+  --focus-chip: rgba(30, 16, 23, 0.12);
+  --selected-fg: #ff9cc0;
+  --sand-focus-bg-color: #f478a3;
+  --sand-focus-bg-color-rgb: 244, 120, 163;
+  --sand-component-focus-text-color-rgb: 30, 16, 23;
   --sand-selected-bg-color: rgba(247, 123, 166, 0.2);
   --sand-selected-color-rgb: 255, 194, 217;
   --sand-overlay-bg-color-rgb: 27, 30, 37;
@@ -92,13 +99,13 @@ html, body, #root {
 
 #root .fy-button:focus {
   outline: none;
-  color: #fff;
+  color: var(--focus-fg);
 }
 
 #root .fy-button:focus .control-bg {
+  background-color: var(--focus-bg);
+  border-color: transparent;
   opacity: 1;
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.36);
   box-shadow: none;
 }
 
@@ -118,22 +125,17 @@ html, body, #root {
 }
 
 #root .fy-button.primary {
-  color: #1e1017;
+  color: var(--accent);
   font-weight: 600;
 }
 
-#root .fy-button.primary .control-bg {
-  background-color: #f478a3;
-  border-color: transparent;
-  box-shadow: none;
-}
 
 #root .fy-button.primary:focus {
-  color: #190c12;
+  color: var(--focus-fg);
 }
 
 #root .fy-button.primary:focus .control-bg {
-  background-color: #ff98bc;
+  background-color: var(--focus-bg);
   border-color: transparent;
   box-shadow: none;
 }
@@ -144,27 +146,23 @@ html, body, #root {
 }
 
 #root .fy-button.quiet:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.38);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
 #root .fy-button.active {
-  color: #ffc2d9;
+  color: var(--selected-fg);
 }
 
-#root .fy-button.active .control-bg {
-  background-color: rgba(247, 123, 166, 0.2);
-  border-color: rgba(247, 123, 166, 0.55);
-}
 
 #root .fy-button.active:focus {
-  color: #fff;
+  color: var(--focus-fg);
 }
 
 #root .fy-button.active:focus .control-bg {
-  background-color: #63394f;
-  border-color: rgba(247, 123, 166, 0.55);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -367,10 +365,6 @@ input::placeholder {
   color: #ffacc8;
 }
 
-#root .sidebar:not(:focus-within) .sidebar-item.active .sidebar-bg {
-  opacity: 1;
-  background-color: rgba(247, 123, 166, 0.14);
-}
 
 #root .sidebar:not(:focus-within) .sidebar-item.active::before {
   content: '';
@@ -479,8 +473,8 @@ input::placeholder {
 }
 
 #root .source-picker:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.38);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -640,8 +634,9 @@ input::placeholder {
 
 #root .poster-entry:focus-within {
   outline: none;
-  background-color: #462e3d;
-  border-color: rgba(247, 123, 166, 0.42);
+  color: var(--focus-fg);
+  background-color: var(--focus-bg);
+  border-color: transparent;
 }
 
 #root .poster-entry .poster-control {
@@ -784,7 +779,7 @@ input::placeholder {
 }
 
 #root .poster-entry:focus-within small {
-  color: #d6c2cd;
+  color: var(--focus-sub);
 }
 
 #root .score-badge {
@@ -871,14 +866,14 @@ input::placeholder {
 
 #root .fy-input:focus,
 #root .fy-input:focus-within {
-  color: #fff;
+  color: var(--focus-fg);
 }
 
 #root .fy-input:focus .input-bg,
 #root .fy-input:focus-within .input-bg {
   opacity: 1;
-  background-color: #3d2a37;
-  border-color: rgba(247, 123, 166, 0.42);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -889,7 +884,7 @@ input::placeholder {
 
 #root .fy-input:focus .input-text::placeholder,
 #root .fy-input:focus-within .input-text::placeholder {
-  color: #a89bb0;
+  color: var(--focus-sub);
   font-weight: 400;
 }
 
@@ -926,7 +921,8 @@ input::placeholder {
 }
 
 #root .search-history .fy-button:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
+  background-color: var(--focus-bg);
+  border-color: transparent;
 }
 
 #root .fy-item {
@@ -950,7 +946,7 @@ input::placeholder {
 }
 
 #root .fy-item:focus .control-label {
-  color: #dfc6d1;
+  color: var(--focus-sub);
 }
 
 #root .source-results {
@@ -977,8 +973,8 @@ input::placeholder {
 }
 
 #root .source-result:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.38);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -993,7 +989,7 @@ input::placeholder {
 }
 
 #root .source-result:focus .control-after {
-  color: #fff;
+  color: var(--focus-fg);
 }
 
 #root .source-result-icon {
@@ -1036,36 +1032,29 @@ input::placeholder {
 
 #root .day-tabs .fy-button:focus .control-bg,
 #root .filter-tabs .fy-button:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.36);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
 #root .day-tabs .fy-button.active,
 #root .filter-tabs .fy-button.active,
 #root .channel-tabs .fy-button.active {
-  color: #1e1017;
+  color: var(--selected-fg);
   font-weight: 600;
 }
 
-#root .day-tabs .fy-button.active .control-bg,
-#root .filter-tabs .fy-button.active .control-bg,
-#root .channel-tabs .fy-button.active .control-bg {
-  background-color: #f478a3;
-  border-color: transparent;
-  box-shadow: none;
-}
 
 #root .day-tabs .fy-button.active:focus,
 #root .filter-tabs .fy-button.active:focus,
 #root .channel-tabs .fy-button.active:focus {
-  color: #190c12;
+  color: var(--focus-fg);
 }
 
 #root .day-tabs .fy-button.active:focus .control-bg,
 #root .filter-tabs .fy-button.active:focus .control-bg,
 #root .channel-tabs .fy-button.active:focus .control-bg {
-  background-color: #ff98bc;
+  background-color: var(--focus-bg);
   border-color: transparent;
   box-shadow: none;
 }
@@ -1090,8 +1079,8 @@ input::placeholder {
 }
 
 #root .channel-tabs .fy-button:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.36);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -1258,12 +1247,12 @@ input::placeholder {
 }
 
 #root .episode-button:focus {
-  color: #fff;
+  color: var(--focus-fg);
 }
 
 #root .episode-button:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.38);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -1377,8 +1366,8 @@ input::placeholder {
 }
 
 #root .settings-row:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.36);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -1400,9 +1389,9 @@ input::placeholder {
 }
 
 #root .settings-row:focus .control-label {
-  color: #ffd4e5;
-  background: rgba(247, 123, 166, 0.22);
-  border-color: rgba(247, 123, 166, 0.42);
+  color: var(--focus-fg);
+  background: var(--focus-chip);
+  border-color: transparent;
 }
 
 #root .settings-row .control-after {
@@ -1411,7 +1400,7 @@ input::placeholder {
 }
 
 #root .settings-row:focus .control-after {
-  color: #fff;
+  color: var(--focus-fg);
 }
 
 #root .selection-popup {
@@ -1487,14 +1476,10 @@ input::placeholder {
   box-shadow: none;
 }
 
-#root .dialog-option.active .control-bg {
-  background-color: rgba(247, 123, 166, 0.16);
-  border-color: rgba(247, 123, 166, 0.48);
-}
 
 #root .dialog-option:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.38);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -1686,7 +1671,7 @@ input::placeholder {
 }
 
 #root .player-back:focus .control-bg {
-  background-color: #f478a3;
+  background-color: var(--focus-bg);
   border-color: transparent;
   box-shadow: none;
 }
@@ -1774,23 +1759,19 @@ input::placeholder {
 
 #root .player-button:focus {
   outline: none;
-  color: #fff;
+  color: var(--focus-fg);
 }
 
 #root .player-button:focus .control-bg {
-  background-color: var(--sand-focus-bg-color);
-  border-color: rgba(247, 123, 166, 0.42);
+  background-color: var(--focus-bg);
+  border-color: transparent;
   box-shadow: none;
 }
 
 #root .player-button.active {
-  color: #ffd4e4;
+  color: var(--selected-fg);
 }
 
-#root .player-button.active .control-bg {
-  background: rgba(247, 123, 166, 0.32);
-  border-color: rgba(247, 123, 166, 0.7);
-}
 
 #root .player-button svg {
   margin-right: 8px;
@@ -2200,4 +2181,44 @@ input::placeholder {
   font-size: 20px;
   color: #e6e8ee;
   margin: 0 12px 12px 0;
+}
+
+/* Accent details inside a focused control switch to the dark focus ink. */
+#root .player-button:focus {
+  text-shadow: none;
+}
+
+#root .episode-button:focus small,
+#root .dialog-option:focus .dialog-option-check {
+  color: var(--focus-fg);
+  background: var(--focus-chip);
+  border-color: transparent;
+}
+
+#root .source-result:focus .source-result-icon {
+  color: var(--focus-fg);
+  background: var(--focus-chip);
+  border-color: transparent;
+}
+
+/* Current value or selected tab: accent text plus a short bar, never a filled background. */
+#root .fy-button.active:not(.fy-item) {
+  position: relative;
+}
+
+#root .fy-button.active:not(.fy-item)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 22px;
+  height: 3px;
+  margin-left: -11px;
+  border-radius: 2px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+#root .fy-button.active:not(.fy-item):focus::after {
+  background: var(--focus-fg);
 }
