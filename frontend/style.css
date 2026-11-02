@@ -925,6 +925,14 @@ input::placeholder {
   margin: 0 !important;
 }
 
+/* It sits beside the 70px input, so focus keeps its size instead of the usual outset. */
+#root .search-form > .search-submit:focus .control-bg {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 #root .search-history {
   display: flex;
   flex-wrap: wrap;
