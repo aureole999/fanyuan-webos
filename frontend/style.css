@@ -1688,12 +1688,8 @@ input::placeholder {
 
 #root .player-dm-status {
   font-size: 19px;
-  color: #e4d6de;
+  color: #c4c8d2;
   margin-left: auto;
-  padding: 10px 22px;
-  border-radius: 999px;
-  background: rgba(24, 25, 32, 0.76);
-  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 #root .player-bottom {
@@ -2284,4 +2280,109 @@ input::placeholder {
 
 #root .card-progress-fill {
   height: 100%;
+}
+
+/* Lightweight button (LiteButton): the layering Sandstone's Button used to provide. */
+#root .lite-btn {
+  position: relative;
+}
+
+#root .lite-btn .control-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+#root .lite-btn > :not(.control-bg) {
+  position: relative;
+}
+
+/* Player control bar (plan B): one large play/pause, then groups split by thin rules. */
+#root .player-control-row .player-button {
+  min-height: 60px;
+}
+
+#root .player-primary {
+  width: 76px;
+  height: 76px;
+  min-height: 76px;
+  padding: 0;
+  border-radius: 50%;
+  margin-right: 18px;
+}
+
+#root .player-primary .fy-icon {
+  margin: 0 !important;
+}
+
+#root .player-sep {
+  align-self: center;
+  width: 1px;
+  height: 34px;
+  margin: 0 18px 12px 6px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#root .player-switch {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  margin-left: 12px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+#root .player-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e9ebf0;
+}
+
+#root .player-switch.on {
+  background: var(--accent);
+}
+
+#root .player-switch.on::after {
+  left: 21px;
+  background: var(--focus-fg);
+}
+
+#root .player-button:focus .player-switch {
+  background: var(--focus-chip);
+}
+
+#root .player-button:focus .player-switch.on {
+  background: var(--focus-fg);
+}
+
+#root .player-button:focus .player-switch.on::after {
+  background: var(--focus-bg);
+}
+
+#root .player-back .fy-icon {
+  margin: 0 !important;
+}
+
+#root .player-message-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+  text-shadow: none;
+}
+
+#root .player-message-actions .player-button {
+  margin: 0 8px;
+}
+
+#root .player-back {
+  padding: 0;
 }

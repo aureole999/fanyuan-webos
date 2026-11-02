@@ -40,6 +40,8 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await key('Enter');await wait('!!window.__fanYuan.state.dialog');await key('Escape');await wait('!document.querySelector(".selection-popup")');
   await evaluate('window.__fixture.failDetail=false;window.__fanYuan.openSource({id:"fixture",name:"测试番剧",url:"https://example.invalid/fixture",sourceId:"fixture"})');await wait('!!document.querySelector(".episode-button")');
   await wait('window.__focusState().current==="content-2-0"');await key('Enter');await wait('!!window.__fanYuan.state.player');await wait('window.__focusState().current==="player-controls-0"');
+  // The fixture stream cannot decode: the error box offers 重试 and 切换线路 and takes focus; the bar has 7 controls.
+  await wait('window.__focusState().current==="player-retry"');assert.equal(await evaluate('!!document.querySelector("[data-focus-id=player-retry-channel]")'),true);assert.equal(await evaluate('document.querySelectorAll(".player-control-row .player-button").length'),7);
   const playback=await evaluate(`(async()=>{
    const v=document.querySelector('video');v.removeAttribute('src');v.load();let pos=30;
    Object.defineProperties(v,{duration:{configurable:true,get:()=>600},currentTime:{configurable:true,get:()=>pos,set:n=>pos=n},paused:{configurable:true,get:()=>false}});
@@ -48,7 +50,7 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
    key('keydown','ArrowRight');await frame();for(let i=0;i<3;i++){v.dispatchEvent(new Event('waiting'));await frame();v.dispatchEvent(new Event('playing'));await frame();key('keydown','ArrowRight',true);await frame();}
    key('keyup','ArrowRight');return {pos,controls:!!document.querySelector('.player-ui.visible'),progress:!!document.querySelector('.seek-progress')};
   })()`);
-  assert.deepEqual(playback,{pos:70,controls:false,progress:true});
+  assert.deepEqual(playback,{pos:70,controls:false,progress:true});assert.equal(await evaluate('!!document.querySelector("[data-focus-id=player-retry]")'),false);
   await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-0"');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-1');
   await evaluate('window.__reviewVideo=document.querySelector("video");true');await key('Escape');await wait('!document.querySelector(".player-ui")');
   assert.equal(await evaluate('document.querySelectorAll("[data-focus-group=player]").length'),0);

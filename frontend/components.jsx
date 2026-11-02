@@ -16,7 +16,7 @@ import {remoteKey} from './navigation.cjs';
 export const FocusContainer=SpotlightContainerDecorator('div');
 // Resolve a left exit to the page's menu item, independent of its screen position.
 export const PageFocusContainer=SpotlightContainerDecorator({leaveFor:{left:'.sidebar-item[aria-current="page"]'}},'div');
-const ICONS={settings:'gear',tv:'tvguidefvp',home:'home',history:'timer',book:'list',remix:'repeatall',refresh:'refresh',live:'play',chat:'subtitle',search:'search',star:'star',play:'play',pause:'pause',arrow:'arrowlargeright',close:'closex',check:'check'};
+const ICONS={pause:'pause',next:'skip',episodes:'list',channel:'channel',speed:'playspeed',back:'arrowlargeleft',settings:'gear',tv:'tvguidefvp',home:'home',history:'timer',book:'list',remix:'repeatall',refresh:'refresh',live:'play',chat:'subtitle',search:'search',star:'star',play:'play',pause:'pause',arrow:'arrowlargeright',close:'closex',check:'check'};
 export function Icon({name,size=32,className=''}){return <SandstoneIcon className={('fy-icon '+className).trim()} style={{fontSize:size,width:size,height:size,lineHeight:size+'px'}}>{ICONS[name]||name}</SandstoneIcon>;}
 export function TextInput({id,inputRef,value,onChange,onSubmit,placeholder,type='text',className='',ariaLabel}){
  const {props}=useFocusable({id});
@@ -54,6 +54,12 @@ const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://w
 // Cell, ResponsiveImageDecorator, Image, Marquee-less but still Skinnable/Touchable). Only
 // Spottable remains. The art is a background so the cover covers the placeholder while it loads.
 const cssUrl=u=>'url("'+String(u).replace(/["\\\n]/g,encodeURIComponent)+'")';
+// A button without Sandstone's Button stack (23 components: Tooltip, Marquee, Touchable, …). Same
+// fy-button classes, so focus and state styling are shared with every other control.
+export function LiteButton({id,group='content',row=0,col=0,onSelect,className='',label,children,...rest}){
+ const {props}=useFocusable({id,row,col,group,onSelect});
+ return <SpottableDiv {...props} {...voice(label)} role="button" aria-label={rest['aria-label']||label} className={'fy-button lite-btn '+className}><div className="control-bg"/>{children}</SpottableDiv>;
+}
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
  const id=`content-${row}-${col}`,{props}=useFocusable({id,row,col,onSelect,onNavigate:dir=>dir==='up'&&isTopContentRow(id)?(eligible('header-search')?'header-search':'header-source'):null});
  const label=actionLabel||(subject.date?subject.date.slice(0,4)+' · ':'')+(subject.episodeCount?'全 '+subject.episodeCount+' 集':subject.originalName||'查看剧集');

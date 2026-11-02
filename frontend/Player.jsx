@@ -1,6 +1,6 @@
 import React,{useState,useEffect,useRef,useCallback,useMemo,useLayoutEffect} from 'react';
 import {call} from './api';
-import {Icon,FocusButton,FocusContainer,ContentScroller,PlaybackSlider,ScrollGroup} from './components';
+import {Icon,LiteButton,FocusContainer,ContentScroller,PlaybackSlider,ScrollGroup} from './components';
 import DanmakuLayer from './vendor/bilitv/player/DanmakuLayer';
 import {setCustomKeyHandler,claimRemoteFocus,setFocus,activateFocusScope,getCurrentFocusId} from './focus';
 import {remoteKey,createSeekSession} from './navigation.cjs';
@@ -11,6 +11,7 @@ function panelTitle(p){return p.startsWith('opt-')?DANMAKU_FIELDS[p.slice(4)]?.l
 // Server titles carry type and source tags ("名(2026)【TV动画】from dandan"); show the plain name.
 function cleanTitle(s){return String(s||'').replace(/【[^】]*】/g,'').replace(/\((?:\d{4}|未知)\)/g,'').replace(/\s*from\s+[\w&-]+\s*$/i,'').trim();}
 
+function speedLabel(v){return (Math.round(v*100)/100)+'×';}
 function time(t){if(!Number.isFinite(t))return '00:00';const m=Math.floor(t/60),s=Math.floor(t%60);return `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;}
 export default function Player({item,library,settings,onSettings,onClose,onNext,onEpisode,onSwitchChannel}){
   const {sourceId,subject,episode,channels,channelIndex}=item;
@@ -20,12 +21,12 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   const [controlsMounted,setControlsMounted]=useState(true);
   const seekSession=useRef(null);if(!seekSession.current)seekSession.current=createSeekSession();
   const [message,setMessage]=useState('正在解析播放地址…'),[current,setCurrent]=useState(0),[duration,setDuration]=useState(0),[paused,setPaused]=useState(true),[controls,setControls]=useState(true),[panel,setPanel]=useState(''),[rawDanmakus,setRawDanmakus]=useState([]),[dmInfo,setDmInfo]=useState('弹幕待匹配'),[offset,setOffset]=useState(()=>library.offset(subject)),[speed,setSpeed]=useState(1),[countdown,setCountdown]=useState(null);
-  const [seekHint,setSeekHint]=useState(''),[dmError,setDmError]=useState('');
+  const [seekHint,setSeekHint]=useState(''),[dmError,setDmError]=useState(''),[failed,setFailed]=useState(false);
   const [dmProviders,setDmProviders]=useState([]),[dmSources,setDmSources]=useState([]),[sourcePrefs,setSourcePrefs]=useState(()=>library.danmakuSources()),[customSubjects,setCustomSubjects]=useState([]),[customEpisodes,setCustomEpisodes]=useState([]),[customSubject,setCustomSubject]=useState(null),[customBusy,setCustomBusy]=useState(false);
   const danmakus=useMemo(()=>renderItems(rawDanmakus,sourcePrefs),[rawDanmakus,sourcePrefs]),fixedItems=useMemo(()=>danmakus.filter(d=>d.mode===4||d.mode===5),[danmakus]);
   const settingsRef=useRef(settings);settingsRef.current=settings;
   controlsRef.current=controls;panelRef.current=panel;
-  function hideControls(){const id=getCurrentFocusId();if(id?.startsWith('player-'))lastControlFocus.current=id;controlsRef.current=false;setControls(false);}
+  function hideControls(){const id=getCurrentFocusId();if(/^player-controls-\d+$/.test(id||''))lastControlFocus.current=id;controlsRef.current=false;setControls(false);}
   function show(){if(seekSession.current.active())return;if(!controlsRef.current){const v=videoRef.current;if(v){setCurrent(v.currentTime||0);if(Number.isFinite(v.duration))setDuration(v.duration);}}controlsRef.current=true;setControls(true);clearTimeout(timer.current);timer.current=setTimeout(()=>{if(videoRef.current&&!videoRef.current.paused&&!panelRef.current){hideControls();}},5000);}
   function save(completed=false){const v=videoRef.current;if(v&&v.duration>0)library.saveProgress(sourceId,subject,episode,v.currentTime,v.duration,completed||v.ended);}
   function close(){save();onClose();}
@@ -34,6 +35,13 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   const controlId=(p,index)=>'player-'+(p||'controls')+'-'+index;
   useLayoutEffect(()=>activateFocusScope('player',controlId('',0)),[]);
   useLayoutEffect(()=>{if(controls&&!panel&&!setFocus(lastControlFocus.current))setFocus(controlId('',0));},[controls]);
+  // A failed line offers its remedies where the error is shown; focus starts on 重试.
+  useEffect(()=>{const t=setTimeout(()=>{
+    if(panelRef.current)return;
+    if(failed){setFocus('player-retry');return;}
+    // Recovered: the remedy buttons are gone, so bring focus back to the control bar.
+    if(controlsRef.current&&!/^player-controls-/.test(getCurrentFocusId()||'')&&!setFocus(lastControlFocus.current))setFocus(controlId('',0));
+  },0);return()=>clearTimeout(t);},[failed]);
   useLayoutEffect(()=>{const target=panelTarget.current;panelTarget.current=null;if(target){setFocus(target);return;}const activeEl=panel?document.querySelector('.player-panel .player-button.active[data-focus-id]'):null;setFocus(activeEl?.dataset?.focusId||controlId(panel,panel?1:0));},[panel]);
   function openPanel(p){seekSession.current.reset();panelHistory.current.push({panel:panelRef.current,focus:getCurrentFocusId()});panelRef.current=p;setPanel(p);controlsRef.current=true;setControls(true);clearTimeout(timer.current);if(p==='customMatch')findCustom();}
   function hidePanel(){if(panelRef.current==='customMatch')customGeneration.current++;const previous=panelHistory.current.pop()||{panel:'',focus:controlId('',0)};panelRef.current=previous.panel;panelTarget.current=previous.focus;setPanel(previous.panel);show();}
@@ -67,9 +75,9 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     return loadDanmaku(mapped||null);
   }
   const start=useCallback(async()=>{
-    const token=++generation.current;setMessage('正在解析播放地址…');
+    const token=++generation.current;setFailed(false);setMessage('正在解析播放地址…');
     try{const r=await call('resolve',{sourceId,subject,episode});if(!mounted.current||token!==generation.current)return;const v=videoRef.current;v.src=r.url;v.load();const p=v.play();if(p&&p.catch)p.catch(()=>setMessage('按 OK 开始播放'));autoDanmaku();}
-    catch(e){if(mounted.current&&token===generation.current)setMessage(e.message+'，可切换线路重试');}
+    catch(e){if(mounted.current&&token===generation.current){setMessage(e.message);setFailed(true);}}
   },[]);
   useEffect(()=>{
     mounted.current=true;start();
@@ -119,12 +127,12 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     // Notes and errors sit beside the panel title (the first focus row), never below the last control.
     const note={danmakuMore:'与「设置 → 弹幕样式」是同一套设置，对所有番剧生效。',types:'点击即可切换开关；关闭彩色弹幕后所有弹幕统一显示为白色。',sources:'每个平台可单独开关和调整时间；整部番剧的偏移在弹幕面板的「本集弹幕」里。',customMatch:customBusy?'正在查询…':customSubject?'当前番剧：'+customSubject.name:'选择对应番剧和剧集；自动匹配不准时可在这里调整。'}[panel];
     const panelError=(panel==='danmaku'||panel==='customMatch')&&dmError;
-    function button(label,action,icon,extra=''){const i=index++;return <FocusButton key={i} id={controlId(panel,i)} group="player" row={i} className={`player-button ${extra}`} onSelect={action}>{icon&&<Icon name={icon} size={23}/>}<span>{label}</span></FocusButton>;}
+    function button(label,action,icon,extra='',opts={}){const i=index++;return <LiteButton key={i} id={controlId(panel,i)} group="player" row={i} label={label} className={`player-button ${extra}`} onSelect={action}>{icon&&<Icon name={icon} size={opts.iconOnly?34:23}/>}{!opts.iconOnly&&<span>{label}</span>}{opts.after}</LiteButton>;}
     function styleButton(f){return button(DANMAKU_FIELDS[f].label+'：'+danmakuFieldValue(f,settings),()=>openPanel(f==='types'?'types':'opt-'+f));}
     const matched=dmSources.find(s=>s.match?.episodeName),dmSummary=[dmInfo,matched&&cleanTitle(matched.match.subjectName)+' · '+matched.match.episodeName].filter(Boolean).join(' · ');
     return <div className="player-control-zone">
           {!panel?<div className="player-control-row">
-            {button(paused?'播放':'暂停',toggle,'live')}{button('下一集',()=>{save();onNext();},'remix')}{button('选集',()=>openPanel('episodes'),'book')}{button('切换线路',()=>openPanel('channels'),'remix')}{button('重试',start,'refresh')}{button(settings.danmaku?'弹幕开':'弹幕关',()=>onSettings({danmaku:!settings.danmaku}),'chat')}{button('弹幕设置',()=>openPanel('danmaku'),'settings')}{button(speed+'×',()=>openPanel('speed'))}{button('退出播放',close)}
+            {button(paused?'播放':'暂停',toggle,paused?'play':'pause','player-primary',{iconOnly:true})}{button('下一集',()=>{save();onNext();},'next')}<span className="player-sep"/>{button('选集',()=>openPanel('episodes'),'episodes')}{button('线路',()=>openPanel('channels'),'channel')}<span className="player-sep"/>{button('弹幕',()=>onSettings({danmaku:!settings.danmaku}),'chat','player-toggle',{after:<span className={'player-switch'+(settings.danmaku?' on':'')} aria-hidden="true"/>})}{button('弹幕设置',()=>openPanel('danmaku'),'settings')}<span className="player-sep"/>{button(speedLabel(speed),()=>openPanel('speed'),'speed')}
           </div>:<ContentScroller className="player-panel" spotlightId={'panel-'+panel}><div className="panel-title"><div className="panel-heading"><h2>{panelTitle(panel)}</h2>{note&&<p className="panel-description">{note}</p>}{panelError&&<p className="error-text">{dmError}</p>}</div>{button(panelHistory.current.length>1?'返回上一级':'返回控制栏',hidePanel)}</div>
             {panel==='episodes'&&<div className="player-episode-grid">{(channels[channelIndex]?.episodes||[]).map(ep=>button(ep.name,()=>{save();onEpisode(ep);},null,ep.id===episode.id?'active':''))}</div>}
             {panel==='channels'&&<div className="player-channel-grid">{channels.map((ch,i)=>button(ch.name,()=>{save();onSwitchChannel(i);},null,i===channelIndex?'active':''))}</div>}
@@ -139,23 +147,23 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
             {panel.startsWith('opt-')&&(()=>{const field=panel.slice(4),f=DANMAKU_FIELDS[field];return <div className="player-settings-grid">{DANMAKU_OPTIONS[field].map(o=>button(o.label,()=>{onSettings({[f.key]:o.value});hidePanel();},null,matchOptionValue(settings[f.key],o.value)?'active':''))}</div>;})()}
             {panel==='types'&&<div className="player-settings-grid">{DANMAKU_TYPES.map(t=>button(t.label+'：'+(t.on(settings)?'开启':'关闭'),()=>onSettings(danmakuTypePatch(t,settings)),null,t.on(settings)?'active':''))}</div>}
             {panel==='sources'&&<div className="player-source-list">{dmSources.map(s=>{const pref=sourcePrefs[s.id]||{enabled:true,shift:0},on=pref.enabled!==false;const status={notConfigured:'待配置服务',disabled:'已关闭',error:'加载失败',noMatch:'未匹配',empty:'暂无弹幕',ok:'已加载'}[s.status];return <ScrollGroup key={s.id} className="player-source"><h3>{s.name} · {s.count} 条 · {status}</h3>{s.match?.episodeName&&<p>{cleanTitle(s.match.subjectName)} · {s.match.episodeName}</p>}<div className="player-settings-grid">{button(on?'显示：开启':'显示：关闭',()=>sourceSetting(s.id,{enabled:!on}),null,on?'active':'')}{button('提前 1 秒',()=>sourceSetting(s.id,{shift:(pref.shift||0)-1}))}<span className="offset-value">偏移 {pref.shift||0} 秒</span>{button('延后 1 秒',()=>sourceSetting(s.id,{shift:(pref.shift||0)+1}))}</div></ScrollGroup>;})}</div>}
-            {panel==='customMatch'&&<><FocusButton id="player-custom-auto" group="player" row={-1} className="player-button" onSelect={()=>{library.setCustomDanmakuMapping(subject,episode,null);loadDanmaku(subject.bgmId||library.mapping(subject));hidePanel();}}>恢复自动匹配</FocusButton><div className="player-match-list">{!customSubject?customSubjects.map(s=>button(s.name,()=>selectCustom(s))):<>{button('重新搜索番剧',findCustom)}{customEpisodes.map(ep=>button(ep.displayName||ep.episodeName||String(ep.number),()=>chooseCustom(ep)))}</>}</div></>}
+            {panel==='customMatch'&&<><LiteButton id="player-custom-auto" group="player" row={-1} label="恢复自动匹配" className="player-button" onSelect={()=>{library.setCustomDanmakuMapping(subject,episode,null);loadDanmaku(subject.bgmId||library.mapping(subject));hidePanel();}}>恢复自动匹配</LiteButton><div className="player-match-list">{!customSubject?customSubjects.map(s=>button(s.name,()=>selectCustom(s))):<>{button('重新搜索番剧',findCustom)}{customEpisodes.map(ep=>button(ep.displayName||ep.episodeName||String(ep.number),()=>chooseCustom(ep)))}</>}</div></>}
 
           </ContentScroller>}
         </div>;
   },[showUi,panel,paused,speed,settings,offset,dmInfo,dmError,customBusy,customSubject,customSubjects,customEpisodes,dmSources,sourcePrefs,channels,channelIndex,episode,subject,sourceId,library,start,onSettings,onNext,onEpisode,onSwitchChannel,onClose]);
   return <FocusContainer spotlightId="player" spotlightRestrict="self-only" className="player-page" onMouseMove={show}>
-    <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{setPaused(false);setMessage('');if(controlsRef.current)show();}} onPause={()=>{setPaused(true);save();show();}} onWaiting={()=>setMessage('正在缓冲…')} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){setMessage(`此线路播放失败（${videoRef.current.error?.code||'未知'}），可切换线路重试`);setControls(true);}}}/>
+    <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{setPaused(false);setMessage('');setFailed(false);if(controlsRef.current)show();}} onPause={()=>{setPaused(true);save();show();}} onWaiting={()=>setMessage('正在缓冲…')} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){setMessage(`此线路播放失败（${videoRef.current.error?.code||'未知'}）`);setFailed(true);setControls(true);}}}/>
     <div className="danmaku-wrap" style={{opacity:settings.danmakuOpacity}}><DanmakuLayer danmakus={danmakus} currentTime={current-offset} paused={paused} enabled={settings.danmaku} fontScale={settings.danmakuScale} settings={settings}/>{settings.danmaku&&topFixed.map((d,i)=><div key={'top-'+d.time+'-'+i} className="fixed-danmaku top" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}{settings.danmaku&&bottomFixed.map((d,i)=><div key={'bot-'+d.time+'-'+i} className="fixed-danmaku bottom" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${-i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}</div>
     {seekHint&&<div className="seek-hint">{seekHint}</div>}
     {!controls&&seekHint&&<div className="seek-progress" role="status" aria-label="跳转进度"><span>{time(current)}</span><div className="seek-progress-track"><i style={{width:`${duration?Math.min(100,Math.max(0,current/duration*100)):0}%`}}/></div><span>{time(duration)}</span></div>}
-    {message&&!panel&&<div className="player-message">{message}</div>}
+    {message&&!panel&&<div className="player-message">{message}{failed&&<div className="player-message-actions"><LiteButton id="player-retry" group="player" row={-2} label="重试" className="player-button" onSelect={start}><Icon name="refresh" size={23}/><span>重试</span></LiteButton><LiteButton id="player-retry-channel" group="player" row={-2} col={1} label="切换线路" className="player-button" onSelect={()=>openPanel('channels')}><Icon name="channel" size={23}/><span>切换线路</span></LiteButton></div>}</div>}
     {showUi&&<div className={'player-ui'+(controls?' visible':'')}>
-      <header className="player-heading"><FocusButton id="player-back" group="player" row={-1} className="player-back" onSelect={close} aria-label="退出播放">‹</FocusButton><div><h1>{subject.name}</h1><p>{episode.channelName} · {episode.name}</p></div><div className="player-dm-status">{dmInfo}</div></header>
+      <header className="player-heading"><LiteButton id="player-back" group="player" row={-1} label="退出播放" className="player-back" onSelect={close}><Icon name="back" size={28}/></LiteButton><div><h1>{subject.name}</h1><p>{[episode.channelName,episode.name].filter(Boolean).join(' · ')}</p></div><div className="player-dm-status">{dmInfo}</div></header>
       <div className="player-bottom">
-        {countdown!==null&&<div className="next-countdown">{countdown} 秒后播放下一集 <FocusButton id="player-cancel-next" group="player" row={-1} onSelect={()=>{clearInterval(nextTimer.current);setCountdown(null);}}>取消</FocusButton></div>}
-        <div className="player-time"><span>{time(current)}</span><PlaybackSlider id="player-progress" value={current} max={duration} onChange={value=>{videoRef.current.currentTime=value;setCurrent(value);}}/><span>{time(duration)}</span></div>
-        {controlsMenu}<p className="player-help">控制栏隐藏时左右快进 / 快退 10 秒　·　OK 唤出控制栏，方向键选择按钮　·　返回收起，再按返回退出</p>
+        {countdown!==null&&<div className="next-countdown">{countdown} 秒后播放下一集 <LiteButton id="player-cancel-next" group="player" row={-1} label="取消" onSelect={()=>{clearInterval(nextTimer.current);setCountdown(null);}}>取消</LiteButton></div>}
+        <div className="player-time"><span>{time(current)}</span><PlaybackSlider id="player-progress" value={current} max={duration} onChange={value=>{videoRef.current.currentTime=value;setCurrent(value);}}/><span>-{time(Math.max(0,duration-current))}</span></div>
+        {controlsMenu}<p className="player-help">左右键快进 / 快退 10 秒　·　OK 显示控制栏　·　返回收起或退出</p>
       </div>
     </div>}
   </FocusContainer>;
