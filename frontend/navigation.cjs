@@ -24,6 +24,8 @@ function findGroupTarget(registry,group,row){
 }
 function remoteKey(event){return ({37:'ArrowLeft',38:'ArrowUp',39:'ArrowRight',40:'ArrowDown',13:'Enter',461:'GoBack'})[event.keyCode]||event.key;}
 function seekDelta(key,panel,controlsVisible){return panel||controlsVisible?0:key==='ArrowLeft'?-10:key==='ArrowRight'?10:0;}
+// Scrub step for the n-th consecutive press or repeat (1-based): fine first, faster when held.
+function scrubStep(count){return count<=5?10:count<=12?30:60;}
 function createSeekSession(){
  let heldKey=null;
  return {
@@ -43,4 +45,4 @@ function recoverTarget(registry,group,anchor){
  for(const [id,d] of registry){if(d.group!==group||d.disabled)continue;const distance=anchor?Math.abs(d.row-anchor.row)*100+Math.abs(d.col-anchor.col):d.row*100+d.col;const value=(d.recoveryPriority||0)*100000-distance;if(value>score){best=id;score=value;}}
  return best;
 }
-module.exports={spatialTarget,navigateTarget,findGroupTarget,remoteKey,seekDelta,createSeekSession,recoverTarget};
+module.exports={spatialTarget,navigateTarget,findGroupTarget,remoteKey,seekDelta,scrubStep,createSeekSession,recoverTarget};

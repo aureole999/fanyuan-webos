@@ -1708,39 +1708,10 @@ input::placeholder {
   color: #e5e8ef;
 }
 
-#root .player-progress {
-  height: 8px;
-  padding: 14px 0;
-  box-sizing: content-box;
-  flex: 1;
-  background: transparent;
-  margin: 0 24px;
-  border-radius: 999px;
-  cursor: pointer;
-  position: relative;
-  --sand-focus-bg-color-rgb: 247, 123, 166;
-}
 
-#root .player-progress .slider-bar {
-  background: rgba(255, 255, 255, 0.24);
-  border-radius: 999px;
-}
 
-#root .player-progress .slider-fill {
-  background: linear-gradient(90deg, #f77ba6, #ffa1c3);
-  border-radius: 999px;
-}
 
-#root .player-progress .slider-knob::before {
-  background: #f77ba6;
-}
 
-#root .player-progress:focus .slider-knob::before {
-  background: #ff94ba;
-  border-color: transparent;
-  box-shadow: 0 0 16px rgba(247, 123, 166, 0.55);
-  transform: translate(-50%, -50%) scale(1.12);
-}
 
 #root .player-control-row {
   display: flex;
@@ -2425,4 +2396,77 @@ input::placeholder {
 #root .lite-btn.disabled {
   opacity: 0.38;
   cursor: default;
+}
+
+/* Player progress bar (ScrubBar). Focused: thicker track, larger knob and a time bubble.
+   While previewing, the span between the playing position and the preview is highlighted. */
+#root .scrub-bar {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  margin: 0 24px;
+  padding: 14px 0;
+  outline: none;
+  cursor: pointer;
+}
+
+#root .scrub-track {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+#root .scrub-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+#root .scrub-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+#root .scrub-knob {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+#root .scrub-bar:focus .scrub-track {
+  height: 10px;
+  border-radius: 5px;
+}
+
+#root .scrub-bar:focus .scrub-knob {
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  background: var(--focus-bg);
+  box-shadow: 0 0 0 5px rgba(244, 120, 163, 0.35);
+}
+
+#root .scrub-bubble {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: var(--focus-bg);
+  color: var(--focus-fg);
+  font-size: 22px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }

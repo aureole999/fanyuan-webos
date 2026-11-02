@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {navigateTarget,spatialTarget,findGroupTarget,remoteKey,seekDelta,createSeekSession}=require('../frontend/navigation.cjs');
+const {navigateTarget,spatialTarget,findGroupTarget,remoteKey,seekDelta,scrubStep,createSeekSession}=require('../frontend/navigation.cjs');
 const rect=(left,top,width=100,height=60)=>({left,top,right:left+width,bottom:top+height});
 const registry=new Map([
  ['sidebar-home',{group:'sidebar',row:0,col:0,rect:rect(0,0)}],['sidebar-search',{group:'sidebar',row:1,col:0,rect:rect(0,80)}],['sidebar-calendar',{group:'sidebar',row:2,col:0,rect:rect(0,160)}],
@@ -96,4 +96,9 @@ test('aligned targets beat nearer diagonal targets; disabled nodes and other sco
  const nodes=[{id:'from',group:'dialog',rect:rect(500,100)},{id:'diagonal',group:'dialog',rect:rect(610,100)},{id:'below',group:'dialog',rect:rect(500,190)},{id:'disabled',group:'dialog',disabled:true,rect:rect(500,165)},{id:'behind',group:'content',rect:rect(500,170)}];
  assert.equal(navigateTarget(new Map(nodes.map(n=>[n.id,n])),'from','down'),'below');
  assert.equal(spatialTarget(nodes.filter(n=>n.group==='dialog'),'from','up'),null);
+});
+
+test('scrubbing starts in 10 second steps and accelerates while the key is held',()=>{
+ assert.deepEqual([1,5,6,12,13,40].map(scrubStep),[10,10,30,30,60,60]);
+ let t=0;for(let n=1;n<=4;n++)t+=scrubStep(n);assert.equal(t,40);
 });

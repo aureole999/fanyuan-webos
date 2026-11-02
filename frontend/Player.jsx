@@ -1,9 +1,9 @@
 import React,{useState,useEffect,useRef,useCallback,useMemo,useLayoutEffect} from 'react';
 import {call} from './api';
-import {Icon,LiteButton,FocusContainer,ContentScroller,PlaybackSlider,ScrollGroup} from './components';
+import {Icon,LiteButton,FocusContainer,ContentScroller,ScrubBar,ScrollGroup} from './components';
 import DanmakuLayer from './vendor/bilitv/player/DanmakuLayer';
 import {setCustomKeyHandler,claimRemoteFocus,setFocus,activateFocusScope,getCurrentFocusId} from './focus';
-import {remoteKey,createSeekSession} from './navigation.cjs';
+import {remoteKey,createSeekSession,scrubStep} from './navigation.cjs';
 import {renderItems,fixedWindow,DANMAKU_OPTIONS,DANMAKU_FIELDS,DANMAKU_GROUPS,DANMAKU_COMMON,DANMAKU_TYPES,danmakuTypePatch,danmakuFieldValue,matchOptionValue,computeDanmakuLayout} from './danmaku.cjs';
 const PANEL_TITLES={episodes:'选择剧集',channels:'切换线路',speed:'选择播放倍速',danmaku:'弹幕',danmakuMore:'更多弹幕样式',types:'弹幕类型与色彩',sources:'平台与条数',customMatch:'匹配弹幕'};
 // Option panels are named opt-<field> and titled after the field.
@@ -12,11 +12,15 @@ function panelTitle(p){return p.startsWith('opt-')?DANMAKU_FIELDS[p.slice(4)]?.l
 function cleanTitle(s){return String(s||'').replace(/【[^】]*】/g,'').replace(/\((?:\d{4}|未知)\)/g,'').replace(/\s*from\s+[\w&-]+\s*$/i,'').trim();}
 
 function speedLabel(v){return (Math.round(v*100)/100)+'×';}
+function deltaLabel(d){const a=Math.abs(Math.round(d));return (d<0?'-':'+')+(a>=60?Math.floor(a/60)+':'+String(a%60).padStart(2,'0'):a+' 秒');}
 function time(t){if(!Number.isFinite(t))return '00:00';const m=Math.floor(t/60),s=Math.floor(t%60);return `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;}
 export default function Player({item,library,settings,onSettings,onClose,onNext,onEpisode,onSwitchChannel}){
   const {sourceId,subject,episode,channels,channelIndex}=item;
   const videoRef=useRef(null),mounted=useRef(true),resumeApplied=useRef(false),lastSaved=useRef(0),generation=useRef(0),controlsRef=useRef(true),panelRef=useRef(''),panelHistory=useRef([]),panelTarget=useRef(null),timer=useRef(null),nextTimer=useRef(null),seekTimer=useRef(null),dmGeneration=useRef(0),customGeneration=useRef(0);
   const lastControlFocus=useRef('player-controls-0');
+  // Scrubbing moves a preview position; the video seeks once, when the remote rests (or on OK).
+  const scrub=useRef({target:null,start:0,count:0,timer:null}),focusOnShow=useRef(null);
+  const [scrubTarget,setScrubTarget]=useState(null),[progressFocused,setProgressFocused]=useState(false);
   // Controls stay mounted for the fade-out, then unmount so clock updates stop re-rendering them.
   const [controlsMounted,setControlsMounted]=useState(true);
   const seekSession=useRef(null);if(!seekSession.current)seekSession.current=createSeekSession();
@@ -27,14 +31,27 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   const settingsRef=useRef(settings);settingsRef.current=settings;
   controlsRef.current=controls;panelRef.current=panel;
   function hideControls(){const id=getCurrentFocusId();if(/^player-controls-\d+$/.test(id||''))lastControlFocus.current=id;controlsRef.current=false;setControls(false);}
-  function show(){if(seekSession.current.active())return;if(!controlsRef.current){const v=videoRef.current;if(v){setCurrent(v.currentTime||0);if(Number.isFinite(v.duration))setDuration(v.duration);}}controlsRef.current=true;setControls(true);clearTimeout(timer.current);timer.current=setTimeout(()=>{if(videoRef.current&&!videoRef.current.paused&&!panelRef.current){hideControls();}},5000);}
+  function show(){if(seekSession.current.active())return;if(!controlsRef.current){const v=videoRef.current;if(v){setCurrent(v.currentTime||0);if(Number.isFinite(v.duration))setDuration(v.duration);}}controlsRef.current=true;setControls(true);clearTimeout(timer.current);timer.current=setTimeout(()=>{if(videoRef.current&&!videoRef.current.paused&&!panelRef.current&&scrub.current.target==null){hideControls();}},5000);}
   function save(completed=false){const v=videoRef.current;if(v&&v.duration>0)library.saveProgress(sourceId,subject,episode,v.currentTime,v.duration,completed||v.ended);}
   function close(){save();onClose();}
   function toggle(){const v=videoRef.current;if(!v)return;if(v.paused){const p=v.play();p&&p.catch(()=>setMessage('按播放键重试'));}else v.pause();show();}
-  function seek(n){const v=videoRef.current;if(v&&Number.isFinite(v.duration)){v.currentTime=Math.min(v.duration,Math.max(0,v.currentTime+n));setCurrent(v.currentTime);setSeekHint((n>0?'快进':'快退')+' '+Math.abs(n)+' 秒 · '+time(v.currentTime));clearTimeout(seekTimer.current);seekTimer.current=setTimeout(()=>setSeekHint(''),2000);}}
+  function scrubBy(dir){
+    const v=videoRef.current;if(!v||!Number.isFinite(v.duration))return;const st=scrub.current;
+    if(st.target==null){st.start=v.currentTime;st.target=v.currentTime;st.count=0;}
+    st.count++;st.target=Math.min(v.duration,Math.max(0,st.target+dir*scrubStep(st.count)));
+    setScrubTarget(st.target);setSeekHint(deltaLabel(st.target-st.start)+' · '+time(st.target));
+    clearTimeout(st.timer);clearTimeout(seekTimer.current);st.timer=setTimeout(commitScrub,650);
+  }
+  function commitScrub(){
+    const st=scrub.current,v=videoRef.current;clearTimeout(st.timer);if(st.target==null)return;
+    if(v){v.currentTime=st.target;setCurrent(st.target);}st.target=null;st.count=0;setScrubTarget(null);
+    clearTimeout(seekTimer.current);seekTimer.current=setTimeout(()=>setSeekHint(''),1200);if(controlsRef.current)show();
+  }
+  function cancelScrub(){const st=scrub.current;clearTimeout(st.timer);st.target=null;st.count=0;setScrubTarget(null);setSeekHint('');}
   const controlId=(p,index)=>'player-'+(p||'controls')+'-'+index;
   useLayoutEffect(()=>activateFocusScope('player',controlId('',0)),[]);
-  useLayoutEffect(()=>{if(controls&&!panel&&!setFocus(lastControlFocus.current))setFocus(controlId('',0));},[controls]);
+  useLayoutEffect(()=>{if(!controls||panel)return;const want=focusOnShow.current;focusOnShow.current=null;if(want&&setFocus(want))return;if(!setFocus(lastControlFocus.current))setFocus(controlId('',0));},[controls]);
+  useEffect(()=>()=>clearTimeout(scrub.current.timer),[]);
   // A failed line offers its remedies where the error is shown; focus starts on 重试.
   useEffect(()=>{const t=setTimeout(()=>{
     if(panelRef.current)return;
@@ -97,12 +114,20 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
       const key=remoteKey(e),code=e.keyCode;
       if(e.target&&e.target.tagName==='INPUT'){if(code===461||key==='Escape'){e.preventDefault();e.target.blur();}return true;}
       const delta=seekSession.current.delta(key,panelRef.current,controlsRef.current);
-      if(code===461||key==='Escape'||key==='GoBack'||key==='Backspace'){e.preventDefault();if(e.repeat)return true;if(panelRef.current)hidePanel();else if(controlsRef.current){hideControls();}else close();return true;}
+      const back=code===461||key==='Escape'||key==='GoBack'||key==='Backspace',scrubbing=scrub.current.target!=null;
+      // While previewing: Back drops the preview, OK seeks now.
+      if(scrubbing&&back){e.preventDefault();if(!e.repeat)cancelScrub();show();return true;}
+      if(scrubbing&&key==='Enter'){e.preventDefault();commitScrub();return true;}
+      // Focus on the progress bar: left/right preview a new position instead of moving focus.
+      if(controlsRef.current&&!panelRef.current&&(key==='ArrowLeft'||key==='ArrowRight')&&getCurrentFocusId()==='player-progress'){e.preventDefault();claimRemoteFocus();scrubBy(key==='ArrowRight'?1:-1);show();return true;}
+      // Up with the bar hidden opens it on the progress bar.
+      if(!controlsRef.current&&!panelRef.current&&key==='ArrowUp'){e.preventDefault();claimRemoteFocus();focusOnShow.current='player-progress';show();return true;}
+      if(back){e.preventDefault();if(e.repeat)return true;if(panelRef.current)hidePanel();else if(controlsRef.current){hideControls();}else close();return true;}
       if(code===415||key==='MediaPlayPause'||code===19){e.preventDefault();if(key==='MediaPlayPause')toggle();else if(code===19)videoRef.current?.pause();else if(videoRef.current?.paused)toggle();return true;}
       if(code===413){e.preventDefault();close();return true;}
       if(!['Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(key))return false;
       claimRemoteFocus();
-      if(delta){e.preventDefault();seek(delta);return true;}
+      if(delta){e.preventDefault();scrubBy(delta>0?1:-1);return true;}
       if(!controlsRef.current){e.preventDefault();show();return true;}
       show();return false;
     };
@@ -163,15 +188,15 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   return <FocusContainer spotlightId="player" spotlightRestrict="self-only" className="player-page" onMouseMove={show}>
     <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{setPaused(false);setMessage('');setFailed(false);if(controlsRef.current)show();}} onPause={()=>{setPaused(true);save();show();}} onWaiting={()=>setMessage('正在缓冲…')} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){setMessage(`此线路播放失败（${videoRef.current.error?.code||'未知'}）`);setFailed(true);setControls(true);}}}/>
     <div className="danmaku-wrap" style={{opacity:settings.danmakuOpacity}}><DanmakuLayer danmakus={danmakus} currentTime={current-offset} paused={paused} enabled={settings.danmaku} fontScale={settings.danmakuScale} settings={settings}/>{settings.danmaku&&topFixed.map((d,i)=><div key={'top-'+d.time+'-'+i} className="fixed-danmaku top" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}{settings.danmaku&&bottomFixed.map((d,i)=><div key={'bot-'+d.time+'-'+i} className="fixed-danmaku bottom" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${-i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}</div>
-    {seekHint&&<div className="seek-hint">{seekHint}</div>}
-    {!controls&&seekHint&&<div className="seek-progress" role="status" aria-label="跳转进度"><span>{time(current)}</span><div className="seek-progress-track"><i style={{width:`${duration?Math.min(100,Math.max(0,current/duration*100)):0}%`}}/></div><span>{time(duration)}</span></div>}
+    {seekHint&&!controls&&<div className="seek-hint">{seekHint}</div>}
+    {!controls&&seekHint&&<div className="seek-progress" role="status" aria-label="跳转进度"><span>{time(scrubTarget!=null?scrubTarget:current)}</span><div className="seek-progress-track"><i style={{width:`${duration?Math.min(100,Math.max(0,(scrubTarget!=null?scrubTarget:current)/duration*100)):0}%`}}/></div><span>{time(duration)}</span></div>}
     {message&&!panel&&<div className="player-message">{message}{failed&&<div className="player-message-actions"><LiteButton id="player-retry" group="player" row={-2} label="重试" className="player-button" onSelect={start}><Icon name="refresh" size={23}/><span>重试</span></LiteButton><LiteButton id="player-retry-channel" group="player" row={-2} col={1} label="切换线路" className="player-button" onSelect={()=>openPanel('channels')}><Icon name="channel" size={23}/><span>切换线路</span></LiteButton></div>}</div>}
     {showUi&&<div className={'player-ui'+(controls?' visible':'')}>
       <header className="player-heading"><LiteButton id="player-back" group="player" row={-1} label="退出播放" className="player-back" onSelect={close}><Icon name="back" size={28}/></LiteButton><div><h1>{subject.name}</h1><p>{[episode.channelName,episode.name].filter(Boolean).join(' · ')}</p></div><div className="player-dm-status">{dmInfo}</div></header>
       <div className="player-bottom">
         {countdown!==null&&<div className="next-countdown">{countdown} 秒后播放下一集 <LiteButton id="player-cancel-next" group="player" row={-1} label="取消" onSelect={()=>{clearInterval(nextTimer.current);setCountdown(null);}}>取消</LiteButton></div>}
-        <div className="player-time"><span>{time(current)}</span><PlaybackSlider id="player-progress" value={current} max={duration} onChange={value=>{videoRef.current.currentTime=value;setCurrent(value);}}/><span>-{time(Math.max(0,duration-current))}</span></div>
-        {controlsMenu}<p className="player-help">左右键快进 / 快退 10 秒　·　OK 显示控制栏　·　返回收起或退出</p>
+        <div className="player-time"><span>{time(current)}</span><ScrubBar id="player-progress" value={current} max={duration} preview={scrubTarget} bubble={scrubTarget!=null?time(scrubTarget)+'（'+deltaLabel(scrubTarget-scrub.current.start)+'）':progressFocused?time(current):null} onFocusChange={setProgressFocused} onSeek={t=>{cancelScrub();const v=videoRef.current;if(v){v.currentTime=t;setCurrent(t);}}}/><span>-{time(Math.max(0,duration-current))}</span></div>
+        {controlsMenu}<p className="player-help">{progressFocused?'左右键调整位置，按住加速　·　OK 跳转　·　返回取消':'左右键快进 / 快退，按住加速　·　上键调整进度　·　返回收起或退出'}</p>
       </div>
     </div>}
   </FocusContainer>;

@@ -50,9 +50,11 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
    const frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),key=(type,name,repeat=false)=>window.dispatchEvent(new KeyboardEvent(type,{key:name,repeat,bubbles:true}));
    await frame();v.dispatchEvent(new Event('playing'));await frame();key('keydown','Escape');key('keyup','Escape');await frame();
    key('keydown','ArrowRight');await frame();for(let i=0;i<3;i++){v.dispatchEvent(new Event('waiting'));await frame();v.dispatchEvent(new Event('playing'));await frame();key('keydown','ArrowRight',true);await frame();}
-   key('keyup','ArrowRight');return {pos,controls:!!document.querySelector('.player-ui.visible'),progress:!!document.querySelector('.seek-progress')};
+   key('keyup','ArrowRight');const preview=pos,shown=document.querySelector('.seek-progress span').textContent;await new Promise(r=>setTimeout(r,800));
+   return {preview,shown,pos,controls:!!document.querySelector('.player-ui.visible'),progress:!!document.querySelector('.seek-progress')};
   })()`);
-  assert.deepEqual(playback,{pos:70,controls:false,progress:true});assert.equal(await evaluate('!!document.querySelector("[data-focus-id=player-retry]")'),false);
+  // Held right previews 30 → 1:10 and seeks once, after the key rests.
+  assert.deepEqual(playback,{preview:30,shown:'01:10',pos:70,controls:false,progress:true});assert.equal(await evaluate('!!document.querySelector("[data-focus-id=player-retry]")'),false);
   await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-0"');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-1');
   await evaluate('window.__reviewVideo=document.querySelector("video");true');await key('Escape');await wait('!document.querySelector(".player-ui")');
   assert.equal(await evaluate('document.querySelectorAll("[data-focus-group=player]").length'),0);
@@ -60,6 +62,14 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await evaluate('document.querySelector("video").currentTime=125');await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-1"');assert.equal(await evaluate('document.querySelector(".player-time span").textContent'),'02:05');
   // 下一集 → 弹幕 (toggle) → 弹幕设置 (panel)
   await key('ArrowRight');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-6');await key('Enter');await wait('!!document.querySelector(".player-panel")');await key('Escape');await wait('!document.querySelector(".player-panel")');
+  console.log('UI: progress bar scrubbing');
+  const pos=()=>evaluate('Math.round(document.querySelector("video").currentTime)');
+  await key('ArrowUp');assert.equal(await evaluate('window.__focusState().current'),'player-progress');const p0=await pos();
+  for(let i=0;i<3;i++)await key('ArrowRight');
+  assert.equal(await pos(),p0,'preview must not seek');assert.match(await evaluate('document.querySelector(".scrub-bubble").textContent'),/\+30 秒/);
+  await key('Escape');assert.equal(await evaluate('!!document.querySelector(".scrub-bar.previewing")'),false);assert.equal(await evaluate('!!document.querySelector(".player-ui.visible")'),true);assert.equal(await pos(),p0);
+  await key('ArrowRight');await key('ArrowRight');await key('Enter');await wait(`Math.round(document.querySelector("video").currentTime)===${p0+20}`);
+  await key('Escape');await wait('!document.querySelector(".player-ui.visible")');await key('ArrowUp');await wait('document.activeElement.dataset.focusId==="player-progress"');assert.equal(await evaluate('!!document.querySelector(".player-ui.visible")'),true);
   await key('Escape');await key('Escape');await wait('!window.__fanYuan.state.player');
   console.log('UI: remote-only scrolling');
   // Arrow keys alone must reach both ends of a page; every move scrolls in one direction only

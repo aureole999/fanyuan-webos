@@ -6,7 +6,6 @@ import InputField from '@enact/sandstone/Input/InputField';
 import Scroller from '@enact/sandstone/Scroller';
 import ContentContainerDecorator from '@enact/sandstone/Scroller/ContentContainerDecorator';
 import Spinner from '@enact/sandstone/Spinner';
-import Slider from '@enact/sandstone/Slider';
 import SpotlightContainerDecorator from '@enact/spotlight/SpotlightContainerDecorator';
 import Spottable from '@enact/spotlight/Spottable';
 import {coverThumbnail} from '../src/images.cjs';
@@ -84,6 +83,16 @@ export function ContentScroller({apiRef,children,className='content-scroller',sp
  useLayoutEffect(()=>{const el=body.current;if(!el||typeof ResizeObserver!=='function')return;let height=el.offsetHeight;const observer=new ResizeObserver(()=>{if(el.offsetHeight!==height){height=el.offsetHeight;remeasure();}});observer.observe(el);return()=>observer.disconnect();},[]);
  return <Scroller {...rest} spotlightId={spotlightId} className={className} direction="vertical" horizontalScrollbar="hidden" cbScrollTo={fn=>{if(apiRef)apiRef.current={set scrollTop(y){fn({position:{y},animate:false});}};}}><div ref={body} className="scroller-body">{children}</div></Scroller>;
 }
-export function PlaybackSlider({id,value,max,onChange}){const {props}=useFocusable({id,group:'player'});return <Slider {...props} className="player-progress" css={{fill:'slider-fill',bar:'slider-bar',knob:'slider-knob'}} value={Math.min(value,max||0)} min={0} max={max||1} step={10} onChange={e=>onChange(e.value)} aria-label="播放进度"/>;}
+// Progress bar for the player. Arrow keys are handled by the player (preview first, then seek),
+// so this is a plain focusable track: played fill, preview marker, knob and a time bubble.
+// A pointer click on the track seeks directly (Magic Remote).
+export function ScrubBar({id,value,max,preview,bubble,onSeek,onFocusChange}){
+ const {props}=useFocusable({id,group:'player'});
+ const pct=v=>max>0?Math.min(100,Math.max(0,v/max*100)):0,at=pct(preview!=null?preview:value);
+ const seekAt=e=>{const r=e.currentTarget.getBoundingClientRect();if(r.width>0&&max>0)onSeek?.(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*max);};
+ return <SpottableDiv {...props} onFocus={e=>{props.onFocus(e);onFocusChange?.(true);}} onBlur={()=>onFocusChange?.(false)} role="slider" aria-label="播放进度" aria-valuemin={0} aria-valuemax={Math.round(max||0)} aria-valuenow={Math.round(preview!=null?preview:value)} className={'scrub-bar'+(preview!=null?' previewing':'')}>
+  <div className="scrub-track" onClick={seekAt}><div className="scrub-fill" style={{width:pct(value)+'%'}}/>{preview!=null&&<div className="scrub-range" style={{left:Math.min(pct(value),at)+'%',width:Math.abs(at-pct(value))+'%'}}/>}<div className="scrub-knob" style={{left:at+'%'}}>{bubble&&<span className="scrub-bubble">{bubble}</span>}</div></div>
+ </SpottableDiv>;
+}
 export function Empty({title,children}){return <div className="empty-state"><Icon name="tv" size={64}/><h2>{title}</h2><p>{children}</p></div>;}
 export function Loading({text='正在加载…'}){return <div className="loading-state"><Spinner className="loading-spinner">{text}</Spinner></div>;}
