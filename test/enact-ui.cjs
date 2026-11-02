@@ -29,6 +29,11 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await key('ArrowDown');await key('Enter');await wait('!!window.__fanYuan.state.dialog');
   await wait('window.__focusState().current==="dialog-2"');await key('ArrowDown');assert.equal(await evaluate('window.__focusState().current'),'dialog-3');
   await key('Escape');await wait('!document.querySelector(".selection-popup")');assert.equal(await evaluate('window.__focusState().current'),'content-2-0');
+  // A two-option dialog fits its scroller: moving down must not scroll the options.
+  await page('settings');await evaluate('[...document.querySelectorAll(".settings-row")].find(e=>e.textContent.includes("跳过片头快捷键")).click(),1');await wait('window.__focusState().current==="dialog-0"');
+  const optionTops=()=>evaluate('JSON.stringify([...document.querySelectorAll(".dialog-option")].map(e=>Math.round(e.getBoundingClientRect().top)))');
+  const before=await optionTops();await key('ArrowDown');assert.equal(await evaluate('window.__focusState().current'),'dialog-1');await new Promise(r=>setTimeout(r,500));assert.equal(await optionTops(),before,'options must not scroll');
+  await key('Escape');await wait('!document.querySelector(".selection-popup")');
   console.log('UI: direct search');await page('search');await wait('window.__focusState().current==="content-0-0"');await key('Enter');await cdp('Input.insertText',{text:'测试番'});await key('Enter');await wait('window.__fanYuan.state.results.length===1');assert.equal(await evaluate('window.__focusState().paused'),false);assert.equal(await evaluate('window.__fixture.calls.search'),1);assert.equal(await evaluate('window.__fixture.calls.bangumiSearch'),1);
   await key('ArrowUp');assert.equal(await evaluate('window.__focusState().current'),'content-0-0');
   console.log('UI: calendar');await page('calendar');await wait('window.__focusState().current==="content-0-0"');await key('ArrowRight');await key('ArrowRight');await key('ArrowDown');assert.match(await evaluate('window.__focusState().current'),/^content-[1-9]/);
@@ -64,6 +69,16 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await key('ArrowRight');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-6');await key('Enter');await wait('!!document.querySelector(".player-panel")');await key('Escape');await wait('!document.querySelector(".player-panel")');
   console.log('UI: progress bar scrubbing');
   const pos=()=>evaluate('Math.round(document.querySelector("video").currentTime)');
+  // Left/right walk the button row only, wherever the knob sits; Up/Down switch to the bar and back.
+  const focusNow=()=>evaluate('window.__focusState().current');
+  await key('Escape');await wait('!document.querySelector(".player-ui.visible")');
+  for(const at of [0.3,0.5,0.62]){
+   await evaluate(`(()=>{const v=document.querySelector("video");v.currentTime=v.duration*${at};return 1})()`);
+   await key('Enter');await wait('/^player-controls-/.test(window.__focusState().current||"")');
+   for(const k of ['ArrowRight','ArrowRight','ArrowRight','ArrowRight','ArrowLeft','ArrowLeft','ArrowLeft','ArrowLeft','ArrowLeft','ArrowLeft']){await key(k);assert.notEqual(await focusNow(),'player-progress','left/right must not reach the progress bar');}
+   const from=await focusNow();await key('ArrowUp');assert.equal(await focusNow(),'player-progress');await key('ArrowDown');assert.equal(await focusNow(),from,'down returns to the same button');
+   await key('Escape');await wait('!document.querySelector(".player-ui.visible")');
+  }
   await key('ArrowUp');assert.equal(await evaluate('window.__focusState().current'),'player-progress');const p0=await pos();
   for(let i=0;i<3;i++)await key('ArrowRight');
   assert.equal(await pos(),p0,'preview must not seek');assert.match(await evaluate('document.querySelector(".scrub-bubble").textContent'),/\+30 秒/);

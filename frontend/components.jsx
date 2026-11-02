@@ -13,6 +13,8 @@ import {useFocusable,isTopContentRow,eligible} from './focus';
 import {remoteKey} from './navigation.cjs';
 
 export const FocusContainer=SpotlightContainerDecorator('div');
+// Left/right stay in the row; the player moves focus between the row and the progress bar itself.
+export const ControlRow=SpotlightContainerDecorator({restrict:'self-only'},'div');
 // Resolve a left exit to the page's menu item, independent of its screen position.
 export const PageFocusContainer=SpotlightContainerDecorator({leaveFor:{left:'.sidebar-item[aria-current="page"]'}},'div');
 const ICONS={pause:'pause',next:'skip',episodes:'list',channel:'channel',speed:'playspeed',back:'arrowlargeleft',settings:'gear',tv:'tvguidefvp',home:'home',history:'timer',book:'list',remix:'repeatall',refresh:'refresh',live:'play',chat:'subtitle',search:'search',star:'star',play:'play',pause:'pause',arrow:'arrowlargeright',close:'closex',check:'check'};

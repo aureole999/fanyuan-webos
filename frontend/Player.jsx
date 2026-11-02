@@ -1,6 +1,6 @@
 import React,{useState,useEffect,useRef,useCallback,useMemo,useLayoutEffect} from 'react';
 import {call} from './api';
-import {Icon,LiteButton,FocusContainer,ContentScroller,ScrubBar,ScrollGroup} from './components';
+import {Icon,LiteButton,FocusContainer,ControlRow,ContentScroller,ScrubBar,ScrollGroup} from './components';
 import DanmakuLayer from './vendor/bilitv/player/DanmakuLayer';
 import {setCustomKeyHandler,claimRemoteFocus,setFocus,activateFocusScope,getCurrentFocusId} from './focus';
 import {remoteKey,createSeekSession,scrubStep,skipKey,skipAmount} from './navigation.cjs';
@@ -28,7 +28,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   const [seekHint,setSeekHint]=useState(''),[dmError,setDmError]=useState(''),[failed,setFailed]=useState(false);
   const [dmProviders,setDmProviders]=useState([]),[dmSources,setDmSources]=useState([]),[sourcePrefs,setSourcePrefs]=useState(()=>library.danmakuSources()),[customSubjects,setCustomSubjects]=useState([]),[customEpisodes,setCustomEpisodes]=useState([]),[customSubject,setCustomSubject]=useState(null),[customBusy,setCustomBusy]=useState(false);
   const danmakus=useMemo(()=>renderItems(rawDanmakus,sourcePrefs),[rawDanmakus,sourcePrefs]),fixedItems=useMemo(()=>danmakus.filter(d=>d.mode===4||d.mode===5),[danmakus]);
-  const lastSkip=useRef(-Infinity);const settingsRef=useRef(settings);settingsRef.current=settings;
+  const lastSkip=useRef(-Infinity),rowFocus=useRef(null);const settingsRef=useRef(settings);settingsRef.current=settings;
   controlsRef.current=controls;panelRef.current=panel;
   function hideControls(){const id=getCurrentFocusId();if(/^player-controls-\d+$/.test(id||''))lastControlFocus.current=id;controlsRef.current=false;setControls(false);}
   function show(){if(seekSession.current.active())return;if(!controlsRef.current){const v=videoRef.current;if(v){setCurrent(v.currentTime||0);if(Number.isFinite(v.duration))setDuration(v.duration);}}controlsRef.current=true;setControls(true);clearTimeout(timer.current);timer.current=setTimeout(()=>{if(videoRef.current&&!videoRef.current.paused&&!panelRef.current&&scrub.current.target==null){hideControls();}},5000);}
@@ -121,6 +121,9 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
       if(scrubbing&&key==='Enter'){e.preventDefault();commitScrub();return true;}
       // Focus on the progress bar: left/right preview a new position instead of moving focus.
       if(controlsRef.current&&!panelRef.current&&(key==='ArrowLeft'||key==='ArrowRight')&&getCurrentFocusId()==='player-progress'){e.preventDefault();claimRemoteFocus();scrubBy(key==='ArrowRight'?1:-1);show();return true;}
+      // Only Up reaches the progress bar from the button row, and Down returns to the button it came from.
+      if(controlsRef.current&&!panelRef.current&&key==='ArrowUp'&&/^player-controls-\d+$/.test(getCurrentFocusId()||'')){e.preventDefault();rowFocus.current=getCurrentFocusId();setFocus('player-progress');show();return true;}
+      if(controlsRef.current&&!panelRef.current&&key==='ArrowDown'&&getCurrentFocusId()==='player-progress'){e.preventDefault();if(!setFocus(rowFocus.current||'player-controls-0'))setFocus('player-controls-0');show();return true;}
       // Up with the bar hidden opens it on the progress bar.
       if(!controlsRef.current&&!panelRef.current&&key==='ArrowUp'){e.preventDefault();claimRemoteFocus();focusOnShow.current='player-progress';show();return true;}
       if(back){e.preventDefault();if(e.repeat)return true;if(panelRef.current)hidePanel();else if(controlsRef.current){hideControls();}else close();return true;}
@@ -168,7 +171,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
             const list=button('选集',()=>openPanel('episodes'),'episodes'),line=button('线路',()=>openPanel('channels'),'channel');
             const dm=button('弹幕',()=>onSettings({danmaku:!settings.danmaku}),'chat','player-toggle',{after:<span className={'player-switch'+(settings.danmaku?' on':'')} aria-hidden="true"/>});
             const dmSet=button('弹幕设置',()=>openPanel('danmaku'),'settings'),rate=button(speedLabel(speed),()=>openPanel('speed'),'speed');
-            return <div className="player-control-row"><div className="player-section start">{list}{line}</div><div className="player-section center">{prev}{play}{next}</div><div className="player-section end">{dm}{dmSet}{rate}</div></div>;})():<ContentScroller className="player-panel" spotlightId={'panel-'+panel}><div className="panel-title"><div className="panel-heading"><h2>{panelTitle(panel)}</h2>{note&&<p className="panel-description">{note}</p>}{panelError&&<p className="error-text">{dmError}</p>}</div>{button(panelHistory.current.length>1?'返回上一级':'返回控制栏',hidePanel)}</div>
+            return <ControlRow className="player-control-row"><div className="player-section start">{list}{line}</div><div className="player-section center">{prev}{play}{next}</div><div className="player-section end">{dm}{dmSet}{rate}</div></ControlRow>;})():<ContentScroller className="player-panel" spotlightId={'panel-'+panel}><div className="panel-title"><div className="panel-heading"><h2>{panelTitle(panel)}</h2>{note&&<p className="panel-description">{note}</p>}{panelError&&<p className="error-text">{dmError}</p>}</div>{button(panelHistory.current.length>1?'返回上一级':'返回控制栏',hidePanel)}</div>
             {panel==='episodes'&&<div className="player-episode-grid">{(channels[channelIndex]?.episodes||[]).map(ep=>button(ep.name,()=>{save();onEpisode(ep);},null,ep.id===episode.id?'active':''))}</div>}
             {panel==='channels'&&<div className="player-channel-grid">{channels.map((ch,i)=>button(ch.name,()=>{save();onSwitchChannel(i);},null,i===channelIndex?'active':''))}</div>}
             {panel==='speed'&&<div className="player-settings-grid">{[[0.75,'0.75×'],[1,'1.0× · 正常'],[1.25,'1.25×'],[1.5,'1.5×'],[2,'2.0×']].map(([v,label])=>button(label,()=>applySpeed(v),null,speed===v?'active':''))}</div>}
