@@ -1,13 +1,11 @@
 import React,{useLayoutEffect,useReducer,useRef} from 'react';
 import Button from '@enact/sandstone/Button';
 import Item from '@enact/sandstone/Item';
-import ImageItem from '@enact/sandstone/ImageItem';
 import SandstoneIcon from '@enact/sandstone/Icon';
 import InputField from '@enact/sandstone/Input/InputField';
 import Scroller from '@enact/sandstone/Scroller';
 import ContentContainerDecorator from '@enact/sandstone/Scroller/ContentContainerDecorator';
 import Spinner from '@enact/sandstone/Spinner';
-import ProgressBar from '@enact/sandstone/ProgressBar';
 import Slider from '@enact/sandstone/Slider';
 import SpotlightContainerDecorator from '@enact/spotlight/SpotlightContainerDecorator';
 import Spottable from '@enact/spotlight/Spottable';
@@ -45,17 +43,24 @@ export function FocusButton({id,row=0,col=0,group='content',onSelect,onNavigate,
 // spotlight navigation, onSpotlight* handlers and OK-to-click, and reuses the fy-button classes so
 // focus styling stays identical. Long text ellipsizes instead of marqueeing.
 const SpottableDiv=Spottable('div');
+// LG voice control ("select …") reads these attributes; Sandstone controls add them automatically.
+function voice(...labels){return {'data-webos-voice-intent':'Select','data-webos-voice-labels':JSON.stringify(labels.filter(Boolean))};}
 export const SettingsRow=React.memo(function SettingsRow({id,row,label,value,onSelect}){
  const {props}=useFocusable({id,row,col:0,onSelect});
- return <SpottableDiv {...props} role="button" aria-label={label+(value?'，'+value:'')} className="fy-button fy-item settings-row lite-row"><div className="control-bg"/><span className="lite-title">{label}</span>{value!=null&&value!==''&&<span className="control-label">{value}</span>}<span className="control-after"><Icon name="arrow"/></span></SpottableDiv>;
+ return <SpottableDiv {...props} {...voice(label)} role="button" aria-label={label+(value?'，'+value:'')} className="fy-button fy-item settings-row lite-row"><div className="control-bg"/><span className="lite-title">{label}</span>{value!=null&&value!==''&&<span className="control-label">{value}</span>}<span className="control-after"><Icon name="arrow"/></span></SpottableDiv>;
 });
 const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420"><rect width="300" height="420" fill="#252525"/><path d="M105 160L205 210L105 260Z" fill="#888"/></svg>');
+// Poster card without Sandstone's ImageItem stack (21 components: two ImageItem layers, Column,
+// Cell, ResponsiveImageDecorator, Image, Marquee-less but still Skinnable/Touchable). Only
+// Spottable remains. The art is a background so the cover covers the placeholder while it loads.
+const cssUrl=u=>'url("'+String(u).replace(/["\\\n]/g,encodeURIComponent)+'")';
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
  const id=`content-${row}-${col}`,{props}=useFocusable({id,row,col,onSelect,onNavigate:dir=>dir==='up'&&isTopContentRow(id)?(eligible('header-search')?'header-search':'header-source'):null});
  const label=actionLabel||(subject.date?subject.date.slice(0,4)+' · ':'')+(subject.episodeCount?'全 '+subject.episodeCount+' 集':subject.originalName||'查看剧集');
- return <article className="poster-entry"><ImageItem {...props} className="poster-control" role="button" orientation="vertical" src={subject.cover?coverThumbnail(subject.cover):placeholder} placeholder={placeholder} aria-label={subject.name} css={{image:'poster-art'}}/>
+ const art=(subject.cover?cssUrl(coverThumbnail(subject.cover))+',':'')+cssUrl(placeholder);
+ return <article className="poster-entry"><SpottableDiv {...props} {...voice(subject.name)} className="poster-control" role="button" aria-label={subject.name}><div className="poster-art" style={{backgroundImage:art}}/></SpottableDiv>
   <div className="poster-hover"><span className="poster-play-badge"><Icon name="play" size={26}/></span></div>
-  <div className="poster-body"><strong>{subject.name}</strong><small>{label}</small></div>{subject.score>0&&<span className="score-badge">★ {Number(subject.score).toFixed(1)}</span>}{progress?.position>0&&<ProgressBar className="card-progress" css={{fill:'progress-fill'}} progress={Math.min(1,progress.position/progress.duration)}/>}
+  <div className="poster-body"><strong>{subject.name}</strong><small>{label}</small></div>{subject.score>0&&<span className="score-badge">★ {Number(subject.score).toFixed(1)}</span>}{progress?.position>0&&<div className="card-progress"><div className="card-progress-fill progress-fill" style={{width:Math.min(100,progress.position/progress.duration*100)+'%'}}/></div>}
  </article>;
 }
 export function TextCard({subject,row,col,onSelect}){return <FocusButton id={`content-${row}-${col}`} row={row} col={col} onSelect={onSelect} className="source-result" slotBefore={<span className="source-result-icon"><Icon name="tv" size={30}/></span>} slotAfter={<Icon name="arrow" size={24}/>} label="查看线路与剧集">{subject.name}</FocusButton>;}

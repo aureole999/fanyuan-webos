@@ -2272,3 +2272,16 @@ input::placeholder {
   flex-shrink: 0;
   line-height: 0;
 }
+
+/* Lightweight poster card: the art is a cover-sized background; the progress bar is plain DOM. */
+#root .poster-entry .poster-control .poster-art {
+  background-repeat: no-repeat;
+}
+
+#root .card-progress {
+  overflow: hidden;
+}
+
+#root .card-progress-fill {
+  height: 100%;
+}
