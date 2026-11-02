@@ -2141,3 +2141,63 @@ input::placeholder {
 #root .player-panel .scroller-body {
   padding: 8px 28px 8px 10px;
 }
+
+/* Settings groups: a small heading above each set of rows. */
+#root .settings-group {
+  margin-bottom: 30px;
+}
+
+#root .settings-group:last-child {
+  margin-bottom: 0;
+}
+
+#root .settings-group-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #9ca2b0;
+  margin: 0 0 12px 6px;
+}
+
+/* Player danmaku panel sections. */
+#root .panel-section {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#root .panel-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+#root .panel-section-title {
+  font-size: 21px;
+  font-weight: 600;
+  color: #c9cdd6;
+  margin: 0 0 10px;
+}
+
+#root .panel-section-title small {
+  font-size: 17px;
+  font-weight: 400;
+  color: #8f95a3;
+  margin-left: 14px;
+}
+
+#root .panel-status {
+  font-size: 19px;
+  color: #b2b7c4;
+  margin: 0 0 10px;
+}
+
+/* The current value between its −/+ buttons. */
+#root .offset-value {
+  display: inline-flex;
+  align-items: center;
+  min-width: 120px;
+  justify-content: center;
+  font-size: 20px;
+  color: #e6e8ee;
+  margin: 0 12px 12px 0;
+}

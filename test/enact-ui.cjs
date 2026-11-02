@@ -25,7 +25,7 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await wait('document.activeElement.dataset.focusId==="sidebar-home"');
   assert.equal(await evaluate('document.querySelector(".poster-art").getBoundingClientRect().height'),244);
   await key('ArrowDown');assert.equal(await evaluate('document.activeElement.dataset.focusId'),'sidebar-search');await key('ArrowRight');await wait('document.activeElement.dataset.focusId==="content-0-0"');
-  console.log("UI: settings and popup");await page('settings');await wait('window.__focusState().current==="content-1-0"');
+  console.log("UI: settings and popup");await page('danmakuStyle');await wait('window.__focusState().current==="content-1-0"');
   await key('ArrowDown');await key('Enter');await wait('!!window.__fanYuan.state.dialog');
   await wait('window.__focusState().current==="dialog-2"');await key('ArrowDown');assert.equal(await evaluate('window.__focusState().current'),'dialog-3');
   await key('Escape');await wait('!document.querySelector(".selection-popup")');assert.equal(await evaluate('window.__focusState().current'),'content-2-0');
@@ -81,7 +81,7 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
    const top=await walk('ArrowUp','.content-scroller');assert.equal(top.top,0,name+': first row did not reach the top');
   }
   console.log('UI: current-page sidebar exits');
-  for(const [name,id,menu] of [['home','content-4-0','home'],['calendar','content-3-0','calendar'],['settings','content-4-0','settings'],['favorites','content-0-0','favorites'],['history','content-1-0','history'],['history','header-search','history'],['subscriptions','subscription-url','settings'],['danmakuSettings','danmaku-url','settings']]){
+  for(const [name,id,menu] of [['home','content-4-0','home'],['calendar','content-3-0','calendar'],['settings','content-4-0','settings'],['danmakuStyle','content-2-0','settings'],['favorites','content-0-0','favorites'],['history','content-1-0','history'],['history','header-search','history'],['subscriptions','subscription-url','settings'],['danmakuSettings','danmaku-url','settings']]){
    await page(name);await wait(`!!document.querySelector('[data-focus-id="${id}"]')`);
    await evaluate(`document.querySelector('[data-focus-id="${id}"]').focus()`);await new Promise(r=>setTimeout(r,100));await key('ArrowLeft');
    await wait(`document.activeElement.dataset.focusId==="sidebar-${menu}"`);assert.equal(await evaluate('document.querySelector(".sidebar").dataset.expanded'),'true');await new Promise(r=>setTimeout(r,150));assert.equal(await evaluate('window.__fanYuan.state.page'),name);await key('ArrowRight');await wait('document.activeElement.dataset.focusGroup==="content"');assert.equal(await evaluate('window.__fanYuan.state.page'),name);

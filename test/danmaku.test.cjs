@@ -90,3 +90,15 @@ test('danmaku style layout computes display area tracks, line gap, speed, densit
  assert.equal(danmakuOptionLabel('area',0.33),'上方 1/3');assert.equal(danmakuOptionLabel('lineGap',18),'宽松 18px');
  assert.equal(danmakuTypesSummary({danmakuFloating:true,danmakuTop:true,danmakuBottom:false,danmakuColor:false}),'滚动 · 顶部 · 纯白');
 });
+
+test('one style definition covers every option set and drives grouped labels and type toggles',()=>{
+ const d=require('../frontend/danmaku.cjs');
+ const grouped=d.DANMAKU_GROUPS.flatMap(g=>g.fields);
+ assert.deepEqual([...grouped].sort(),Object.keys(d.DANMAKU_FIELDS).sort());assert.equal(new Set(grouped).size,grouped.length);
+ for(const f of grouped)if(f!=='types')assert.ok(d.DANMAKU_OPTIONS[f]&&d.DANMAKU_FIELDS[f].key,f);
+ assert.ok(d.DANMAKU_COMMON.every(f=>grouped.includes(f)));
+ const s={danmakuArea:0.33,danmakuScale:1.2,danmakuBottom:false};
+ assert.equal(d.danmakuFieldValue('area',s),'上方 1/3');assert.equal(d.danmakuFieldValue('scale',s),'120%');assert.equal(d.danmakuFieldValue('speed',{danmakuSpeed:3}),'自定义');
+ const bottom=d.DANMAKU_TYPES.find(t=>t.key==='danmakuBottom'),top=d.DANMAKU_TYPES.find(t=>t.key==='danmakuTop');
+ assert.deepEqual(d.danmakuTypePatch(bottom,s),{danmakuBottom:true});assert.deepEqual(d.danmakuTypePatch(top,s),{danmakuTop:false});
+});

@@ -13,7 +13,9 @@ const APP_VERSION=__APP_VERSION__;
 import Subscriptions from './Subscriptions';
 import DanmakuSettings from './DanmakuSettings';
 import {coverThumbnail} from '../src/images.cjs';
-import {DANMAKU_OPTIONS,matchOptionValue,danmakuOptionLabel,danmakuTypesSummary} from './danmaku.cjs';
+import {DANMAKU_OPTIONS,DANMAKU_FIELDS,DANMAKU_GROUPS,DANMAKU_TYPES,danmakuTypePatch,danmakuFieldValue,matchOptionValue} from './danmaku.cjs';
+// Pages reached from 设置; their menu item and back target is settings.
+const SETTINGS_PAGES=['subscriptions','danmakuSettings','danmakuStyle'];
 
 const library=makeLibrary(localStorage);
 const MENU=[['home','首页','home'],['search','搜索','search'],['calendar','新番时间表','tv'],['favorites','我的收藏','star'],['history','观看历史','history'],['settings','设置','settings']];
@@ -35,7 +37,7 @@ function App({className}){
   const token=useRef(0),toastTimer=useRef(null),inputRef=useRef(null),scroller=useRef(null),lastPage=useRef('home'),lastCard=useRef(null),current=useRef({});
   current.current={page,drawer:drawer.current,sources,sourceId,calendar,results,detail,meta,channel,player,dialog,settings};
   const currentSource=sources.find(s=>s.id===sourceId);
-  function menuPage(){const p=current.current.page;return p==='detail'?lastPage.current:(p==='subscriptions'||p==='danmakuSettings')?'settings':p;}
+  function menuPage(){const p=current.current.page;return p==='detail'?lastPage.current:SETTINGS_PAGES.includes(p)?'settings':p;}
   function setDrawer(value){if(drawer.current===value)return;drawer.current=value;current.current.drawer=value;const el=document.querySelector('.sidebar');if(el)el.dataset.expanded=String(value);}
   function notify(text){setToast(text);clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(''),3200);}
   function refresh(){setRevision(n=>n+1);}
@@ -60,7 +62,7 @@ function App({className}){
     });
     const enter=e=>{const item=MENU.find(m=>'sidebar-'+m[0]===e.detail);if(item){if(menuPage()!==item[0])go(item[0],true);else{setDrawer(false);focusFirstContent();}}};
     const sidebar=()=>{const s=current.current;if(s.player||s.dialog)return;clearTimeout(previewTimer.current);setDrawer(true);setFocus('sidebar-'+menuPage());};
-    const back=()=>{const s=current.current;if(s.player)return;if(s.dialog){setDialog(null);return;}if(s.page==='subscriptions'||s.page==='danmakuSettings'){go('settings',true);return;}if(s.page==='detail'){token.current++;setDetail(null);setMeta(null);setCandidates([]);setPage(lastPage.current);setContentContext(lastPage.current);setError('');setBusy(false);setTimeout(()=>lastCard.current?setFocus(lastCard.current):focusFirstContent(),50);}else if(s.drawer){if(s.page==='home'){if(window.webOS?.platformBack)webOS.platformBack();}else go('home',true);}else{setDrawer(true);focusSidebar();}};
+    const back=()=>{const s=current.current;if(s.player)return;if(s.dialog){setDialog(null);return;}if(SETTINGS_PAGES.includes(s.page)){go('settings',true);return;}if(s.page==='detail'){token.current++;setDetail(null);setMeta(null);setCandidates([]);setPage(lastPage.current);setContentContext(lastPage.current);setError('');setBusy(false);setTimeout(()=>lastCard.current?setFocus(lastCard.current):focusFirstContent(),50);}else if(s.drawer){if(s.page==='home'){if(window.webOS?.platformBack)webOS.platformBack();}else go('home',true);}else{setDrawer(true);focusSidebar();}};
     window.addEventListener('tv-enter-content',enter);window.addEventListener('tv-enter-sidebar',sidebar);window.addEventListener('tv-back',back);
     setTimeout(()=>{setDrawer(true);setFocus('sidebar-home');},100);
     return()=>{clearTimeout(previewTimer.current);off();window.removeEventListener('tv-enter-content',enter);window.removeEventListener('tv-enter-sidebar',sidebar);window.removeEventListener('tv-back',back);};
@@ -70,14 +72,9 @@ function App({className}){
   function chooseOption(title,currentVal,items,onPick){setDialog({title,options:items.map(it=>({label:it.label,description:it.description,active:matchOptionValue(it.value,currentVal),action:()=>{onPick(it.value);setDialog(null);}}))});}
   function chooseDanmakuTypes(s=current.current.settings){
     const toggle=patch=>{const next=library.setSettings(patch);setSettings(next);chooseDanmakuTypes(next);};
-    setDialog({title:'弹幕类型与色彩',options:[
-      {label:'滚动弹幕：'+(s.danmakuFloating!==false?'开启':'关闭'),description:'从右向左横跨画面的普通流动弹幕',active:s.danmakuFloating!==false,action:()=>toggle({danmakuFloating:s.danmakuFloating===false})},
-      {label:'顶部弹幕：'+(s.danmakuTop!==false?'开启':'关闭'),description:'固定在画面顶部居中的弹幕',active:s.danmakuTop!==false,action:()=>toggle({danmakuTop:s.danmakuTop===false})},
-      {label:'底部弹幕：'+(s.danmakuBottom===true?'开启':'关闭'),description:'固定在画面底部居中的弹幕（默认关闭以免遮挡字幕）',active:s.danmakuBottom===true,action:()=>toggle({danmakuBottom:!s.danmakuBottom})},
-      {label:'彩色弹幕：'+(s.danmakuColor!==false?'开启':'关闭'),description:'关闭后所有彩色弹幕将统一显示为白色',active:s.danmakuColor!==false,action:()=>toggle({danmakuColor:s.danmakuColor===false})},
-      {label:'完成',description:'返回设置列表',action:()=>setDialog(null)}
-    ]});
+    setDialog({title:'弹幕类型与色彩',options:DANMAKU_TYPES.map(t=>({label:t.label+'：'+(t.on(s)?'开启':'关闭'),description:t.description,active:t.on(s),action:()=>toggle(danmakuTypePatch(t,s))})).concat({label:'完成',description:'返回弹幕样式',action:()=>setDialog(null)})});
   }
+  function chooseDanmakuField(field){const f=DANMAKU_FIELDS[field];if(field==='types')chooseDanmakuTypes();else chooseOption(f.label,current.current.settings[f.key],DANMAKU_OPTIONS[field],v=>updateSettings({[f.key]:v}));}
   async function chooseSource(){let available;try{available=(await refreshSources()).sources;}catch(e){notify(e.message);return;}setDialog({title:'选择视频源',options:available.map(s=>({label:s.name,description:s.factoryId==='json-api'?'接口源 · 原始订阅规则':'网页源 · 原始订阅规则',active:s.id===sourceId,action:()=>{setSourceId(s.id);localStorage.setItem('sourceId',s.id);setDialog(null);if(page==='detail')loadTitleSource(meta||detail?.subject,s.id);else if(page==='search'&&keyword.trim())runSearch(keyword,s.id);}}))});}
   async function runSearch(q=keyword,id=sourceId){
     q=q.trim();if(!q)return;const seq=++token.current;library.addSearch(q);setKeyword(q);setBusy(true);setError('');setPage('search');setContentContext('search');setDrawer(false);setDetail(null);setMeta(null);setCandidates([]);setResults([]);
@@ -122,13 +119,15 @@ function App({className}){
   function gridSection(heading,items,cols,startRow,grid){const lead=items.slice(0,cols),rest=items.slice(cols);return <section className="grid-section"><ScrollGroup className="section-lead">{heading}{grid(lead,startRow,0)}</ScrollGroup>{rest.length>0&&grid(rest,startRow+1,cols)}</section>;}
   function cardSection(heading,items,startRow=1,historyItems=null){return gridSection(heading,items,settings.gridCols,startRow,(list,row,offset)=>renderCards(list,row,historyItems,offset));}
   function textSection(heading,items,startRow,onPick){return gridSection(heading,items,3,startRow,(list,row,offset)=><div className="source-results">{list.map((x,i)=><TextCard key={(x.url||x.id)+'-'+(offset+i)} subject={x} row={row+Math.floor(i/3)} col={i%3} onSelect={()=>onPick(x)}/>)}</div>);}
+  // Grouped settings rows. Each group is one ScrollGroup so its heading scrolls in with its rows.
+  function settingsGroups(groups){let row=0;return <div className="settings-list">{groups.map(([heading,rows])=><ScrollGroup key={heading} className="settings-group"><h2 className="settings-group-title">{heading}</h2>{rows.map(x=>{row++;return <FocusButton key={x[0]} id={`content-${row}-0`} row={row} col={0} className="settings-row" label={x[1]} slotAfter={<Icon name="arrow"/>} onSelect={x[2]}>{x[0]}</FocusButton>;})}</ScrollGroup>)}</div>;}
   const progressFor=page==='detail'&&detail?library.progressLookup():null;
   const favorites=library.favorites(),history=library.history(),todayItems=calendar.find(d=>d.id===today)?.items||[],dayItems=calendar.find(d=>d.id===day)?.items||[];
   // Page-level notes sit in the fixed header, outside the scroller, so they never need focus to be seen.
-  const subtitle={settings:'设置与追番数据仅保存在本机，不需要登录账号。',subscriptions:'订阅直接下载到这台电视，应用运行时每小时检查更新；下载失败会保留缓存，不导入 BT。',danmakuSettings:'自动匹配优先选择弹弹play，其他平台作为备用；播放时可在弹幕设置里调整偏移或手动匹配。'}[page];
+  const subtitle={settings:'设置与追番数据仅保存在本机，不需要登录账号。',subscriptions:'订阅直接下载到这台电视，应用运行时每小时检查更新；下载失败会保留缓存，不导入 BT。',danmakuSettings:'自动匹配优先选择弹弹play，其他平台作为备用；播放时可在弹幕设置里调整偏移或手动匹配。',danmakuStyle:'对所有番剧生效；播放时在弹幕面板里修改的也是同一套设置。'}[page];
   const todayHeading=<h2 className="section-title">今日放送 <span>{DAY[today-1]} · Bangumi</span></h2>,todayRow=history.length?2:1;
   const resultsHeading=<h2 className="section-title">搜索结果 <span>{results.length} 部 · {currentSource?.name}</span></h2>;
-  const title={home:'继续喜欢的故事',search:'搜索番剧',calendar:'新番时间表',favorites:'我的收藏',history:'观看历史',settings:'设置',subscriptions:'数据源订阅',danmakuSettings:'弹幕服务',detail:meta?.name||detail?.subject?.name||'番剧详情'}[page];
+  const title={home:'继续喜欢的故事',search:'搜索番剧',calendar:'新番时间表',favorites:'我的收藏',history:'观看历史',settings:'设置',subscriptions:'数据源订阅',danmakuSettings:'弹幕服务',danmakuStyle:'弹幕样式',detail:meta?.name||detail?.subject?.name||'番剧详情'}[page];
   useEffect(()=>{window.__fanYuan={get state(){return current.current;},call,library,navigate:go,search:(q,id)=>runSearch(q,id),openTitle,openSource,diagnostics:()=>({version:APP_VERSION,page:current.current.page,sourceId:current.current.sourceId,playing:!!current.current.player,results:current.current.results.length})};return()=>delete window.__fanYuan;},[page,sourceId,keyword,detail,meta,channel]);
   return <div id="tv-frame" className={className}>
     <div className="app-shell" aria-hidden={!!player}>
@@ -155,24 +154,17 @@ function App({className}){
           </>}
           {page==='danmakuSettings'&&<DanmakuSettings notify={notify}/>}
           {page==='subscriptions'&&<Subscriptions onChanged={refreshSources} notify={notify} chooseOption={chooseOption}/>}
-          {page==='settings'&&<><div className="settings-list">{[
-            ['默认显示弹幕',settings.danmaku?'开启':'关闭',()=>chooseOption('默认显示弹幕',!!settings.danmaku,[{value:true,label:'开启',description:'进入播放时默认开启弹幕显示'},{value:false,label:'关闭',description:'进入播放时默认隐藏弹幕，可在播放控制栏随时开启'}],v=>updateSettings({danmaku:v}))],
-            ['弹幕显示区域',danmakuOptionLabel('area',settings.danmakuArea,'上方 1/3'),()=>chooseOption('弹幕显示区域',settings.danmakuArea,DANMAKU_OPTIONS.area,v=>updateSettings({danmakuArea:v}))],
-            ['弹幕行间距',danmakuOptionLabel('lineGap',settings.danmakuLineGap,'标准 10px'),()=>chooseOption('弹幕行间距',settings.danmakuLineGap,DANMAKU_OPTIONS.lineGap,v=>updateSettings({danmakuLineGap:v}))],
-            ['弹幕同屏密度',danmakuOptionLabel('density',settings.danmakuDensity,'适中'),()=>chooseOption('弹幕同屏密度',settings.danmakuDensity,DANMAKU_OPTIONS.density,v=>updateSettings({danmakuDensity:v}))],
-            ['弹幕滚动速度',danmakuOptionLabel('speed',settings.danmakuSpeed,'100% 标准'),()=>chooseOption('弹幕滚动速度',settings.danmakuSpeed,DANMAKU_OPTIONS.speed,v=>updateSettings({danmakuSpeed:v}))],
-            ['弹幕字号',Math.round(settings.danmakuScale*100)+'%',()=>chooseOption('弹幕字号',settings.danmakuScale,DANMAKU_OPTIONS.scale,v=>updateSettings({danmakuScale:v}))],
-            ['弹幕不透明度',Math.round(settings.danmakuOpacity*100)+'%',()=>chooseOption('弹幕不透明度',settings.danmakuOpacity,DANMAKU_OPTIONS.opacity,v=>updateSettings({danmakuOpacity:v}))],
-            ['弹幕字体粗细',danmakuOptionLabel('weight',settings.danmakuWeight,'半粗 600'),()=>chooseOption('弹幕字体粗细',settings.danmakuWeight,DANMAKU_OPTIONS.weight,v=>updateSettings({danmakuWeight:v}))],
-            ['弹幕描边粗细',danmakuOptionLabel('stroke',settings.danmakuStroke,'标准 100%'),()=>chooseOption('弹幕描边粗细',settings.danmakuStroke,DANMAKU_OPTIONS.stroke,v=>updateSettings({danmakuStroke:v}))],
-            ['弹幕类型与色彩',danmakuTypesSummary(settings),()=>chooseDanmakuTypes(settings)],
-            ['自动播放下一集',settings.autoplayNext?'开启':'关闭',()=>chooseOption('自动播放下一集',!!settings.autoplayNext,[{value:true,label:'开启',description:'本集播放结束后倒计时 5 秒自动连播下一集'},{value:false,label:'关闭',description:'本集播放结束后停留在当前剧集'}],v=>updateSettings({autoplayNext:v}))],
-            ['每行番剧数量',settings.gridCols+' 部',()=>chooseOption('每行番剧数量',settings.gridCols,[{value:3,label:'3 部 / 行',description:'大尺寸海报卡片，适合较远观看距离'},{value:4,label:'4 部 / 行',description:'标准海报卡片尺寸（默认）'},{value:5,label:'5 部 / 行',description:'紧凑网格布局，单屏展示更多番剧'}],v=>updateSettings({gridCols:v}))],
-            ['默认视频源',currentSource?.name||'选择',chooseSource],['数据源订阅','在线更新与管理',()=>go('subscriptions',true)],['弹幕服务','服务与匹配',()=>go('danmakuSettings',true)],['版本与来源','番源 '+APP_VERSION,()=>setDialog({title:'番源 '+APP_VERSION+' · 非官方',options:[{label:'LG Enact / Sandstone',description:'官方按钮、海报、输入框、弹窗、滚动和焦点管理；滚动弹幕渲染保留 BiliTV 的 MIT 许可与作者署名。',action:()=>{}},{label:'Animeko 原始源规则',description:'直接订阅原版在线视频源地址，每小时检查更新，保留原始 JSON。解析与播放代理均在电视上执行，不含 BT。',action:()=>{}},{label:'本地追番',description:'番剧资料来自 Bangumi，弹幕优先匹配弹弹play。没有账号同步。',action:()=>{}},{label:'关闭',action:()=>setDialog(null)}]})]
-          ].map((x,i)=><FocusButton key={x[0]} id={`content-${i+1}-0`} row={i+1} col={0} className="settings-row" label={x[1]} slotAfter={<Icon name="arrow"/>} onSelect={x[2]}>{x[0]}</FocusButton>)}</div></>}
+          {page==='settings'&&settingsGroups([
+            ['播放',[['自动播放下一集',settings.autoplayNext?'开启':'关闭',()=>chooseOption('自动播放下一集',!!settings.autoplayNext,[{value:true,label:'开启',description:'本集播放结束后倒计时 5 秒自动连播下一集'},{value:false,label:'关闭',description:'本集播放结束后停留在当前剧集'}],v=>updateSettings({autoplayNext:v}))]]],
+            ['弹幕',[['显示弹幕',settings.danmaku?'开启':'关闭',()=>chooseOption('显示弹幕',!!settings.danmaku,[{value:true,label:'开启',description:'播放时显示弹幕；与播放器控制栏的弹幕开关是同一个设置'},{value:false,label:'关闭',description:'播放时隐藏弹幕，可在播放控制栏随时打开'}],v=>updateSettings({danmaku:v}))],['弹幕样式','区域、字号、速度等',()=>go('danmakuStyle',true)],['弹幕服务','服务地址与匹配',()=>go('danmakuSettings',true)]]],
+            ['界面',[['每行番剧数量',settings.gridCols+' 部',()=>chooseOption('每行番剧数量',settings.gridCols,[{value:3,label:'3 部 / 行',description:'大尺寸海报卡片，适合较远观看距离'},{value:4,label:'4 部 / 行',description:'标准海报卡片尺寸（默认）'},{value:5,label:'5 部 / 行',description:'紧凑网格布局，单屏展示更多番剧'}],v=>updateSettings({gridCols:v}))]]],
+            ['视频源',[['默认视频源',currentSource?.name||'选择',chooseSource],['数据源订阅','在线更新与管理',()=>go('subscriptions',true)]]],
+            ['关于',[['版本与来源','番源 '+APP_VERSION,()=>setDialog({title:'番源 '+APP_VERSION+' · 非官方',options:[{label:'LG Enact / Sandstone',description:'官方按钮、海报、输入框、弹窗、滚动和焦点管理；滚动弹幕渲染保留 BiliTV 的 MIT 许可与作者署名。',action:()=>{}},{label:'Animeko 原始源规则',description:'直接订阅原版在线视频源地址，每小时检查更新，保留原始 JSON。解析与播放代理均在电视上执行，不含 BT。',action:()=>{}},{label:'本地追番',description:'番剧资料来自 Bangumi，弹幕优先匹配弹弹play。没有账号同步。',action:()=>{}},{label:'关闭',action:()=>setDialog(null)}]})]]]
+          ])}
+          {page==='danmakuStyle'&&settingsGroups(DANMAKU_GROUPS.map(g=>[g.title,g.fields.map(f=>[DANMAKU_FIELDS[f].label,danmakuFieldValue(f,settings),()=>chooseDanmakuField(f)])]))}
           </div>
         </ContentScroller>
-        <footer className="app-footer">{page==='detail'?<span><kbd>OK</kbd> 播放 / 续播　 <kbd>长按 OK</kbd> 标记已看</span>:<span><kbd>方向键</kbd> 移动　 <kbd>OK</kbd> 选择</span>}<span><kbd>返回</kbd> {page==='detail'?'回到上一页，保留浏览位置':page==='subscriptions'||page==='danmakuSettings'?'回到设置':'返回侧栏'}</span></footer>
+        <footer className="app-footer">{page==='detail'?<span><kbd>OK</kbd> 播放 / 续播　 <kbd>长按 OK</kbd> 标记已看</span>:<span><kbd>方向键</kbd> 移动　 <kbd>OK</kbd> 选择</span>}<span><kbd>返回</kbd> {page==='detail'?'回到上一页，保留浏览位置':SETTINGS_PAGES.includes(page)?'回到设置':'返回侧栏'}</span></footer>
       </PageFocusContainer>
     </div>
     <Dialog value={dialog} onClose={()=>setDialog(null)}/>

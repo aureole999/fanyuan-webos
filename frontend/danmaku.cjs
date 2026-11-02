@@ -59,6 +59,37 @@ const DANMAKU_OPTIONS={
     {value:1.5,short:'浓重 150%',label:'浓重描边 · 150%',description:'加粗描边，强光背景下文字依然分明'}
   ]
 };
+// One definition drives both the settings page and the player's danmaku panel.
+// `types` is the set of on/off toggles; every other field picks one value from DANMAKU_OPTIONS.
+const DANMAKU_FIELDS={
+  types:{label:'类型与色彩'},
+  area:{label:'显示区域',key:'danmakuArea'},
+  density:{label:'同屏密度',key:'danmakuDensity'},
+  scale:{label:'字号',key:'danmakuScale'},
+  opacity:{label:'不透明度',key:'danmakuOpacity'},
+  weight:{label:'字体粗细',key:'danmakuWeight'},
+  stroke:{label:'描边',key:'danmakuStroke'},
+  speed:{label:'滚动速度',key:'danmakuSpeed'},
+  lineGap:{label:'行间距',key:'danmakuLineGap'}
+};
+const DANMAKU_GROUPS=[
+  {title:'显示内容',fields:['types','area','density']},
+  {title:'文字外观',fields:['scale','opacity','weight','stroke']},
+  {title:'滚动',fields:['speed','lineGap']}
+];
+// Shown directly in the player panel; the rest sit behind "更多样式".
+const DANMAKU_COMMON=['area','density','scale','opacity'];
+const DANMAKU_TYPES=[
+  {key:'danmakuFloating',label:'滚动弹幕',description:'从右向左横跨画面的普通流动弹幕',on:s=>s.danmakuFloating!==false},
+  {key:'danmakuTop',label:'顶部弹幕',description:'固定在画面顶部居中的弹幕',on:s=>s.danmakuTop!==false},
+  {key:'danmakuBottom',label:'底部弹幕',description:'固定在画面底部居中的弹幕（默认关闭以免遮挡字幕）',on:s=>s.danmakuBottom===true},
+  {key:'danmakuColor',label:'彩色弹幕',description:'关闭后所有弹幕统一显示为白色',on:s=>s.danmakuColor!==false}
+];
+function danmakuTypePatch(type,settings){return {[type.key]:!type.on(settings||{})};}
+function danmakuFieldValue(field,settings={}){
+  if(field==='types')return danmakuTypesSummary(settings);
+  return danmakuOptionLabel(field,settings[DANMAKU_FIELDS[field].key],'自定义');
+}
 function matchOptionValue(a,b){
   if(typeof a==='number'&&typeof b==='number')return Math.abs(a-b)<0.015;
   return a===b;
@@ -114,4 +145,4 @@ function fixedWindow(list,time,mode,limit=4){
   }
   return limit>0?found.slice(-limit):[];
 }
-module.exports={renderItems,fixedWindow,DANMAKU_OPTIONS,matchOptionValue,danmakuOptionLabel,danmakuTypesSummary,computeDanmakuLayout};
+module.exports={renderItems,fixedWindow,DANMAKU_OPTIONS,DANMAKU_FIELDS,DANMAKU_GROUPS,DANMAKU_COMMON,DANMAKU_TYPES,danmakuTypePatch,danmakuFieldValue,matchOptionValue,danmakuOptionLabel,danmakuTypesSummary,computeDanmakuLayout};

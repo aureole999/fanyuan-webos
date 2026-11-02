@@ -5,6 +5,7 @@ import ImageItem from '@enact/sandstone/ImageItem';
 import SandstoneIcon from '@enact/sandstone/Icon';
 import InputField from '@enact/sandstone/Input/InputField';
 import Scroller from '@enact/sandstone/Scroller';
+import ContentContainerDecorator from '@enact/sandstone/Scroller/ContentContainerDecorator';
 import Spinner from '@enact/sandstone/Spinner';
 import ProgressBar from '@enact/sandstone/ProgressBar';
 import Slider from '@enact/sandstone/Slider';
@@ -48,11 +49,13 @@ export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
  </article>;
 }
 export function TextCard({subject,row,col,onSelect}){return <FocusButton id={`content-${row}-${col}`} row={row} col={col} onSelect={onSelect} className="source-result" slotBefore={<span className="source-result-icon"><Icon name="tv" size={30}/></span>} slotAfter={<Icon name="arrow" size={24}/>} label="查看线路与剧集">{subject.name}</FocusButton>;}
-// Layout rule for scrolled content: Sandstone's focus scroll reveals the focused control, or its
-// nearest spotlight container when that container fits in the viewport. Text that describes a
-// control therefore lives in the same ScrollGroup as the control (a heading with its first row,
-// a card with its buttons); page-level notes live in the fixed header or footer instead.
-export const ScrollGroup=SpotlightContainerDecorator('div');
+// Layout rule for scrolled content: text that describes a control lives in the same ScrollGroup as
+// the control (a heading with its rows, a card with its buttons); page-level notes live in the fixed
+// header instead. A ScrollGroup is Sandstone's ContentContainer: whenever focus lands inside it, the
+// scroller positions the whole group, so its heading is revealed even when the focused row was already
+// visible (e.g. moving up into a group whose heading sits above the viewport). Groups taller than the
+// viewport fall back to revealing the focused control.
+export const ScrollGroup=ContentContainerDecorator('div');
 // Enact measures scroll bounds only when the Scroller itself re-renders. Content that grows
 // inside a child's own state (subscriptions, async lists) would otherwise never become reachable.
 export function ContentScroller({apiRef,children,className='content-scroller',spotlightId,...rest}){
