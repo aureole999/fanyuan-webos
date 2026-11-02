@@ -18,7 +18,7 @@ import {DANMAKU_OPTIONS,DANMAKU_FIELDS,DANMAKU_GROUPS,DANMAKU_TYPES,danmakuTypeP
 const SETTINGS_PAGES=['subscriptions','danmakuSettings','danmakuStyle'];
 
 const library=makeLibrary(localStorage);
-const MENU=[['home','首页','home'],['search','搜索','search'],['calendar','新番时间表','tv'],['favorites','我的收藏','star'],['history','观看历史','history'],['settings','设置','settings']];
+const MENU=[['home','首页','home'],['history','观看历史','history'],['calendar','新番时间表','tv'],['favorites','我的收藏','star'],['search','搜索','search'],['settings','设置','settings']];
 const DAY=['周一','周二','周三','周四','周五','周六','周日'];
 const today=(new Date().getDay()||7);
 function shortTime(seconds){const m=Math.floor((seconds||0)/60);return m?`${m} 分钟`:'刚刚开始';}
@@ -162,7 +162,7 @@ function App({className}){
             {calendarBusy||calendarError?<section className="grid-section"><ScrollGroup className="section-lead">{todayHeading}{calendarBusy?<Loading/>:<><Empty title="时间表暂未加载">{calendarError}</Empty><FocusButton id="content-calendar-retry" row={todayRow} onSelect={loadCalendar}>重新加载</FocusButton></>}</ScrollGroup></section>:cardSection(todayHeading,todayItems.slice(0,20),todayRow)}
           </>}
           {page==='search'&&<>
-            <form className="search-form" onSubmit={e=>e.preventDefault()}><FocusSearchInput id="content-0-0" inputRef={inputRef} value={keyword} onChange={e=>setKeyword(e.target.value)} onSubmit={()=>runSearch()}/><FocusButton id="content-0-1" row={0} col={1} className="primary" onSelect={()=>runSearch()}>搜索</FocusButton></form>
+            <form className="search-form" onSubmit={e=>e.preventDefault()}><FocusSearchInput id="content-0-0" inputRef={inputRef} value={keyword} onChange={e=>setKeyword(e.target.value)} onSubmit={()=>runSearch()}/><FocusButton id="content-0-1" row={0} col={1} className="primary search-submit" aria-label="搜索" onSelect={()=>runSearch()}><Icon name="search" size={30}/></FocusButton></form>
             {!results.length&&!busy&&!error&&<ScrollGroup className="section-lead"><h2 className="section-title">最近搜索</h2><div className="search-history">{(library.searchHistory().length?library.searchHistory():['葬送的芙莉莲','夏目友人帐','间谍过家家','孤独摇滚']).map((q,i)=><FocusButton key={q} id={`content-1-${i}`} row={1} col={i} onSelect={()=>runSearch(q)}>{q}</FocusButton>)}</div><Empty title="找到番剧，再选择播放线路">使用现有视频源规则，在电视端完成搜索和解析。</Empty></ScrollGroup>}
             {busy?<Loading text={'正在搜索 '+keyword+'…'}/>:results.length>0&&(results.some(x=>x.cover)?cardSection(resultsHeading,results,1):textSection(resultsHeading,results,1,openSource))}
           </>}

@@ -24,7 +24,7 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await cdp('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});await wait('!!window.__fanYuan');
   await wait('document.activeElement.dataset.focusId==="sidebar-home"');
   assert.equal(await evaluate('document.querySelector(".poster-art").getBoundingClientRect().height'),244);
-  await key('ArrowDown');assert.equal(await evaluate('document.activeElement.dataset.focusId'),'sidebar-search');await key('ArrowRight');await wait('document.activeElement.dataset.focusId==="content-0-0"');
+  for(let i=0;i<4;i++)await key('ArrowDown');assert.equal(await evaluate('document.activeElement.dataset.focusId'),'sidebar-search');await key('ArrowRight');await wait('document.activeElement.dataset.focusId==="content-0-0"');
   console.log("UI: settings and popup");await page('danmakuStyle');await wait('window.__focusState().current==="content-1-0"');
   await key('ArrowDown');await key('Enter');await wait('!!window.__fanYuan.state.dialog');
   await wait('window.__focusState().current==="dialog-2"');await key('ArrowDown');assert.equal(await evaluate('window.__focusState().current'),'dialog-3');

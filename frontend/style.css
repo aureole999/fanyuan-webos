@@ -914,6 +914,17 @@ input::placeholder {
   border-radius: 16px;
 }
 
+/* Icon-only submit: a square key the height of the input. */
+#root .search-form > .search-submit {
+  width: 70px;
+  min-width: 70px;
+  padding: 0;
+}
+
+#root .search-form > .search-submit .fy-icon {
+  margin: 0 !important;
+}
+
 #root .search-history {
   display: flex;
   flex-wrap: wrap;
@@ -2547,3 +2558,26 @@ input::placeholder {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
+
+/* Poster cards get the same top sheen as buttons, over the whole card (art included),
+   fading out over a fixed 16px like a 60px button's 25%. A 1px inner edge runs around the
+   whole card, over the art and the title alike, so the two read as one piece. Static,
+   no transition: a focus change repaints only that card, as the pink fill already does. */
+#root .poster-entry::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0) 16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+#root .poster-entry:focus-within::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0, rgba(255, 255, 255, 0) 16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
