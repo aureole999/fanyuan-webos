@@ -13,7 +13,7 @@ async function connect(){
 }
 async function evaluate(code){const r=await cdp('Runtime.evaluate',{expression:code,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text+': '+r.exceptionDetails.exception?.description);return r.result.value;}
 async function wait(code){const until=Date.now()+8000;do{if(await evaluate('Boolean('+code+')'))return;await new Promise(r=>setTimeout(r,80));}while(Date.now()<until);throw Error('UI wait timed out: '+code);}
-async function key(k){const keyCode={Enter:13,Escape:27,ArrowLeft:37,ArrowUp:38,ArrowRight:39,ArrowDown:40,PageDown:34}[k];for(const type of ['keyDown','keyUp'])await cdp('Input.dispatchKeyEvent',{type,key:k,code:k,windowsVirtualKeyCode:keyCode,...(k==='Enter'&&type==='keyDown'?{text:'\r'}:{})});}
+async function key(k){const keyCode={Enter:13,Escape:27,ArrowLeft:37,ArrowUp:38,ArrowRight:39,ArrowDown:40,PageDown:34,PageUp:33}[k];for(const type of ['keyDown','keyUp'])await cdp('Input.dispatchKeyEvent',{type,key:k,code:k,windowsVirtualKeyCode:keyCode,...(k==='Enter'&&type==='keyDown'?{text:'\r'}:{})});}
 async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.stringify(name)},true)`);await wait(`window.__fanYuan.state.page===${JSON.stringify(name)}`);await wait('!!document.querySelector("[data-focus-group=content]")');}
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -70,10 +70,10 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await key('Escape');assert.equal(await evaluate('!!document.querySelector(".scrub-bar.previewing")'),false);assert.equal(await evaluate('!!document.querySelector(".player-ui.visible")'),true);assert.equal(await pos(),p0);
   await key('ArrowRight');await key('ArrowRight');await key('Enter');await wait(`Math.round(document.querySelector("video").currentTime)===${p0+20}`);
   await key('Escape');await wait('!document.querySelector(".player-ui.visible")');await key('ArrowUp');await wait('document.activeElement.dataset.focusId==="player-progress"');assert.equal(await evaluate('!!document.querySelector(".player-ui.visible")'),true);
-  // CH− (PageDown) skips 85 s per press; presses add up and seek once.
+  // CH− (PageDown) jumps 85 s; the following presses nudge 5 s either way, and it seeks once.
   await key('Escape');await wait('!document.querySelector(".player-ui.visible")');const p1=await pos(),end=await evaluate('Math.floor(document.querySelector("video").duration)');
-  await key('PageDown');await key('PageDown');assert.equal(await pos(),p1,'skip previews first');assert.equal(await evaluate('!!document.querySelector(".seek-progress")'),true);
-  await key('Enter');await wait(`Math.round(document.querySelector("video").currentTime)>=${Math.min(end,p1+170)}-1`);
+  await key('PageDown');await key('PageDown');await key('PageDown');await key('PageUp');assert.equal(await pos(),p1,'skip previews first');assert.equal(await evaluate('!!document.querySelector(".seek-progress")'),true);
+  await key('Enter');await wait(`Math.round(document.querySelector("video").currentTime)>=${Math.min(end,p1+90)}-1`);assert.ok(await pos()<=p1+91,'nudges are 5 s');
   await key('Escape');await wait('!window.__fanYuan.state.player');
   console.log('UI: remote-only scrolling');
   // Arrow keys alone must reach both ends of a page; every move scrolls in one direction only

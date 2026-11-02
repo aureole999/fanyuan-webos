@@ -26,9 +26,11 @@ function remoteKey(event){return ({37:'ArrowLeft',38:'ArrowUp',39:'ArrowRight',4
 function seekDelta(key,panel,controlsVisible){return panel||controlsVisible?0:key==='ArrowLeft'?-10:key==='ArrowRight'?10:0;}
 // Scrub step for the n-th consecutive press or repeat (1-based): fine first, faster when held.
 function scrubStep(count){return count<=5?10:count<=12?30:60;}
-// Skip-opening shortcut: CH− (PageDown on webOS) or fast-forward jumps ahead 85 s.
-const SKIP_SECONDS=85;
-function skipKey(event){return event.keyCode===34||event.keyCode===417?SKIP_SECONDS:0;}
+// Skip-opening shortcut: CH− (PageDown on webOS) / fast-forward go ahead, CH+ (PageUp) / rewind go back.
+// The first press jumps 85 s; presses that follow within SKIP_WINDOW nudge by 5 s.
+const SKIP_SECONDS=85,SKIP_NUDGE=5,SKIP_WINDOW=2000;
+function skipKey(event){return event.keyCode===34||event.keyCode===417?1:event.keyCode===33||event.keyCode===412?-1:0;}
+function skipAmount(sinceLast){return sinceLast<SKIP_WINDOW?SKIP_NUDGE:SKIP_SECONDS;}
 function createSeekSession(){
  let heldKey=null;
  return {
@@ -48,4 +50,4 @@ function recoverTarget(registry,group,anchor){
  for(const [id,d] of registry){if(d.group!==group||d.disabled)continue;const distance=anchor?Math.abs(d.row-anchor.row)*100+Math.abs(d.col-anchor.col):d.row*100+d.col;const value=(d.recoveryPriority||0)*100000-distance;if(value>score){best=id;score=value;}}
  return best;
 }
-module.exports={spatialTarget,navigateTarget,findGroupTarget,remoteKey,seekDelta,scrubStep,skipKey,SKIP_SECONDS,createSeekSession,recoverTarget};
+module.exports={spatialTarget,navigateTarget,findGroupTarget,remoteKey,seekDelta,scrubStep,skipKey,skipAmount,createSeekSession,recoverTarget};

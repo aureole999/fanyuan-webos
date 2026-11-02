@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {navigateTarget,spatialTarget,findGroupTarget,remoteKey,seekDelta,scrubStep,skipKey,createSeekSession}=require('../frontend/navigation.cjs');
+const {navigateTarget,spatialTarget,findGroupTarget,remoteKey,seekDelta,scrubStep,skipKey,skipAmount,createSeekSession}=require('../frontend/navigation.cjs');
 const rect=(left,top,width=100,height=60)=>({left,top,right:left+width,bottom:top+height});
 const registry=new Map([
  ['sidebar-home',{group:'sidebar',row:0,col:0,rect:rect(0,0)}],['sidebar-search',{group:'sidebar',row:1,col:0,rect:rect(0,80)}],['sidebar-calendar',{group:'sidebar',row:2,col:0,rect:rect(0,160)}],
@@ -101,5 +101,6 @@ test('aligned targets beat nearer diagonal targets; disabled nodes and other sco
 test('scrubbing starts in 10 second steps and accelerates while the key is held',()=>{
  assert.deepEqual([1,5,6,12,13,40].map(scrubStep),[10,10,30,30,60,60]);
  let t=0;for(let n=1;n<=4;n++)t+=scrubStep(n);assert.equal(t,40);
- assert.deepEqual([34,417,33,406,39].map(keyCode=>skipKey({keyCode})),[85,85,0,0,0]);
+ assert.deepEqual([34,417,33,412,406,39].map(keyCode=>skipKey({keyCode})),[1,1,-1,-1,0,0]);
+ assert.deepEqual([Infinity,5000,1999,300].map(skipAmount),[85,85,5,5]);
 });

@@ -3,7 +3,7 @@ import {call} from './api';
 import {Icon,LiteButton,FocusContainer,ContentScroller,ScrubBar,ScrollGroup} from './components';
 import DanmakuLayer from './vendor/bilitv/player/DanmakuLayer';
 import {setCustomKeyHandler,claimRemoteFocus,setFocus,activateFocusScope,getCurrentFocusId} from './focus';
-import {remoteKey,createSeekSession,scrubStep,skipKey} from './navigation.cjs';
+import {remoteKey,createSeekSession,scrubStep,skipKey,skipAmount} from './navigation.cjs';
 import {renderItems,fixedWindow,DANMAKU_OPTIONS,DANMAKU_FIELDS,DANMAKU_GROUPS,DANMAKU_COMMON,DANMAKU_TYPES,danmakuTypePatch,danmakuFieldValue,matchOptionValue,computeDanmakuLayout} from './danmaku.cjs';
 const PANEL_TITLES={episodes:'选择剧集',channels:'切换线路',speed:'选择播放倍速',danmaku:'弹幕',danmakuMore:'更多弹幕样式',types:'弹幕类型与色彩',sources:'平台与条数',customMatch:'匹配弹幕'};
 // Option panels are named opt-<field> and titled after the field.
@@ -28,7 +28,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   const [seekHint,setSeekHint]=useState(''),[dmError,setDmError]=useState(''),[failed,setFailed]=useState(false);
   const [dmProviders,setDmProviders]=useState([]),[dmSources,setDmSources]=useState([]),[sourcePrefs,setSourcePrefs]=useState(()=>library.danmakuSources()),[customSubjects,setCustomSubjects]=useState([]),[customEpisodes,setCustomEpisodes]=useState([]),[customSubject,setCustomSubject]=useState(null),[customBusy,setCustomBusy]=useState(false);
   const danmakus=useMemo(()=>renderItems(rawDanmakus,sourcePrefs),[rawDanmakus,sourcePrefs]),fixedItems=useMemo(()=>danmakus.filter(d=>d.mode===4||d.mode===5),[danmakus]);
-  const settingsRef=useRef(settings);settingsRef.current=settings;
+  const lastSkip=useRef(-Infinity);const settingsRef=useRef(settings);settingsRef.current=settings;
   controlsRef.current=controls;panelRef.current=panel;
   function hideControls(){const id=getCurrentFocusId();if(/^player-controls-\d+$/.test(id||''))lastControlFocus.current=id;controlsRef.current=false;setControls(false);}
   function show(){if(seekSession.current.active())return;if(!controlsRef.current){const v=videoRef.current;if(v){setCurrent(v.currentTime||0);if(Number.isFinite(v.duration))setDuration(v.duration);}}controlsRef.current=true;setControls(true);clearTimeout(timer.current);timer.current=setTimeout(()=>{if(videoRef.current&&!videoRef.current.paused&&!panelRef.current&&scrub.current.target==null){hideControls();}},5000);}
@@ -36,12 +36,12 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   function close(){save();onClose();}
   function toggle(){const v=videoRef.current;if(!v)return;if(v.paused){const p=v.play();p&&p.catch(()=>setMessage('按播放键重试'));}else v.pause();show();}
   // Moves the preview by the held-key step, or by a fixed amount (the skip shortcut); one seek on commit.
-  function scrubBy(dir,amount){
+  function scrubBy(dir,amount,delay=650){
     const v=videoRef.current;if(!v||!Number.isFinite(v.duration))return;const st=scrub.current;
     if(st.target==null){st.start=v.currentTime;st.target=v.currentTime;st.count=0;}
     st.count++;st.target=Math.min(v.duration,Math.max(0,st.target+dir*(amount||scrubStep(st.count))));
     setScrubTarget(st.target);setSeekHint(deltaLabel(st.target-st.start)+' · '+time(st.target));
-    clearTimeout(st.timer);clearTimeout(seekTimer.current);st.timer=setTimeout(commitScrub,650);
+    clearTimeout(st.timer);clearTimeout(seekTimer.current);st.timer=setTimeout(commitScrub,delay);
   }
   function commitScrub(){
     const st=scrub.current,v=videoRef.current;clearTimeout(st.timer);if(st.target==null)return;
@@ -126,7 +126,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
       if(back){e.preventDefault();if(e.repeat)return true;if(panelRef.current)hidePanel();else if(controlsRef.current){hideControls();}else close();return true;}
       if(code===415||key==='MediaPlayPause'||code===19){e.preventDefault();if(key==='MediaPlayPause')toggle();else if(code===19)videoRef.current?.pause();else if(videoRef.current?.paused)toggle();return true;}
       if(code===413){e.preventDefault();close();return true;}
-      const skip=settingsRef.current.skipShortcut&&skipKey(e);if(skip&&!panelRef.current){e.preventDefault();scrubBy(1,skip);return true;}
+      const skip=settingsRef.current.skipShortcut&&skipKey(e);if(skip&&!panelRef.current){e.preventDefault();const now=Date.now();scrubBy(skip,skipAmount(now-lastSkip.current),1000);lastSkip.current=now;return true;}
       if(!['Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(key))return false;
       claimRemoteFocus();
       if(delta){e.preventDefault();scrubBy(delta>0?1:-1);return true;}
@@ -198,7 +198,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
       <div className="player-bottom">
         {countdown!==null&&<div className="next-countdown">{countdown} 秒后播放下一集 <LiteButton id="player-cancel-next" group="player" row={-1} label="取消" onSelect={()=>{clearInterval(nextTimer.current);setCountdown(null);}}>取消</LiteButton></div>}
         <div className="player-time"><span>{time(current)}</span><ScrubBar id="player-progress" value={current} max={duration} preview={scrubTarget} bubble={scrubTarget!=null?time(scrubTarget)+'（'+deltaLabel(scrubTarget-scrub.current.start)+'）':progressFocused?time(current):null} onFocusChange={setProgressFocused} onSeek={t=>{cancelScrub();const v=videoRef.current;if(v){v.currentTime=t;setCurrent(t);}}}/><span>-{time(Math.max(0,duration-current))}</span></div>
-        {controlsMenu}<p className="player-help">{progressFocused?'左右键调整位置，按住加速　·　OK 跳转　·　返回取消':'左右键快进 / 快退，按住加速'+(settings.skipShortcut?'　·　CH− 跳过 85 秒':'')+'　·　上键调整进度　·　返回收起或退出'}</p>
+        {controlsMenu}<p className="player-help">{progressFocused?'左右键调整位置，按住加速　·　OK 跳转　·　返回取消':'左右键快进 / 快退，按住加速'+(settings.skipShortcut?'　·　CH−/CH+ 跳 85 秒，连按微调 5 秒':'')+'　·　上键调整进度　·　返回收起或退出'}</p>
       </div>
     </div>}
   </FocusContainer>;
