@@ -2230,3 +2230,45 @@ input::placeholder {
 #root .fy-button.active:not(.fy-item):focus::after {
   background: var(--focus-fg);
 }
+
+/* Lightweight settings row (SettingsRow): the layout Sandstone's Item used to provide. */
+#root .lite-row {
+  position: relative;
+  min-height: 78px;
+}
+
+#root .lite-row .control-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+#root .lite-row .lite-title,
+#root .lite-row .control-label,
+#root .lite-row .control-after {
+  position: relative;
+}
+
+#root .lite-row .lite-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#root .lite-row .control-label {
+  flex-shrink: 0;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+#root .lite-row .control-after {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+}

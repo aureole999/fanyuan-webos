@@ -10,6 +10,7 @@ import Spinner from '@enact/sandstone/Spinner';
 import ProgressBar from '@enact/sandstone/ProgressBar';
 import Slider from '@enact/sandstone/Slider';
 import SpotlightContainerDecorator from '@enact/spotlight/SpotlightContainerDecorator';
+import Spottable from '@enact/spotlight/Spottable';
 import {coverThumbnail} from '../src/images.cjs';
 import {useFocusable,isTopContentRow,eligible} from './focus';
 import {remoteKey} from './navigation.cjs';
@@ -39,6 +40,15 @@ export function FocusButton({id,row=0,col=0,group='content',onSelect,onNavigate,
  const Control=list?Item:Button;
  return <Control {...props} {...rest} css={{bg:'control-bg',client:'control-client',itemContent:'control-item-content',content:'control-content',label:'control-label',slotBefore:'control-before',slotAfter:'control-after'}} role="button" disabled={disabled} className={'fy-button '+(list?'fy-item ':'')+className} minWidth={list?undefined:false} selected={className.split(' ').includes('active')} labelPosition={list?(isSettingsRow?'after':'below'):undefined}>{children}</Control>;
 }
+// A settings row without Sandstone's Item stack (Skinnable, Marquee per text, layout cells, …).
+// Mounting each Sandstone Item cost ~30 ms on the C1; this keeps only Spottable, which provides
+// spotlight navigation, onSpotlight* handlers and OK-to-click, and reuses the fy-button classes so
+// focus styling stays identical. Long text ellipsizes instead of marqueeing.
+const SpottableDiv=Spottable('div');
+export const SettingsRow=React.memo(function SettingsRow({id,row,label,value,onSelect}){
+ const {props}=useFocusable({id,row,col:0,onSelect});
+ return <SpottableDiv {...props} role="button" aria-label={label+(value?'，'+value:'')} className="fy-button fy-item settings-row lite-row"><div className="control-bg"/><span className="lite-title">{label}</span>{value!=null&&value!==''&&<span className="control-label">{value}</span>}<span className="control-after"><Icon name="arrow"/></span></SpottableDiv>;
+});
 const placeholder='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="420"><rect width="300" height="420" fill="#252525"/><path d="M105 160L205 210L105 260Z" fill="#888"/></svg>');
 export function PosterCard({subject,row,col,onSelect,progress,actionLabel}){
  const id=`content-${row}-${col}`,{props}=useFocusable({id,row,col,onSelect,onNavigate:dir=>dir==='up'&&isTopContentRow(id)?(eligible('header-search')?'header-search':'header-source'):null});

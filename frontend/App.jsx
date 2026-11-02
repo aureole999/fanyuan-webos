@@ -4,7 +4,7 @@ import SidebarItem from './SidebarItem';
 import ThemeDecorator from '@enact/sandstone/ThemeDecorator';
 import Popup from '@enact/sandstone/Popup';
 import {initKeyboardNav,onFocusChange,setFocus,getCurrentFocusId,setContentContext,focusFirstContent,focusSidebar,setLastSidebarFocus,isPointerFocus} from './focus';
-import {FocusButton,FocusSearchInput,PosterCard,TextCard,Icon,Empty,Loading,FocusContainer,PageFocusContainer,ContentScroller,ScrollGroup} from './components';
+import {FocusButton,FocusSearchInput,PosterCard,TextCard,Icon,Empty,Loading,FocusContainer,PageFocusContainer,ContentScroller,ScrollGroup,SettingsRow} from './components';
 import {call} from './api';
 import {makeLibrary,cleanName,seriesKey} from './library.cjs';
 import Player from './Player';
@@ -135,7 +135,7 @@ function App({className}){
   function cardSection(heading,items,startRow=1,historyItems=null){return gridSection(heading,items,settings.gridCols,startRow,(list,row,offset)=>renderCards(list,row,historyItems,offset));}
   function textSection(heading,items,startRow,onPick){return gridSection(heading,items,3,startRow,(list,row,offset)=><div className="source-results">{list.map((x,i)=><TextCard key={(x.url||x.id)+'-'+(offset+i)} subject={x} row={row+Math.floor(i/3)} col={i%3} onSelect={()=>onPick(x)}/>)}</div>);}
   // Grouped settings rows. Each group is one ScrollGroup so its heading scrolls in with its rows.
-  function settingsGroups(groups){let row=0;return <div className="settings-list">{groups.map(([heading,rows])=><ScrollGroup key={heading} className="settings-group"><h2 className="settings-group-title">{heading}</h2>{rows.map(x=>{row++;return <FocusButton key={x[0]} id={`content-${row}-0`} row={row} col={0} className="settings-row" label={x[1]} slotAfter={<Icon name="arrow"/>} onSelect={x[2]}>{x[0]}</FocusButton>;})}</ScrollGroup>)}</div>;}
+  function settingsGroups(groups){let row=0;return <div className="settings-list">{groups.map(([heading,rows])=><ScrollGroup key={heading} className="settings-group"><h2 className="settings-group-title">{heading}</h2>{rows.map(x=>{row++;return <SettingsRow key={x[0]} id={`content-${row}-0`} row={row} label={x[0]} value={x[1]} onSelect={x[2]}/>;})}</ScrollGroup>)}</div>;}
   const progressFor=page==='detail'&&detail?library.progressLookup():null;
   const favorites=library.favorites(),history=library.history(),todayItems=calendar.find(d=>d.id===today)?.items||[],dayItems=calendar.find(d=>d.id===day)?.items||[];
   // Page-level notes sit in the fixed header, outside the scroller, so they never need focus to be seen.
