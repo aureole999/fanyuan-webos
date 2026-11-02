@@ -851,6 +851,12 @@ input::placeholder {
   color: var(--text);
 }
 
+/* Sandstone's InputField does not expose its background as a public class, so css={{bg}} never
+   renames it; reach the layer (always the first child) directly to match the 16px buttons. */
+#root .fy-input > :first-child {
+  border-radius: inherit;
+}
+
 #root .fy-input .input-bg {
   opacity: 1;
   background-color: #1f222b;
