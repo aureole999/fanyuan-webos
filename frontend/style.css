@@ -111,9 +111,11 @@ html, body, #root {
 
 /* Sandstone grows the focused background with scale(1.05), which is proportional to width:
    a wide match or settings row overflows by 15–35px and gets clipped by its scroll viewport.
-   Grow by a fixed outset instead, so every button needs the same small margin. */
+   Grow by a fixed outset instead, so every button needs the same small margin. The outset
+   changes layout properties, so it switches instantly: animating them would re-layout and
+   repaint every frame on the C1, while a single step costs one layout per key press. */
 #root .fy-button .control-bg {
-  transition: top 0.2s ease-out, right 0.2s ease-out, bottom 0.2s ease-out, left 0.2s ease-out;
+  transition: none;
 }
 
 #root .fy-button:focus .control-bg {
