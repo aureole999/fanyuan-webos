@@ -8,6 +8,14 @@ function rewritePlaylist(source, base, map) {
     return map(new URL(line.trim(),base).href);
   }).join('\n');
 }
+// Ten reusable 100 ms buckets keep roughly the last second without a sampling timer.
+function createDownloadMeter(clock){
+ const now=clock||Date.now,buckets=Array.from({length:10},()=>({tick:-1,bytes:0}));let total=0;
+ return {
+  add:function(bytes){const tick=Math.floor(now()/100),bucket=buckets[tick%10];if(bucket.tick!==tick){bucket.tick=tick;bucket.bytes=0;}bucket.bytes+=bytes;total+=bytes;},
+  snapshot:function(){const sampledAt=now(),tick=Math.floor(sampledAt/100);let bytes=0;for(const bucket of buckets)if(bucket.tick<=tick&&bucket.tick>tick-10)bytes+=bucket.bytes;return {downloadedBytes:total,sampledAt:sampledAt,bytesPerSecond:bytes};}
+ };
+}
 function createProxy(){
   const sessions={};let port=0;const events=[];
   function log(status,kind){events.push({time:Date.now(),status:status,kind:kind});if(events.length>25)events.shift();}
@@ -33,7 +41,7 @@ function createProxy(){
       ['content-length','content-range','accept-ranges'].forEach(function(k){if(upstream.headers[k])responseHeaders[k]=upstream.headers[k];});
       if(req.method==='HEAD'){res.writeHead(upstream.statusCode,responseHeaders);res.end();upstream.resume();return;}
       // Count upstream payload once, including concurrent HLS segments; no per-chunk allocation.
-      upstream.on('data',function(chunk){session.downloadedBytes+=chunk.length;});
+      upstream.on('data',function(chunk){session.meter.add(chunk.length);});
       let sawData=false;
       upstream.once('data',function(first){
         sawData=true;
@@ -55,6 +63,6 @@ function createProxy(){
     }catch(e){log(502,'error');if(!res.headersSent)res.writeHead(502);res.end('媒体请求失败');if(upstream)upstream.destroy();}
   });
   const ready=new Promise(function(resolve,reject){server.once('error',reject);server.listen(0,'127.0.0.1',function(){port=server.address().port;resolve(port);});});
-  return {server:server,ready:ready,events:events,stats:function(url){try{const u=new URL(url),session=sessions[u.pathname.split('/')[2]];if(u.origin!=='http://127.0.0.1:'+port||!/^\/media\//.test(u.pathname)||!session)return {available:false};return {available:true,downloadedBytes:session.downloadedBytes,sampledAt:Date.now()};}catch(e){return {available:false};}},add:async function(media){await ready;Object.keys(sessions).forEach(function(k){if(Date.now()-sessions[k].used>2*3600000)delete sessions[k];});const token=crypto.randomBytes(18).toString('hex');sessions[token]={url:media.url,headers:media.headers||{},used:Date.now(),downloadedBytes:0};return mapped(token,media.url);}};
+  return {server:server,ready:ready,events:events,stats:function(url){try{const u=new URL(url),session=sessions[u.pathname.split('/')[2]];if(u.origin!=='http://127.0.0.1:'+port||!/^\/media\//.test(u.pathname)||!session)return {available:false};return Object.assign({available:true},session.meter.snapshot());}catch(e){return {available:false};}},add:async function(media){await ready;Object.keys(sessions).forEach(function(k){if(Date.now()-sessions[k].used>2*3600000)delete sessions[k];});const token=crypto.randomBytes(18).toString('hex');sessions[token]={url:media.url,headers:media.headers||{},used:Date.now(),meter:createDownloadMeter()};return mapped(token,media.url);}};
 }
-module.exports={createProxy:createProxy,rewritePlaylist:rewritePlaylist};
+module.exports={createDownloadMeter:createDownloadMeter,createProxy:createProxy,rewritePlaylist:rewritePlaylist};

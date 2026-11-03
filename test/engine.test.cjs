@@ -37,3 +37,10 @@ test('proxy download counters isolate media sessions, include HLS segments and e
   assert.deepEqual(proxy.stats(url.replace('127.0.0.1','localhost')),{available:false});assert.deepEqual(proxy.stats('bad'),{available:false});
  }finally{proxy.server.close();upstream.close();}
 });
+
+test('rolling download speed is available on first read, combines chunks and expires without polling',()=>{
+ const {createDownloadMeter}=require('../src/proxy.cjs');let now=10000;const a=createDownloadMeter(()=>now),b=createDownloadMeter(()=>now);
+ assert.equal(a.snapshot().bytesPerSecond,0);a.add(1024);a.add(2048);assert.equal(a.snapshot().bytesPerSecond,3072);assert.equal(b.snapshot().bytesPerSecond,0);
+ now+=500;a.add(4096);assert.equal(a.snapshot().bytesPerSecond,7168);now+=500;assert.equal(a.snapshot().bytesPerSecond,4096);now+=500;assert.equal(a.snapshot().bytesPerSecond,0);assert.equal(a.snapshot().downloadedBytes,7168);
+ now+=5000;a.add(9);assert.equal(a.snapshot().bytesPerSecond,9);assert.equal(a.snapshot().downloadedBytes,7177);
+});

@@ -117,15 +117,12 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   useEffect(()=>{
     setDownloadRate(null);
     if(message!=='正在缓冲…'||paused||failed||!mediaUrl)return;
-    let disposed=false,timer,last=null;
+    let disposed=false,timer;
     async function sample(){
       try{
         const next=await call('playbackStats',{url:mediaUrl});if(disposed)return;
-        if(next.available&&Number.isFinite(next.downloadedBytes)&&Number.isFinite(next.sampledAt)){
-          if(last&&next.sampledAt>last.sampledAt&&next.downloadedBytes>=last.downloadedBytes)setDownloadRate((next.downloadedBytes-last.downloadedBytes)*1000/(next.sampledAt-last.sampledAt));
-          last=next;
-        }else{last=null;setDownloadRate(-1);}
-      }catch(e){if(disposed)return;last=null;setDownloadRate(-1);}
+        setDownloadRate(next.available&&Number.isFinite(next.bytesPerSecond)&&next.bytesPerSecond>=0?next.bytesPerSecond:-1);
+      }catch(e){if(disposed)return;setDownloadRate(-1);}
       if(!disposed)timer=setTimeout(sample,1000);
     }
     sample();return()=>{disposed=true;clearTimeout(timer);};
