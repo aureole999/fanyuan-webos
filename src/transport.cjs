@@ -8,13 +8,15 @@ const caFile = require('path').join(__dirname, 'cacert.pem');
 const ca = fs.existsSync(caFile) ? fs.readFileSync(caFile) : undefined;
 const agents = { 'http:': new http.Agent({ keepAlive: true, maxSockets: 6 }), 'https:': new https.Agent({ keepAlive: true, maxSockets: 6, ca: ca }) };
 const UA = 'Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36';
+// Bangumi asks API clients to identify themselves with a name and a contact link.
+const BANGUMI_UA = 'aureole999/fanyuan-webos/' + require('../package.json').version + ' (https://github.com/aureole999/fanyuan-webos)';
 function open(url, options, redirects) {
   options = options || {}; redirects = redirects || 0;
   return new Promise(function (resolve, reject) {
     let target;
     try { target = new URL(url); } catch (e) { return reject(new Error('无效的 HTTP 地址')); }
     if (target.protocol !== 'https:' && target.protocol !== 'http:') return reject(new Error('仅支持 HTTP/HTTPS'));
-    const headers = Object.assign({ 'User-Agent': UA, 'Accept-Encoding': options.stream ? 'identity' : 'gzip, deflate', 'Accept': '*/*' }, options.headers || {});
+    const headers = Object.assign({ 'User-Agent': /(^|\.)bgm\.tv$/.test(target.hostname) ? BANGUMI_UA : UA, 'Accept-Encoding': options.stream ? 'identity' : 'gzip, deflate', 'Accept': '*/*' }, options.headers || {});
     if (options.body != null) headers['Content-Length'] = Buffer.byteLength(options.body);
     const requestOptions = {
       protocol: target.protocol,
@@ -65,4 +67,4 @@ async function request(url, options) {
   if (res.statusCode < 200 || res.statusCode >= 300) {const error=new Error('源站返回 HTTP ' + res.statusCode);error.statusCode=res.statusCode;throw error;}
   return { url: res.finalUrl, status: res.statusCode, headers: res.headers, text: body.toString('utf8'), body: body };
 }
-module.exports = { open: open, request: request, UA: UA };
+module.exports = { open: open, request: request, UA: UA, BANGUMI_UA: BANGUMI_UA };

@@ -1,0 +1,4 @@
+@enact/core, @enact/i18n, @enact/ui and @enact/webos 4.9.5 (https://github.com/enactjs/enact)
+are licensed under the Apache License, Version 2.0, the same license as @enact/sandstone.
+These packages ship no separate license file; the full license text is in
+enact-sandstone-LICENSE in this directory.

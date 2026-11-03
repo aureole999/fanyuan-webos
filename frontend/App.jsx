@@ -71,7 +71,7 @@ const PageFooter=React.memo(function PageFooter({page}){
   return <footer className="app-footer">{page==='detail'?<span><kbd>OK</kbd> 播放 / 续播　 <kbd>长按 OK</kbd> 标记已看</span>:<span><kbd>方向键</kbd> 移动　 <kbd>OK</kbd> 选择</span>}<span><kbd>返回</kbd> {page==='detail'?'回到上一页，保留浏览位置':SETTINGS_PAGES.includes(page)?'回到设置':'返回侧栏'}</span></footer>;
 });
 function App({className}){
-  const [page,setPage]=useState('home'),[sources,setSources]=useState([]),[sourceId,setSourceId]=useState(localStorage.getItem('sourceId')||'source-c');
+  const [page,setPage]=useState('home'),[sources,setSources]=useState([]),[sourceId,setSourceId]=useState(localStorage.getItem('sourceId')||'');
   const [popular,setPopular]=useState([]),[classics,setClassics]=useState([]),[discoverShown,setDiscoverShown]=useState(false);
   // The discovery rows start below the fold: mount them after home has painted, so switching to home
   // (or previewing it from the sidebar) costs what it did before they existed.

@@ -10,7 +10,7 @@
 - **本地追番与历史记录**：支持番剧收藏（`想看` / `在看` / `看过`）、观看历史记录、断点自动续播，以及长按剧集标记已看。
 - **在线视频源订阅**：与 Animeko 相同，应用不内置任何视频源规则，首次启动时自动下载默认订阅（Animeko 兼容格式），也可以在设置中添加、替换或停用订阅，手动刷新或按周期（1 / 6 / 12 / 24 小时）自动更新。
 - **播放与线路切换**：支持播放中选集、切换同集不同线路、倍速播放（1x / 1.25x / 1.5x / 2x）与自动连播下一集。
-- **弹幕服务与匹配**：默认使用项目的只读弹幕服务（`danmu-api.aureole999.workers.dev`），无需配置；推荐自行部署 danmu_api，也可以在设置中接入兼容 [huangxd-/danmu_api](https://github.com/huangxd-/danmu_api) 的自建服务以获取更多平台的弹幕。自动匹配番剧与剧集弹幕，支持在播放器内手动指定平台/番剧/集数，以及调节弹幕开关、时间偏移、样式与密度。
+- **弹幕服务与匹配**：默认使用项目的只读弹幕服务（`danmu-api.aureole999.workers.dev`），无需配置。**默认服务仅供测试使用，不保证服务稳定性**，日常使用请自行部署 danmu_api；也可以在设置中接入兼容 [huangxd-/danmu_api](https://github.com/huangxd-/danmu_api) 的自建服务以获取更多平台的弹幕。自动匹配番剧与剧集弹幕，支持在播放器内手动指定平台/番剧/集数，以及调节弹幕开关、时间偏移、样式与密度。
 - **电视界面**：基于 LG Enact 4.9.5 / Sandstone 2.9.6 与 Spotlight 焦点管理；海报、设置行、按钮、输入框、进度条等高频控件使用轻量自制组件，以保证在 LG C1 等低性能电视上的流畅度。
 - **电视遥控操作**：
   - 支持方向键、确定键、返回键及动感应遥控器滚轮/指针。
@@ -63,9 +63,9 @@ npm run test:ui
 | 服务 | 用途 |
 |---|---|
 | [Bangumi API](https://bangumi.github.io/api/)（`api.bgm.tv`） | 番剧资料、每日放送、本季热门、高分经典、剧集与续集关系 |
-| `api.animeko.org` | 分割放送的季度关系；订阅地址直连失败时的公开订阅代理 |
+| `api.animeko.org`（Animeko 项目的服务，非公开 API，可能随时变动或不可用） | 两处兜底：① 订阅地址直连下载失败时，经其订阅代理（`/v1/subs/proxy`）重试，此时订阅地址会发给该服务；② Bangumi 系列资料读取失败、且季内集号与累计集号不同时，查询分割放送的季度关系（`/v1/subject-relations`）用于弹幕集数对应 |
 | 视频源订阅（默认 `sub.creamycake.org`，可在设置中更换） | 视频源规则；各视频源网站由规则决定，与本项目无关 |
-| 项目默认服务（`danmu-api.aureole999.workers.dev`） | 匿名只读的 danmu_api，仅使用 dandan 来源 |
+| 项目默认服务（`danmu-api.aureole999.workers.dev`） | 匿名只读的 danmu_api，仅使用 dandan 来源。**仅供测试使用，不保证服务稳定性**，可能限流、变更或停止 |
 | 弹弹play 数据镜像（`api.danmaku.weeblify.app`） | 用于核验 Bangumi 与弹弹play的作品 ID；默认服务的 dandan 上游也依赖它 |
 | 自建 [danmu_api](https://github.com/huangxd-/danmu_api)（可选） | 在设置中开启「使用自建服务」后替代默认弹幕来源 |
 
@@ -89,7 +89,7 @@ npm run test:ui
 
 `src/episode-matching.cjs` 是视频和弹幕共用的纯匹配规则；`src/bangumi-context.cjs` 只读取 Bangumi 资料并缓存系列和剧集；`src/source-matcher.cjs` 负责搜源、读取线路和生成保留原始播放 ID 的映射。播放器将明确的 Bangumi 剧集 ID 交给弹幕服务。已有源进度可继续读取，新进度按 Bangumi 剧集 ID 跨源保存。
 
-`npm test` 包含 `test/multiseason.test.cjs`。`test/fixtures/multiseason/` 保存实际查询的公开名称、集号及页面列表，覆盖黑礁、无职、Re:0，以及独立验证的 86、进击的巨人、夏目友人帐和灵能百分百；不含访问令牌或临时视频地址。回归完全离线，包含搜索到播放映射和自动弹幕调用的回放。
+`npm test` 包含 `test/multiseason.test.cjs`。`test/fixtures/multiseason/` 保存实际查询的公开名称、集号及页面列表，覆盖黑礁、无职、Re:0，以及独立验证的 86、进击的巨人、夏目友人帐和灵能百分百；视频源站点与源 ID 已替换为 `source-*.example.test` 占位，不含访问令牌或临时视频地址。回归完全离线，包含搜索到播放映射和自动弹幕调用的回放。
 
 不转换“陆／六”等作品名称中的写法。自动匹配不能确认页面时保留候选，用户手动选择后按条目和视频源保存在本机；再次点击当前视频源，或再次点击已选中的线路，可打开匹配及候选番剧列表；重新选择后更新该条目的本地关联，取消则保留当前页面。
 

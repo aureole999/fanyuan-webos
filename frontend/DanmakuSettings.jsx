@@ -11,7 +11,7 @@ export default function DanmakuSettings({notify}){
  // Choosing 自建 without a saved address only opens the form; the service switches once an address is saved.
  const showCustom=value.customEnabled||editing;
  return <div className="danmaku-settings-page">
-  <ScrollGroup className="subscription-card"><h2>弹幕服务</h2><p className="connection-result">当前使用：{value.usingDefault?'默认服务':'自建 danmu_api'}</p><p>推荐自行部署 danmu_api，可自行选择弹幕来源和管理访问权限。默认服务提供弹弹play来源的弹幕，无需填写 Token。</p>
+  <ScrollGroup className="subscription-card"><h2>弹幕服务</h2><p className="connection-result">当前使用：{value.usingDefault?'默认服务':'自建 danmu_api'}</p><p>推荐自行部署 danmu_api，可自行选择弹幕来源和管理访问权限。默认服务提供弹弹play来源的弹幕，无需填写 Token，仅供测试使用，不保证服务稳定性。</p>
    <div className="subscription-actions"><FocusButton id="danmaku-default" row={1} col={0} className={!showCustom?'active':''} onSelect={()=>{setEditing(false);save({customEnabled:false});}}>默认服务</FocusButton><FocusButton id="danmaku-custom" row={1} col={1} className={showCustom?'active':''} onSelect={()=>{setError('');if(value.customUrl)save({customEnabled:true});else setEditing(true);}}>自建 danmu_api（推荐）</FocusButton></div>
    {!showCustom?<p className="connection-result">{value.defaultUrl||'https://danmu-api.aureole999.workers.dev'}</p>:<><p>填写自建服务地址及访问 Token。Token 留空会保留已保存的值，仅保存在本机，保存后不回显。</p>
    <div className="credential-row"><label>服务地址</label><TextInput id="danmaku-url" className="credential-input" inputRef={customUrlInput} value={customUrl} onChange={e=>setCustomUrl(e.target.value)} placeholder="https://你的弹幕服务地址"/></div>
