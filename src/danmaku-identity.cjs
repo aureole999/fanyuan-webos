@@ -43,4 +43,4 @@ class SubjectIdentity{
   const task=this.discover(r).then(value=>remember(value,1800000),()=>remember(null,60000));this.pending.set(id,task);return task;
  }
 }
-module.exports={SubjectIdentity,bangumiIds};
+module.exports={SubjectIdentity,bangumiIds,MIRROR};

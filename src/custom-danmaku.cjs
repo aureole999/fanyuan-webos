@@ -2,7 +2,7 @@
 require('./compat.cjs');
 const URL=require('url').URL,crypto=require('crypto'),transport=require('./transport.cjs');
 const {normalize,sameSubjectName,title:normalizeEpisode,splitMatcher,matchEpisodes}=require('./danmaku-match.cjs');
-const {SubjectIdentity}=require('./danmaku-identity.cjs');
+const {SubjectIdentity,MIRROR}=require('./danmaku-identity.cjs');
 const LABEL='弹幕';
 const PLATFORM_NAMES={dandan:'弹弹play',bahamut:'巴哈姆特',youku:'优酷',iqiyi:'爱奇艺',qiyi:'爱奇艺',renren:'人人视频',bilibili:'哔哩哔哩',bilibili1:'哔哩哔哩',douban:'豆瓣',hanjutv:'韩剧TV','360':'360'};
 function error(message,status){const e=Error(message);if(status)e.statusCode=status;if([401,403,429].includes(status))e.noRetry=true;return e;}
@@ -36,7 +36,9 @@ function parseComments(data,fallbackSource){
   const c=data.comments[index],parts=String(c.p||'').split(','),time=Number(parts[0]),mode=Number(parts[1]),color=Number(parts[2]);
   if(parts.length<4||!parts[0]||!parts[2]||!Number.isFinite(time)||!Number.isInteger(color)||![1,4,5].includes(mode)||typeof c.m!=='string'||!c.m)continue;
   const tag=/^\[([\w-]+)\]/.exec(parts[3]),source=tag?tag[1].toLowerCase():fallbackSource||'server',serviceId='custom:'+source;
-  const identity=serviceId+':'+(c.cid==null?'index-'+index:String(c.cid));if(seen.has(identity))continue;seen.add(identity);
+  // dandanplay comment ids exceed 2^53 and lose precision in JSON.parse, so distinct comments can share
+  // an id; the timing and text keep them apart while still dropping true duplicates.
+  const identity=serviceId+':'+(c.cid==null?'index-'+index:String(c.cid)+':'+parts[0]+':'+c.m);if(seen.has(identity))continue;seen.add(identity);
   items.push({id:identity,provider:'custom',serviceId,time,text:c.m,color:'#'+('000000'+((color>>>0)&0xffffff).toString(16)).slice(-6),mode:mode===4?'BOTTOM':mode===5?'TOP':'NORMAL'});
  }
  return items.sort((a,b)=>a.time-b.time);
@@ -45,11 +47,15 @@ class CustomDanmaku{
  constructor(options){options=options||{};this.request=options.request||transport.request;this.config=options.config||(()=>({}));this.cache=new Map();this.pending=new Map();this.events=[];this.identity=new SubjectIdentity(this.request,(event,data)=>this.record(event,data));}
  record(event,data){this.events.push(Object.assign({time:Date.now(),event},data));if(this.events.length>80)this.events.shift();}
  diagnostics(){return this.events.slice();}
- configured(){return !!this.config().url;}
+ // Without a server of its own the app uses the public dandanplay mirror, which takes the API path
+ // as a query parameter; a configured danmu_api server is addressed directly.
+ isPublic(){const c=this.config();return !c.url&&c.public===true;}
+ configured(){const c=this.config();return !!c.url||c.public===true;}
  async api(endpoint,query){
-  const config=this.config();if(!config.url){const e=error('尚未配置弹幕服务');e.code='NOT_CONFIGURED';e.noRetry=true;throw e;}
-  const base=validateBase(config.url),url=new URL(base+(config.token?'/'+encodeURIComponent(config.token):'')+'/api/v2'+endpoint);
-  for(const key of Object.keys(query||{}))if(query[key]!=null)url.searchParams.set(key,query[key]);
+  const config=this.config();if(!this.configured()){const e=error('尚未配置弹幕服务');e.code='NOT_CONFIGURED';e.noRetry=true;throw e;}
+  let url;
+  if(this.isPublic()){const inner=new URL('https://mirror.invalid/v2'+endpoint);for(const key of Object.keys(query||{}))if(query[key]!=null)inner.searchParams.set(key,query[key]);url=new URL(MIRROR);url.searchParams.set('path',inner.pathname+inner.search);}
+  else{url=new URL(validateBase(config.url)+(config.token?'/'+encodeURIComponent(config.token):'')+'/api/v2'+endpoint);for(const key of Object.keys(query||{}))if(query[key]!=null)url.searchParams.set(key,query[key]);}
   let response;const began=Date.now();
   try{response=await this.request(url.href,{timeout:30000,maxBytes:12*1024*1024,sameOriginRedirects:true});}
   catch(e){const match=/HTTP\s+(\d+)/.exec(String(e.message||'')),status=e.statusCode||(match&&Number(match[1]));
@@ -67,7 +73,7 @@ class CustomDanmaku{
   keyword=String(keyword||'').trim();if(!keyword||keyword.length>200)throw error('请输入有效的番剧名称');
   const data=await this.api('/search/anime',{keyword});
   if(!Array.isArray(data.animes))throw error('弹幕服务未返回番剧列表');
-  return data.animes.map(a=>({id:String(a.animeId),name:String(a.animeTitle||''),source:String(a.source||''),sourceKey:String(a.bangumiId||''),date:a.startDate||'',episodeCount:a.episodeCount||0,query:keyword})).filter(a=>/^\d+$/.test(a.id)&&a.name);
+  return data.animes.map(a=>({id:String(a.animeId),name:String(a.animeTitle||''),source:String(a.source||(this.isPublic()?'dandan':'')),sourceKey:String(a.bangumiId||''),date:a.startDate||'',episodeCount:a.episodeCount||0,query:keyword})).filter(a=>/^\d+$/.test(a.id)&&a.name);
  }
  async freshAnime(selection){
   const list=await this.search(selection.query||canonicalName(selection.subjectName));const found=list.find(a=>sameAnime(a,selection));
@@ -81,7 +87,7 @@ class CustomDanmaku{
  }
  async episodeList(selection){for(let attempt=0;attempt<2;attempt++)try{return await this.detail(await this.freshAnime(selection));}catch(e){if(e.statusCode!==404||attempt)throw e;} }
  async comments(anime,episode,method){
-  const data=await this.api('/comment/'+encodeURIComponent(episode.id),{format:'json',duration:true}),items=parseComments(data,anime.source),match={method,subjectName:anime.name,episodeName:episode.displayName||episode.episodeName};
+  const data=await this.api('/comment/'+encodeURIComponent(episode.id),this.isPublic()?{withRelated:true,chConvert:1}:{format:'json',duration:true}),items=parseComments(data,anime.source),match={method,subjectName:anime.name,episodeName:episode.displayName||episode.episodeName};
   this.record('comments',{source:anime.source,subject:anime.name,episode:episode.displayName||episode.episodeName,method,count:items.length});
   const groups=new Map();for(const d of items){if(!groups.has(d.serviceId))groups.set(d.serviceId,0);groups.set(d.serviceId,groups.get(d.serviceId)+1);}
   if(!groups.size)groups.set('custom:'+(anime.source||'server'),0);

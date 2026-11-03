@@ -63,7 +63,7 @@ async function main(){
   await esbuild.build({entryPoints:[path.join(__dirname,'src/service.cjs')],outfile:path.join(service,'service.js'),bundle:true,platform:'node',target:'node8',external:['webos-service'],legalComments:'eof',minify:false});
   fs.writeFileSync(path.join(service,'package.json'),JSON.stringify({name:'com.local.animesources.service',version:version,main:'service.js'},null,2));
   fs.writeFileSync(path.join(service,'services.json'),JSON.stringify({id:'com.local.animesources.service',description:'On-TV source rule engine',services:[{name:'com.local.animesources.service',description:'Search, source parsing, loopback playback and danmaku'}]},null,2));
-  copyTree(path.join(__dirname,'rules'),path.join(service,'rules'));fs.copyFileSync(path.join(__dirname,'vendor/cacert.pem'),path.join(service,'cacert.pem'));
+  fs.copyFileSync(path.join(__dirname,'vendor/cacert.pem'),path.join(service,'cacert.pem'));
   if(fs.existsSync(path.join(__dirname,'LICENSE.txt')))for(const dest of [app,service])fs.copyFileSync(path.join(__dirname,'LICENSE.txt'),path.join(dest,'LICENSE.txt'));
   fs.copyFileSync(path.join(__dirname,'frontend/vendor/bilitv/LICENSE'),path.join(app,'BILITV-LICENSE.txt'));
   copyTree(path.join(__dirname,'THIRD_PARTY_NOTICES'),path.join(app,'THIRD_PARTY_NOTICES'));

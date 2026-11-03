@@ -1,6 +1,8 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {SubscriptionManager,readSubscription,reconcile,HOUR,DEFAULT_URL}=require('../src/subscription.cjs');
-const original=JSON.parse(fs.readFileSync(path.join(__dirname,'../rules/source-c.json'),'utf8'));
+// A synthetic rule in the Animeko media-source format; no third-party rules ship with the app.
+const original={id:'fixture-json-api',factoryId:'json-api',version:1,arguments:{name:'示例接口源',tier:0,searchConfig:{baseUrl:'https://api.example.test',search:{request:{url:'https://api.example.test/search',method:'POST',body:'{"q":"{keyword}"}'},selectItems:'$[*]',selectName:'$.title',selectId:'$.id'},subject:{request:{url:'https://api.example.test/detail',method:'POST',body:'{"id":{id}}'},channelFormatId:'grouped',channelFormatGrouped:{selectChannels:'$.sources[*]',selectChannelName:'$.name'},episodes:{selectEpisodes:'$.episodes[*]',selectName:'$.title',selectId:'$.id',selectSort:'$.episode_number'}}}}};
+original.arguments.searchConfig.subject={channelFormatId:'none',episodes:{}};
 function fixture(id,name){return Object.assign({},JSON.parse(JSON.stringify(original)),{id,arguments:Object.assign({},original.arguments,{name:name||id})});}
 async function setup(t,request,now){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fanyuan-subs-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const m=new SubscriptionManager({dir,bundled:[fixture('keep')],request,now});await m.init();return m;}
 const document=rules=>JSON.stringify({schemaVersion:2,name:'测试订阅',mediaSources:rules});

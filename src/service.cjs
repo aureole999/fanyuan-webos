@@ -7,13 +7,13 @@ const proxy=require('./proxy.cjs').createProxy();
 const DanmakuService=require('./danmaku.cjs').DanmakuService;
 const DanmakuSettings=require('./danmaku-settings.cjs').DanmakuSettings;
 const catalogApi=require('./catalog.cjs');
-const root=path.join(__dirname,'rules'),catalog=JSON.parse(fs.readFileSync(path.join(root,'catalog.json'),'utf8'));
-const rules=catalog.rules.map(function(x){const b=fs.readFileSync(path.join(root,x.file));if(crypto.createHash('sha256').update(b).digest('hex')!==x.sha256)throw new Error('Rule integrity check failed');return JSON.parse(b.toString('utf8'));});
-let engine=new Engine(rules);const recent=[];
+// No source rules ship with the app. Like Animeko, it subscribes to a default list that is
+// downloaded on first launch; users can add or replace subscriptions in settings.
+let engine=new Engine([]);const recent=[];
 const SubscriptionManager=require('./subscription.cjs').SubscriptionManager;
 const subscriptions=new SubscriptionManager({
   dir:process.env.ANIMEKO_DATA_DIR||(process.env.ANIMEKO_LOCAL_DEV==='1'?path.join(process.cwd(),'.local-data'):'/media/internal/com.local.animesources.service'),
-  bundled:rules,proxyBase:'https://api.animeko.org',onChange:active=>{engine=new Engine(active);}
+  bundled:[],proxyBase:'https://api.animeko.org',onChange:active=>{engine=new Engine(active);}
 });
 const danmakuSettings=new DanmakuSettings(subscriptions.dir),danmaku=new DanmakuService({settings:danmakuSettings});
 const ready=subscriptions.init().then(()=>danmakuSettings.init()).catch(error=>{subscriptions.storageError='订阅缓存目录不可用：'+String(error.message).slice(0,150);});
@@ -21,10 +21,10 @@ const subscriptionTimer=setInterval(()=>ready.then(()=>subscriptions.updateAll(f
 if(subscriptionTimer.unref)subscriptionTimer.unref();
 function cleanError(e){return String(e.message||e).replace(/https?:\/\/[^\s]+/g,'[源站地址]').slice(0,300);}
 function errorDetails(e){return {error:cleanError(e),stack:String(e.stack||'').replace(/https?:\/\/[^\s]+/g,'[源站地址]').slice(0,2000),code:e.code||''};}
-function diagnostics(){return {version:VERSION,node:process.version,ruleCommit:catalog.commit,location:'TV',rules:catalog.rules.map(function(x){return {id:x.id,sha256:x.sha256};}),subscriptionState:subscriptions.status(),dataDirectory:subscriptions.dir,activeRuleCount:subscriptions.rules().length,danmakuSettings:danmakuSettings.status(),danmaku:danmaku.diagnostics(),proxy:proxy.events,recent:recent};}
+function diagnostics(){return {version:VERSION,node:process.version,location:'TV',subscriptionState:subscriptions.status(),dataDirectory:subscriptions.dir,activeRuleCount:subscriptions.rules().length,danmakuSettings:danmakuSettings.status(),danmaku:danmaku.diagnostics(),proxy:proxy.events,recent:recent};}
 async function action(name,p){
   p=p||{};await ready;
-  if(name==='sources')return {sources:subscriptions.sources(),subscriptionState:subscriptions.status(),commit:catalog.commit,location:'TV'};
+  if(name==='sources')return {sources:subscriptions.sources(),subscriptionState:subscriptions.status(),location:'TV'};
   if(name==='subscriptions')return subscriptions.status();
   if(name==='subscriptionsUpdate')return subscriptions.updateAll(!!p.force);
   if(name==='subscriptionUpdate')return subscriptions.update(p.id,true);

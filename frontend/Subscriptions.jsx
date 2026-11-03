@@ -30,7 +30,7 @@ export default function Subscriptions({onChanged,notify,chooseOption}){
       return <ScrollGroup key={s.id} className="subscription-card">
         <h2>{s.metadata?.name||'Animeko 视频源订阅'}<small>{s.sourceCount} 个源</small></h2>
         <div className="subscription-url">{s.url}</div>
-        <p>最近成功：{stamp(s.lastSuccess)}　·　{s.origin==='bundled'?'使用内置备用规则':'使用电视本地缓存'}</p>
+        <p>最近成功：{stamp(s.lastSuccess)}　·　{s.origin==='bundled'?'等待首次下载':'使用电视本地缓存'}</p>
         {s.lastUpdated?.error&&<p className="error-text">{s.lastUpdated.error.message}{s.lastUpdated.error.requiresNewerApp?'，已保留此前可用规则。':''}</p>}
         {s.lastUpdated?.unsupportedMediaSourceCount>0&&<p>{s.lastUpdated.unsupportedMediaSourceCount} 条规则暂不兼容，已有配置会保留。</p>}
         {s.lastUpdated?.excludedMediaSourceCount>0&&<p>{s.lastUpdated.excludedMediaSourceCount} 条 BT 或其他类型源未导入。</p>}

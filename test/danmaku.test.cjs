@@ -38,12 +38,33 @@ test('per-type fixed comments respect track limits and seek-safe visibility boun
  assert.deepEqual(fixedWindow(comments,4,5,0),[]);
 });
 
-test('disabled or unconfigured service performs zero metadata or danmaku network calls',async()=>{
- for(const customEnabled of [false,true]){
-  let calls=0;const settings={status:()=>({customEnabled}),custom:()=>({})};
-  const s=new DanmakuService({settings,request:async()=>{calls++;throw Error('unexpected');}});
-  const r=await s.load({subjectId:1,sort:1});assert.equal(calls,0);assert.equal(r.items.length,0);assert.deepEqual(r.providers.map(x=>x.id),['custom']);assert.equal(r.providers[0].status,customEnabled?'notConfigured':'disabled');
- }
+test('a service with neither a server nor the public mirror performs zero metadata or danmaku network calls',async()=>{
+ let calls=0;const settings={status:()=>({}),custom:()=>({})};
+ const s=new DanmakuService({settings,request:async()=>{calls++;throw Error('unexpected');}});
+ const r=await s.load({subjectId:1,sort:1});assert.equal(calls,0);assert.equal(r.items.length,0);assert.deepEqual(r.providers.map(x=>x.id),['custom']);assert.equal(r.providers[0].status,'notConfigured');
+});
+test('without a server of its own the service uses the public dandanplay mirror',async t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fy-dm-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const settings=new DanmakuSettings(dir);await settings.init();
+ assert.deepEqual(settings.custom(),{url:'',token:'',public:true});assert.equal(settings.status().usingPublic,true);
+ await settings.configure({customUrl:'https://self.example',customEnabled:false});assert.equal(settings.custom().public,true);
+ await settings.configure({customEnabled:true});assert.equal(settings.custom().url,'https://self.example');assert.equal(settings.status().usingPublic,false);
+ const paths=[];const {CustomDanmaku}=require('../src/custom-danmaku.cjs');
+ const c=new CustomDanmaku({config:()=>({url:'',token:'',public:true}),request:async url=>{const u=new URL(url);assert.equal(u.origin+u.pathname,'https://api.danmaku.weeblify.app/ddp/v1');const p=u.searchParams.get('path');paths.push(p);
+  if(p.startsWith('/v2/search/anime'))return {text:JSON.stringify({animes:[{animeId:42,bangumiId:'42',animeTitle:'测试番',episodeCount:1}]})};
+  if(p==='/v2/bangumi/42')return {text:JSON.stringify({bangumi:{animeId:42,bangumiId:'42',animeTitle:'测试番',episodes:[{episodeId:4201,episodeTitle:'第1话 开始',episodeNumber:'1'}]}})};
+  return {text:JSON.stringify({count:1,comments:[{cid:1,p:'2.5,1,16777215,abc',m:'你好'}]})};}});
+ const [anime]=await c.search('测试番');assert.equal(anime.source,'dandan');assert.equal(anime.sourceKey,'42');
+ const [ep]=await c.detail(anime);const r=await c.comments(anime,ep,'auto');
+ assert.equal(r.items.length,1);assert.equal(r.items[0].serviceId,'custom:dandan');
+ assert.deepEqual(paths,['/v2/search/anime?keyword=%E6%B5%8B%E8%AF%95%E7%95%AA','/v2/bangumi/42','/v2/comment/4201?withRelated=true&chConvert=1']);
+});
+test('comments whose ids collide after JSON rounding are all kept, true duplicates are not',()=>{
+ const {parseComments}=require('../src/custom-danmaku.cjs');
+ // Both ids parse to the same double; as in the dandanplay API they are distinct comments.
+ const data=JSON.parse('{"comments":[{"cid":1566242984643248001,"p":"1.0,1,16777215,a","m":"第一条"},{"cid":1566242984643248002,"p":"2.0,1,16777215,b","m":"第二条"},{"cid":1566242984643248002,"p":"2.0,1,16777215,b","m":"第二条"}]}');
+ assert.equal(data.comments[0].cid,data.comments[1].cid);
+ assert.deepEqual(parseComments(data,'dandan').map(x=>x.text),['第一条','第二条']);
 });
 test('old independent provider settings are discarded while private server settings survive migration',async t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fanyuan-migrate-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));

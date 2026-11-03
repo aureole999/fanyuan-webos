@@ -65,8 +65,7 @@ class DanmakuService{
  async load(p){
   const empty=(status,message)=>({provider:'custom',status,message,groups:[{id:'custom',name:'弹幕',provider:'custom',count:0,status,message}],items:[]});
   let r,result,metadataError;
-  if(!this.settings.status().customEnabled)result=empty('disabled','已关闭');
-  else if(!this.custom.configured())result=empty('notConfigured','尚未配置弹幕服务地址');
+  if(!this.custom.configured())result=empty('notConfigured','尚未配置弹幕服务地址');
   else {
    try{r=await this.context(p);}catch(e){metadataError=String(e.message||e).replace(/https?:\/\/\S+/g,'[URL]').slice(0,180);}
    const context=r||{episodeType:/sp|ova|oad|ex/i.test(p.type||'')?1:0,subjectId:p.subjectId||0,subjectPrimaryName:(p.subject||{}).name||'',subjectNames:unique([(p.subject||{}).name,(p.subject||{}).originalName]),subjectPublishDate:(p.subject||{}).date||'',episodeId:0,episodeSort:Number(p.sort),episodeEp:Number(p.sort),episodeName:'',episodeNames:[]};
