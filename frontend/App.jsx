@@ -22,6 +22,8 @@ import {DANMAKU_OPTIONS,DANMAKU_FIELDS,DANMAKU_GROUPS,DANMAKU_TYPES,danmakuTypeP
 const SETTINGS_PAGES=['subscriptions','danmakuSettings','danmakuStyle'];
 
 const library=makeLibrary(localStorage);
+// The saved theme applies before the first render, so a non-default theme never flashes the default.
+document.documentElement.dataset.theme=library.settings().themeColor||'sakura';
 const MENU=[['home','首页','home'],['history','观看历史','history'],['calendar','新番时间表','tv'],['favorites','我的收藏','star'],['search','搜索','search'],['settings','设置','settings']];
 const DAY=['周一','周二','周三','周四','周五','周六','周日'];
 const today=(new Date().getDay()||7);
@@ -40,10 +42,21 @@ function Dialog({value,onClose}){
   // Size the scroller to the options it holds (up to 640px), so a short list never scrolls on focus.
   // The popup mounts its body later than this component, so measure when the list element attaches.
   const [fit,setFit]=useState(null),measure=el=>{if(el&&el.offsetHeight&&el.offsetHeight!==fit)setFit(el.offsetHeight);};
-  return <Popup open={!!value} position="center" spotlightId="dialog" className="selection-popup" css={{body:'popup-body'}} onClose={onClose} onHide={()=>setTimeout(()=>last.current?.onHide?.(),0)} onShow={()=>setTimeout(()=>setFocus(options.length?'dialog-'+Math.max(0,activeIndex):'dialog-close'),0)}><div className="dialog-heading"><h2>{title}</h2><FocusButton id="dialog-close" className="dialog-close" row={-1} group="dialog" onSelect={onClose} aria-label="关闭弹窗"><Icon name="close" size={24}/></FocusButton></div><ContentScroller className="dialog-options" verticalScrollbar="hidden" style={{height:Math.min(640,fit||Math.max(180,options.length*118))}}><div ref={measure} className="dialog-options-inner">{options.map((o,i)=><FocusButton key={i} id={'dialog-'+i} row={i} group="dialog" className={'dialog-option'+(o.active?' active':'')} label={o.description} slotAfter={o.probeSession||o.active?<span className="dialog-option-meta">{o.probeSession&&<SourceProbeBadge session={o.probeSession} id={o.sourceId}/>} {o.active&&<span className="dialog-option-check"><Icon name="check" size={18}/> 当前</span>}</span>:null} onSelect={o.action}>{o.label}</FocusButton>)}</div></ContentScroller></Popup>;
+  return <Popup open={!!value} position="center" spotlightId="dialog" className="selection-popup" css={{body:'popup-body'}} onClose={onClose} onHide={()=>setTimeout(()=>last.current?.onHide?.(),0)} onShow={()=>setTimeout(()=>setFocus(options.length?'dialog-'+Math.max(0,activeIndex):'dialog-close'),0)}><div className="dialog-heading"><h2>{title}</h2><FocusButton id="dialog-close" className="dialog-close" row={-1} group="dialog" onSelect={onClose} aria-label="关闭弹窗"><Icon name="close" size={24}/></FocusButton></div><ContentScroller className="dialog-options" verticalScrollbar="hidden" style={{height:Math.min(640,fit||Math.max(180,options.length*118))}}><div ref={measure} className="dialog-options-inner">{options.map((o,i)=><FocusButton key={i} id={'dialog-'+i} row={i} group="dialog" className={'dialog-option'+(o.active?' active':'')} label={o.description} slotAfter={o.probeSession||o.active?<span className="dialog-option-meta">{o.probeSession&&<SourceProbeBadge session={o.probeSession} id={o.sourceId}/>} {o.active&&<span className="dialog-option-check"><Icon name="check" size={18}/> 当前</span>}</span>:null} onSelect={o.action}>{o.swatch&&<span className="dialog-swatch" style={{background:o.swatch}} aria-hidden="true"/>}{o.label}</FocusButton>)}</div></ContentScroller></Popup>;
 }
 // Moving through the sidebar previews a page only after the remote rests on it; passing over an
 // item must not render that page (a page switch costs 300–500 ms of main thread on the C1).
+// 设置 → 界面 → 主题色. Colours are defined in style.css (:root[data-theme]); swatch is the accent.
+const THEMES=[
+  {value:'sakura',label:'樱粉',description:'默认',swatch:'rgb(230, 132, 168)'},
+  {value:'coral',label:'珊瑚',description:'暖橘红',swatch:'rgb(228, 141, 124)'},
+  {value:'amber',label:'琥珀',description:'暖金黄',swatch:'rgb(223, 173, 98)'},
+  {value:'matcha',label:'抹茶',description:'柔和黄绿',swatch:'rgb(156, 195, 121)'},
+  {value:'mint',label:'薄荷',description:'清爽青绿',swatch:'rgb(110, 196, 170)'},
+  {value:'sky',label:'天蓝',description:'明亮蓝色',swatch:'rgb(119, 181, 223)'},
+  {value:'lavender',label:'薰衣草',description:'淡紫色',swatch:'rgb(180, 156, 222)'},
+  {value:'silver',label:'银灰',description:'低调中性',swatch:'rgb(179, 186, 198)'},
+];
 const PREVIEW_DELAY=300;
 // Shell parts re-render only when their own props change. Before, every page switch rebuilt all
 // Sandstone controls in the sidebar and header too. Handlers come from a stable `actions` object.
@@ -67,6 +80,7 @@ function App({className}){
   const [keyword,setKeyword]=useState(''),[results,setResults]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[detail,setDetail]=useState(null),[meta,setMeta]=useState(null),[candidates,setCandidates]=useState([]),[channel,setChannel]=useState(0),[settings,setSettings]=useState(()=>library.settings()),[revision,setRevision]=useState(0),[dialog,setDialog]=useState(null),[player,setPlayer]=useState(null),[toast,setToast]=useState(''),[favFilter,setFavFilter]=useState('all');
   const [detailSourceId,setDetailSourceId]=useState(null),[playPending,setPlayPending]=useState(false),[showUnmatched,setShowUnmatched]=useState(false);
   useEffect(()=>setShowUnmatched(false),[detail,channel]);
+  useEffect(()=>{document.documentElement.dataset.theme=settings.themeColor||'sakura';},[settings.themeColor]);
   const pendingPlay=useRef(null);
   const [related,setRelated]=useState([]),relatedId=page==='detail'?meta?.bgmId||0:0;
   useEffect(()=>{setRelated([]);if(!relatedId)return;let live=true;call('bangumiRelated',{id:relatedId}).then(r=>{if(live)setRelated(r.items||[]);}).catch(()=>{});return()=>{live=false;};},[relatedId]);
@@ -108,7 +122,7 @@ function App({className}){
   },[]);
 
   useEffect(()=>{const scale=()=>{const frame=document.getElementById('tv-frame');if(frame)frame.style.transform=`scale(${Math.min(innerWidth/1920,innerHeight/1080)})`;};scale();window.addEventListener('resize',scale);return()=>window.removeEventListener('resize',scale);},[]);
-  function chooseOption(title,currentVal,items,onPick){setDialog({title,options:items.map(it=>({label:it.label,description:it.description,active:matchOptionValue(it.value,currentVal),action:()=>{onPick(it.value);setDialog(null);}}))});}
+  function chooseOption(title,currentVal,items,onPick){setDialog({title,options:items.map(it=>({label:it.label,description:it.description,swatch:it.swatch,active:matchOptionValue(it.value,currentVal),action:()=>{onPick(it.value);setDialog(null);}}))});}
   function chooseDanmakuTypes(s=current.current.settings){
     const toggle=patch=>{const next=library.setSettings(patch);setSettings(next);chooseDanmakuTypes(next);};
     setDialog({title:'弹幕类型与色彩',options:DANMAKU_TYPES.map(t=>({label:t.label+'：'+(t.on(s)?'开启':'关闭'),description:t.description,active:t.on(s),action:()=>toggle(danmakuTypePatch(t,s))})).concat({label:'完成',description:'返回弹幕样式',action:()=>setDialog(null)})});
@@ -254,7 +268,7 @@ function App({className}){
             ['播放',[['继续观看时先选集',settings.resumeToEpisodes?'开启':'关闭',()=>chooseOption('继续观看时先选集',!!settings.resumeToEpisodes,[{value:true,label:'开启',description:'从首页或历史记录继续观看时，先进入番剧选集页'},{value:false,label:'关闭',description:'从首页或历史记录继续观看时，直接续播上次的剧集'}],v=>updateSettings({resumeToEpisodes:v}))],['自动播放下一集',settings.autoplayNext?'开启':'关闭',()=>chooseOption('自动播放下一集',!!settings.autoplayNext,[{value:true,label:'开启',description:'本集播放结束后倒计时 5 秒自动连播下一集'},{value:false,label:'关闭',description:'本集播放结束后停留在当前剧集'}],v=>updateSettings({autoplayNext:v}))],
               ['跳过片头快捷键',settings.skipShortcut?'开启 · CH−/CH+ 跳 85 秒':'关闭',()=>chooseOption('跳过片头快捷键',!!settings.skipShortcut,[{value:true,label:'开启',description:'播放时按 CH−（频道下）向前、CH+（频道上）向后跳 85 秒；2 秒内连按改为每次微调 5 秒'},{value:false,label:'关闭',description:'播放时 CH− / CH+ 不做任何操作'}],v=>updateSettings({skipShortcut:v}))]]],
             ['弹幕',[['显示弹幕',settings.danmaku?'开启':'关闭',()=>chooseOption('显示弹幕',!!settings.danmaku,[{value:true,label:'开启',description:'播放时显示弹幕；与播放器控制栏的弹幕开关是同一个设置'},{value:false,label:'关闭',description:'播放时隐藏弹幕，可在播放控制栏随时打开'}],v=>updateSettings({danmaku:v}))],['弹幕样式','区域、字号、速度等',()=>go('danmakuStyle',true)],['弹幕服务','服务地址与匹配',()=>go('danmakuSettings',true)]]],
-            ['界面',[['每行番剧数量',settings.gridCols+' 部',()=>chooseOption('每行番剧数量',settings.gridCols,[{value:3,label:'3 部 / 行',description:'大尺寸海报卡片，适合较远观看距离'},{value:4,label:'4 部 / 行',description:'标准海报卡片尺寸（默认）'},{value:5,label:'5 部 / 行',description:'紧凑网格布局，单屏展示更多番剧'}],v=>updateSettings({gridCols:v}))]]],
+            ['界面',[['主题色',(THEMES.find(t=>t.value===settings.themeColor)||THEMES[0]).label,()=>chooseOption('主题色',settings.themeColor||'sakura',THEMES,v=>updateSettings({themeColor:v}))],['每行番剧数量',settings.gridCols+' 部',()=>chooseOption('每行番剧数量',settings.gridCols,[{value:3,label:'3 部 / 行',description:'大尺寸海报卡片，适合较远观看距离'},{value:4,label:'4 部 / 行',description:'标准海报卡片尺寸（默认）'},{value:5,label:'5 部 / 行',description:'紧凑网格布局，单屏展示更多番剧'}],v=>updateSettings({gridCols:v}))]]],
             ['视频源',[['默认视频源',currentSource?.name||'选择',chooseSource],['数据源订阅','在线更新与管理',()=>go('subscriptions',true)]]],
             ['关于',[['版本与来源','番源 '+APP_VERSION,()=>setDialog({title:'番源 '+APP_VERSION+' · 非官方',options:[{label:'LG Enact / Sandstone',description:'官方按钮、海报、输入框、弹窗、滚动和焦点管理；滚动弹幕渲染保留 BiliTV 的 MIT 许可与作者署名。',action:()=>{}},{label:'Animeko 原始源规则',description:'直接订阅原版在线视频源地址，每小时检查更新，保留原始 JSON。解析与播放代理均在电视上执行，不含 BT。',action:()=>{}},{label:'本地追番',description:'番剧资料来自 Bangumi，弹幕优先匹配弹弹play。没有账号同步。',action:()=>{}},{label:'关闭',action:()=>setDialog(null)}]})]]]
           ])}

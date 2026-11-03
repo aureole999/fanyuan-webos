@@ -5,9 +5,16 @@
   --surface-elevated: #232731;
   --muted: #9399a6;
   --text: #f3f5f8;
-  --accent: #f77ba6;
-  --accent-strong: #ff94ba;
-  --accent-soft: rgba(247, 123, 166, 0.15);
+  /* Theme colour (设置 → 界面 → 主题色): the accent, a lighter shade and a pale tint for accent text
+     on the dark background, and a dark ink of the same hue for text on an accent fill. Everything below derives
+     from these three, so a theme only sets them. */
+  --theme-rgb: 230, 132, 168;
+  --theme-light-rgb: 241, 167, 194;
+  --theme-ink-rgb: 34, 17, 23;
+  --theme-pale-rgb: 247, 197, 215;
+  --accent: rgb(var(--theme-rgb));
+  --accent-strong: rgb(var(--theme-light-rgb));
+  --accent-soft: rgba(var(--theme-rgb), 0.15);
   --line: rgba(255, 255, 255, 0.08);
   --focus-shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
   --ui-scale: 1;
@@ -18,24 +25,33 @@
   --sand-component-text-color-rgb: 243, 245, 248;
   /* Focus is the one bright element on screen: accent fill, dark text. Unfocused controls stay
      neutral; a primary action only tints its text, a current value adds accent text and a bar. */
-  --focus-bg: #f478a3;
-  --focus-fg: #1e1017;
-  --focus-sub: rgba(30, 16, 23, 0.72);
-  --focus-chip: rgba(30, 16, 23, 0.12);
-  --selected-fg: #ff9cc0;
-  --sand-focus-bg-color: #f478a3;
-  --sand-focus-bg-color-rgb: 244, 120, 163;
-  --sand-component-focus-text-color-rgb: 30, 16, 23;
-  --sand-selected-bg-color: rgba(247, 123, 166, 0.2);
-  --sand-selected-color-rgb: 255, 194, 217;
+  --focus-bg: rgb(var(--theme-rgb));
+  --focus-fg: rgb(var(--theme-ink-rgb));
+  --focus-sub: rgba(var(--theme-ink-rgb), 0.72);
+  --focus-chip: rgba(var(--theme-ink-rgb), 0.12);
+  --selected-fg: rgb(var(--theme-light-rgb));
+  --sand-focus-bg-color: rgb(var(--theme-rgb));
+  --sand-focus-bg-color-rgb: var(--theme-rgb);
+  --sand-component-focus-text-color-rgb: var(--theme-ink-rgb);
+  --sand-selected-bg-color: rgba(var(--theme-rgb), 0.2);
+  --sand-selected-color-rgb: var(--theme-light-rgb);
   --sand-overlay-bg-color-rgb: 27, 30, 37;
-  --sand-progress-color-rgb: 247, 123, 166;
+  --sand-progress-color-rgb: var(--theme-rgb);
   --sand-progress-bg-color-rgb: 255, 255, 255;
   --sand-progress-bg-color-alpha: 22%;
-  --sand-progress-slider-color: #f77ba6;
-  --sand-spinner-color: 247, 123, 166;
+  --sand-progress-slider-color: rgb(var(--theme-rgb));
+  --sand-spinner-color: var(--theme-rgb);
   --sand-shadow-color-rgb: 0, 0, 0;
 }
+
+/* Themes: hue only; saturation and lightness are matched so text contrast stays at or above 7:1. */
+:root[data-theme="coral"] { --theme-rgb: 228, 141, 124; --theme-light-rgb: 239, 172, 159; --theme-ink-rgb: 34, 20, 17; --theme-pale-rgb: 247, 205, 197; }
+:root[data-theme="amber"] { --theme-rgb: 223, 173, 98; --theme-light-rgb: 235, 194, 132; --theme-ink-rgb: 34, 27, 17; --theme-pale-rgb: 247, 227, 197; }
+:root[data-theme="matcha"] { --theme-rgb: 156, 195, 121; --theme-light-rgb: 179, 214, 149; --theme-ink-rgb: 25, 34, 17; --theme-pale-rgb: 221, 238, 206; }
+:root[data-theme="mint"] { --theme-rgb: 110, 196, 170; --theme-light-rgb: 138, 214, 191; --theme-ink-rgb: 17, 34, 29; --theme-pale-rgb: 205, 239, 229; }
+:root[data-theme="sky"] { --theme-rgb: 119, 181, 223; --theme-light-rgb: 152, 202, 235; --theme-ink-rgb: 17, 27, 34; --theme-pale-rgb: 198, 227, 246; }
+:root[data-theme="lavender"] { --theme-rgb: 180, 156, 222; --theme-light-rgb: 205, 187, 236; --theme-ink-rgb: 23, 17, 34; --theme-pale-rgb: 217, 202, 242; }
+:root[data-theme="silver"] { --theme-rgb: 179, 186, 198; --theme-light-rgb: 203, 209, 220; --theme-ink-rgb: 17, 23, 34; --theme-pale-rgb: 214, 219, 230; }
 
 * {
   box-sizing: border-box;
@@ -182,7 +198,7 @@ input {
 input:focus {
   border-color: var(--accent);
   background: #232630;
-  box-shadow: 0 0 0 4px rgba(247, 123, 166, 0.22);
+  box-shadow: 0 0 0 4px rgba(var(--theme-rgb), 0.22);
 }
 
 input::placeholder {
@@ -283,15 +299,15 @@ input::placeholder {
   width: 54px;
   height: 54px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(247, 123, 166, 0.22), rgba(247, 123, 166, 0.06));
-  border: 1px solid rgba(247, 123, 166, 0.32);
+  background: linear-gradient(135deg, rgba(var(--theme-rgb), 0.22), rgba(var(--theme-rgb), 0.06));
+  border: 1px solid rgba(var(--theme-rgb), 0.32);
   color: var(--accent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-right: 18px;
   flex-shrink: 0;
-  box-shadow: 0 6px 18px rgba(247, 123, 166, 0.14);
+  box-shadow: 0 6px 18px rgba(var(--theme-rgb), 0.14);
 }
 
 #root .brand-word {
@@ -364,7 +380,7 @@ input::placeholder {
 }
 
 #root .sidebar:not(:focus-within) .sidebar-item.active {
-  color: #ffacc8;
+  color: var(--accent-strong);
 }
 
 
@@ -380,13 +396,13 @@ input::placeholder {
 }
 
 #root .sidebar-item:focus {
-  color: #1c0f15;
+  color: var(--focus-fg);
   font-weight: 600;
 }
 
 #root .sidebar-item:focus .sidebar-bg {
   opacity: 1;
-  background-color: #f478a3;
+  background-color: var(--accent);
   box-shadow: none;
 }
 
@@ -536,7 +552,7 @@ input::placeholder {
   padding: 28px 34px;
   border-radius: 22px;
   background: #1c1924;
-  border: 1px solid rgba(247, 123, 166, 0.18);
+  border: 1px solid rgba(var(--theme-rgb), 0.18);
 }
 
 #root .home-intro-copy h2 {
@@ -567,9 +583,9 @@ input::placeholder {
   width: 5px;
   height: 24px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #ff98be 0%, #f06796 100%);
+  background: linear-gradient(180deg, rgb(var(--theme-light-rgb)) 0%, rgb(var(--theme-rgb)) 100%);
   margin-right: 14px;
-  box-shadow: 0 0 12px rgba(247, 123, 166, 0.45);
+  box-shadow: 0 0 12px rgba(var(--theme-rgb), 0.45);
 }
 
 #root .section-title > span {
@@ -747,8 +763,8 @@ input::placeholder {
   width: 62px;
   height: 62px;
   border-radius: 50%;
-  background-color: #f478a3;
-  color: #1c0f15;
+  background-color: var(--accent);
+  color: var(--focus-fg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -830,7 +846,7 @@ input::placeholder {
 }
 
 #root .progress-fill {
-  background: linear-gradient(90deg, #f77ba6, #ff9fc0);
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
 }
 
 #root .search-form {
@@ -841,7 +857,7 @@ input::placeholder {
 
 /* Lightweight text field (TextInput): an inset well, darker than the page with a hairline edge and
    no sheen, so it reads as a place to type rather than a button. Focus lights only the edge; while
-   typing (the native input focused) the edge stays lit and the caret is pink. */
+   typing (the native input focused) the edge stays lit and the caret takes the accent. */
 #root .fy-input {
   position: relative;
   display: flex;
@@ -1007,8 +1023,8 @@ input::placeholder {
   width: 54px;
   height: 54px;
   border-radius: 15px;
-  background: rgba(247, 123, 166, 0.14);
-  border: 1px solid rgba(247, 123, 166, 0.25);
+  background: rgba(var(--theme-rgb), 0.14);
+  border: 1px solid rgba(var(--theme-rgb), 0.25);
   color: var(--accent);
   display: inline-flex;
   align-items: center;
@@ -1186,8 +1202,8 @@ input::placeholder {
 
 #root .subject-tags span {
   padding: 5px 14px;
-  background: rgba(247, 123, 166, 0.1);
-  border: 1px solid rgba(247, 123, 166, 0.2);
+  background: rgba(var(--theme-rgb), 0.1);
+  border: 1px solid rgba(var(--theme-rgb), 0.2);
   color: #dcb8c8;
   font-size: 15px;
   border-radius: 999px;
@@ -1256,8 +1272,8 @@ input::placeholder {
 #root .episode-button small {
   display: inline-block;
   font-size: 14px;
-  color: #ffc2d8;
-  background: rgba(247, 123, 166, 0.14);
+  color: var(--accent-strong);
+  background: rgba(var(--theme-rgb), 0.14);
   padding: 2px 9px;
   border-radius: 999px;
   margin-top: 7px;
@@ -1351,8 +1367,8 @@ input::placeholder {
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(135deg, rgba(84, 38, 52, 0.85), rgba(56, 29, 39, 0.85));
-  color: #ffd0db;
-  border: 1px solid rgba(247, 123, 166, 0.35);
+  color: rgb(var(--theme-pale-rgb));
+  border: 1px solid rgba(var(--theme-rgb), 0.35);
   border-radius: 16px;
   font-size: 20px;
   padding: 16px 24px;
@@ -1404,9 +1420,9 @@ input::placeholder {
 
 #root .settings-row .control-label {
   font-size: 19px;
-  color: #ffb8d2;
-  background: rgba(247, 123, 166, 0.12);
-  border: 1px solid rgba(247, 123, 166, 0.24);
+  color: var(--accent-strong);
+  background: rgba(var(--theme-rgb), 0.12);
+  border: 1px solid rgba(var(--theme-rgb), 0.24);
   padding: 5px 16px;
   border-radius: 999px;
   font-weight: 500;
@@ -1516,9 +1532,9 @@ input::placeholder {
   border-radius: 999px;
   font-size: 17px;
   font-weight: 600;
-  background: rgba(247, 123, 166, 0.22);
-  border: 1px solid rgba(247, 123, 166, 0.45);
-  color: #ffd0e2;
+  background: rgba(var(--theme-rgb), 0.22);
+  border: 1px solid rgba(var(--theme-rgb), 0.45);
+  color: rgb(var(--theme-pale-rgb));
 }
 
 #root .dialog-option-check > * {
@@ -1543,7 +1559,7 @@ input::placeholder {
   transform: translateX(-50%);
   background: linear-gradient(135deg, rgba(44, 36, 48, 0.96), rgba(30, 28, 38, 0.96));
   color: #fff;
-  border: 1px solid rgba(247, 123, 166, 0.45);
+  border: 1px solid rgba(var(--theme-rgb), 0.45);
   border-radius: 999px;
   padding: 16px 32px;
   font-size: 22px;
@@ -1855,7 +1871,7 @@ input::placeholder {
 
 #root .error-text {
   font-size: 20px;
-  color: #ffb8ca;
+  color: var(--accent-strong);
 }
 
 #root .player-match-list {
@@ -1872,8 +1888,8 @@ input::placeholder {
   padding: 10px 20px;
   border-radius: 999px;
   background: rgba(24, 25, 32, 0.75);
-  border: 1px solid rgba(247, 123, 166, 0.35);
-  color: #ffd2e2;
+  border: 1px solid rgba(var(--theme-rgb), 0.35);
+  color: rgb(var(--theme-pale-rgb));
 }
 
 #root .next-countdown .fy-button {
@@ -1932,7 +1948,7 @@ input::placeholder {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #f77ba6, #ffa1c3);
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
 }
 
 #root .subscription-add {
@@ -1976,8 +1992,8 @@ input::placeholder {
   margin-left: 14px;
   padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(247, 123, 166, 0.14);
-  color: #ffb8d2;
+  background: rgba(var(--theme-rgb), 0.14);
+  color: var(--accent-strong);
 }
 
 #root .subscription-card p {
@@ -1988,7 +2004,7 @@ input::placeholder {
 
 #root .subscription-url {
   font-size: 19px;
-  color: #e8d2dc;
+  color: rgb(var(--theme-pale-rgb));
   background: rgba(0, 0, 0, 0.24);
   border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 12px 16px;
@@ -2010,11 +2026,11 @@ input::placeholder {
 
 #root .subscription-working {
   font-size: 21px;
-  color: #ffc2d9;
+  color: var(--accent-strong);
   padding: 16px 22px;
   border-radius: 14px;
-  background: rgba(247, 123, 166, 0.12);
-  border: 1px solid rgba(247, 123, 166, 0.25);
+  background: rgba(var(--theme-rgb), 0.12);
+  border: 1px solid rgba(var(--theme-rgb), 0.25);
   margin-bottom: 20px;
 }
 
@@ -2477,7 +2493,7 @@ input::placeholder {
   height: 28px;
   margin: -14px 0 0 -14px;
   background: var(--focus-bg);
-  box-shadow: 0 0 0 5px rgba(244, 120, 163, 0.35);
+  box-shadow: 0 0 0 5px rgba(var(--theme-rgb), 0.35);
 }
 
 #root .scrub-bubble {
@@ -2526,7 +2542,7 @@ input::placeholder {
 }
 
 #root .next-countdown {
-  border-color: rgba(247, 123, 166, 0.35);
+  border-color: rgba(var(--theme-rgb), 0.35);
 }
 
 #root .player-panel {
@@ -2534,7 +2550,7 @@ input::placeholder {
   box-shadow: var(--glass-shine), 0 20px 60px rgba(0, 0, 0, 0.55);
 }
 
-/* Focused: the pink fill; the sheen comes from the app-wide pseudo-element below. */
+/* Focused: the accent fill; the sheen comes from the app-wide pseudo-element below. */
 #root .player-button:focus .control-bg {
   background: var(--focus-bg);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
@@ -2569,7 +2585,7 @@ input::placeholder {
 /* Poster cards get the same top sheen as buttons, over the whole card (art included),
    fading out over a fixed 16px like a 60px button's 25%. A 1px inner edge runs around the
    whole card, over the art and the title alike, so the two read as one piece. Static,
-   no transition: a focus change repaints only that card, as the pink fill already does. */
+   no transition: a focus change repaints only that card, as the accent fill already does. */
 #root .poster-entry::after {
   content: '';
   position: absolute;
@@ -2623,3 +2639,19 @@ input::placeholder {
 #root .primary-play .play-button-icon { flex: 0 0 24px; }
 #root .primary-play .play-button-icon .fy-icon { margin: 0; vertical-align: middle; }
 #root .primary-play .play-button-label { display: block; }
+
+/* Theme picker: a swatch of each theme's accent before its name. */
+#root .dialog-swatch {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  /* The label clips overflow; leave room for the 2px ring on the left. */
+  margin: 0 14px 0 3px;
+  border-radius: 50%;
+  vertical-align: -3px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+#root .dialog-option:focus .dialog-swatch {
+  box-shadow: 0 0 0 2px var(--focus-fg);
+}

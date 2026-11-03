@@ -39,6 +39,15 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   const optionTops=()=>evaluate('JSON.stringify([...document.querySelectorAll(".dialog-option")].map(e=>Math.round(e.getBoundingClientRect().top)))');
   const before=await optionTops();await key('ArrowDown');assert.equal(await evaluate('window.__focusState().current'),'dialog-1');await new Promise(r=>setTimeout(r,500));assert.equal(await optionTops(),before,'options must not scroll');
   await key('Escape');await wait('!document.querySelector(".selection-popup")');
+  // 主题色: picking a theme switches the accent everywhere; the setting survives as the page root's data-theme.
+  const themeRow='[...document.querySelectorAll(".settings-row")].find(e=>e.textContent.includes("主题色"))';
+  await evaluate(themeRow+'.click(),1');await wait('!!document.querySelector(".dialog-swatch")');
+  assert.equal(await evaluate('document.querySelectorAll(".dialog-swatch").length'),8);
+  await evaluate('[...document.querySelectorAll(".dialog-option")].find(e=>e.textContent.includes("天蓝")).click(),1');await wait('!document.querySelector(".selection-popup")');
+  assert.equal(await evaluate('document.documentElement.dataset.theme'),'sky');assert.equal(await evaluate('getComputedStyle(document.documentElement).getPropertyValue("--focus-bg").trim()'),'rgb(119, 181, 223)');
+  assert.match(await evaluate(themeRow+'.textContent'),/天蓝/);
+  await evaluate(themeRow+'.click(),1');await wait('!!document.querySelector(".dialog-swatch")');
+  await evaluate('[...document.querySelectorAll(".dialog-option")].find(e=>e.textContent.includes("樱粉")).click(),1');await wait('!document.querySelector(".selection-popup")');assert.equal(await evaluate('document.documentElement.dataset.theme'),'sakura');
   console.log('UI: direct search');await page('search');await wait('window.__focusState().current==="content-0-0"');await key('Enter');await cdp('Input.insertText',{text:'测试番'});await key('Enter');await wait('window.__fanYuan.state.results.length===1');assert.equal(await evaluate('window.__focusState().paused'),false);assert.equal(await evaluate('window.__fixture.calls.search'),1);assert.equal(await evaluate('window.__fixture.calls.bangumiSearch'),1);
   await key('ArrowUp');assert.equal(await evaluate('window.__focusState().current'),'content-0-0');
   console.log('UI: calendar');await page('calendar');await wait('window.__focusState().current==="content-0-0"');await key('ArrowRight');await key('ArrowRight');await key('ArrowDown');assert.match(await evaluate('window.__focusState().current'),/^content-[1-9]/);
