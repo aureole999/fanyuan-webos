@@ -224,7 +224,7 @@ function App({className}){
   const relatedLabel=x=>(x.relation==='系列'?(x.date&&meta?.date&&x.date<meta.date?'前传':'续集'):x.relation)+(x.date?' · '+x.date.slice(0,4):x.platform?' · '+x.platform:'');
   const favorites=library.favorites(),history=library.history(),todayItems=calendar.find(d=>d.id===today)?.items||[],dayItems=calendar.find(d=>d.id===day)?.items||[];
   // Page-level notes sit in the fixed header, outside the scroller, so they never need focus to be seen.
-  const subtitle={settings:'设置与追番数据仅保存在本机，不需要登录账号。',subscriptions:'订阅直接下载到这台电视，应用运行时每小时检查更新；下载失败会保留缓存，不导入 BT。',danmakuSettings:'自动匹配优先选择弹弹play，其他平台作为备用；播放时可在弹幕设置里调整偏移或手动匹配。',danmakuStyle:'对所有番剧生效；播放时在弹幕面板里修改的也是同一套设置。'}[page];
+  const subtitle={settings:'设置与追番数据仅保存在本机，不需要登录账号。',subscriptions:'订阅直接下载到这台电视，应用运行时每小时检查更新；下载失败会保留缓存，不导入 BT。',danmakuSettings:'默认服务无需配置；推荐自建 danmu_api。播放时可调整弹幕偏移或手动匹配。',danmakuStyle:'对所有番剧生效；播放时在弹幕面板里修改的也是同一套设置。'}[page];
   const todayHeading=<h2 className="section-title">今日放送 <span>{DAY[today-1]} · Bangumi</span></h2>,todayRow=history.length?2:1;
   // 本季热门 and 高分经典 follow 今日放送; 高分经典 is a daily pick from Bangumi's top 300 minus shows
   // already watched, saved or listed as popular.

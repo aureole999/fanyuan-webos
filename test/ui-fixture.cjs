@@ -2,7 +2,7 @@ const http=require('http'),fs=require('fs'),path=require('path');
 function fixture(){
  const subject={id:'fixture',name:'测试番剧',url:'https://example.invalid/fixture',sourceId:'fixture',episodeCount:12};
  const episodes=Array.from({length:12},(_,i)=>({id:'ep'+(i+1),name:i===0?'1 The Unstoppable Chambermaid — a very long episode title':'第'+(i+1)+'集',sort:i+1,type:'main',url:'https://example.invalid/ep'+i}));
- const settings={customEnabled:true,customUrl:'https://example.invalid',hasCustomToken:true};
+ const settings={defaultUrl:'https://danmu-api.aureole999.workers.dev',customEnabled:true,customUrl:'https://example.invalid',hasCustomToken:true};
  const subscription={id:'fixture-sub',url:'https://example.invalid/sub.json',enabled:true,updatePeriod:3600000,metadata:{name:'测试订阅'},sourceCount:2};
  window.__fixture={failDetail:false,errors:[],calls:{},last:{}};
  window.addEventListener('error',e=>window.__fixture.errors.push(e.message));

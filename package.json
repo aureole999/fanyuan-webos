@@ -1,6 +1,6 @@
 {
   "name": "fanyuan-webos",
-  "version": "0.7.7",
+  "version": "0.7.9",
   "private": true,
   "license": "AGPL-3.0",
   "scripts": {

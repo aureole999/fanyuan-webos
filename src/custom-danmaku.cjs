@@ -77,11 +77,14 @@ class CustomDanmaku{
  }
  async freshAnime(selection){
   const list=await this.search(selection.query||canonicalName(selection.subjectName));const found=list.find(a=>sameAnime(a,selection));
-  if(!found){const e=error('此前选择的弹幕番剧已变化，请重新手动选择');e.noRetry=true;throw e;}return found;
+  if(!found){const e=error('当前弹幕服务没有此前手动选择的番剧，请重新选择');e.code='MANUAL_SUBJECT_MISSING';e.noRetry=true;throw e;}return found;
  }
  async detail(anime){
   const data=await this.api('/bangumi/'+encodeURIComponent(anime.id)),b=data.bangumi;
   if(!b||String(b.animeTitle||'')!==anime.name||(b.bangumiId&&anime.sourceKey&&String(b.bangumiId)!==anime.sourceKey))throw error('弹幕缓存已失效，将重新搜索',404);
+  return this.detailRows(anime,b);
+ }
+ detailRows(anime,b){
   if(!Array.isArray(b.episodes))throw error('弹幕服务未返回剧集列表');
   return b.episodes.map(e=>({id:String(e.episodeId),number:episodeNumber(e),episodeName:stripEpisode(e.episodeTitle),displayName:e.episodeTitle||String(e.episodeId),subjectName:canonicalName(anime.name),selection:Object.assign({query:anime.query},animeIdentity(anime),{episodeNumber:episodeNumber(e),episodeName:stripEpisode(e.episodeTitle)})})).filter(e=>/^\d+$/.test(e.id));
  }
@@ -98,39 +101,51 @@ class CustomDanmaku{
    const anime=await this.freshAnime(selection),rows=await this.detail(anime),expected=normalizeEpisode(selection.episodeName),exact=expected?rows.filter(e=>normalizeEpisode(e.episodeName)===expected):[];
    const numbered=selection.episodeNumber!=null?rows.find(e=>e.number!=null&&normalizeNumber(e.number)===normalizeNumber(selection.episodeNumber)):null;
    const episode=exact.length===1?exact[0]:numbered;
-   if(!episode){const e=error('此前选择的弹幕剧集已变化，请重新选择');e.noRetry=true;throw e;}
+   if(!episode){const e=error('此前选择的弹幕剧集已变化，请重新选择');e.code='MANUAL_EPISODE_MISSING';e.noRetry=true;throw e;}
    return await this.comments(anime,episode,'manual');
   }catch(e){if(e.statusCode!==404||attempt)throw e;}
  }
- // Marks rows already found by title search; searches the verified title only when it was not tried.
- async recoverSubject(r,all,attempted){
-  const identity=await this.identity.resolve(r);if(!identity)return false;
-  const same=a=>a.source===identity.source&&a.sourceKey===identity.sourceKey;
-  let resolved=all.filter(same);
-  if(!resolved.length&&!attempted.includes(identity.query)){attempted.push(identity.query);resolved=(await this.search(identity.query)).filter(same);all.push(...resolved);}
-  for(const a of resolved)a.confirmedSubjectId=identity.subjectId;
-  return resolved.length>0;
+ // A cross-database identity is verified before any title-only candidate can supply comments.
+ async identified(r){
+  const identity=await this.identity.resolve(r);if(!identity)return null;
+  try{
+   const b=(await this.api('/bangumi/'+encodeURIComponent(identity.sourceKey))).bangumi;
+   const source=b&&String(b.source||(/from\s+([\w&-]+)\s*$/i.exec(b.animeTitle||'')||[])[1]||'').split('&');
+   const correct=b&&(this.isPublic()?String(b.animeId)===identity.sourceKey:String(b.bangumiId)===identity.sourceKey&&source.includes('dandan'));
+   if(correct){const anime={id:identity.sourceKey,name:b.animeTitle,source:'dandan',sourceKey:identity.sourceKey,query:identity.query,confirmedSubjectId:identity.subjectId};return {anime,rows:this.detailRows(anime,b)};}
+   this.record('identityDetailMismatch',{sourceKey:identity.sourceKey});
+  }catch(e){if(e.noRetry)throw e;this.record('identityDetailUnavailable',{sourceKey:identity.sourceKey,status:e.statusCode||null});}
+  // danmu_api may need a search to populate its cache. Keep only the exact platform ID.
+  const anime=(await this.search(identity.query)).find(a=>a.source==='dandan'&&a.sourceKey===identity.sourceKey);
+  if(!anime)return null;anime.confirmedSubjectId=identity.subjectId;
+  return {anime,rows:await this.detail(anime)};
+ }
+ async identifiedResult(r){
+  for(let attempt=0;attempt<2;attempt++){
+   const verified=await this.identified(r);if(!verified)return null;
+   const found=matchEpisodes(r,verified.rows,true);
+   if(!found||found.method==='fuzzyEpisode'){this.record('identityEpisodeMissing',{sourceKey:verified.anime.sourceKey,episodeSort:r.episodeSort,episodeEp:r.episodeEp});return null;}
+   try{return await this.comments(verified.anime,found.episode,'auto:subjectId:'+found.method);}
+   catch(e){if(e.noRetry||e.statusCode!==404||attempt)throw e;}
+  }
+  return null;
  }
  async automatic(r){
   let lastError,emptyResult;
+  try{const result=await this.identifiedResult(r);if(result&&result.items.length)return result;if(result)emptyResult=result;}
+  catch(e){if(e.noRetry)throw e;lastError=e;}
   const queries=[],seenQueries=new Set();for(const name of [r.subjectPrimaryName].concat(r.subjectNames||[])){if(typeof name!=='string'||!name.trim())continue;const key=normalize(name);if(!seenQueries.has(key)){seenQueries.add(key);queries.push(name.trim());}}
-  if(!queries.length)return this.empty('noMatch','缺少番剧名，请手动匹配');
+  if(!queries.length)return emptyResult||this.empty('noMatch','缺少番剧名，请手动匹配');
   const compact=[];for(const name of queries){const prefix=name.split(/[～~:：]/)[0].trim();if(prefix.length>=2&&prefix!==name&&!seenQueries.has(normalize(prefix))){seenQueries.add(normalize(prefix));compact.push(prefix);}}
   const plan=queries.slice(0,3).concat(compact.slice(0,4)),hasDandan=all=>rankAnimes(all,r).some(a=>a.source==='dandan');
   const baseQueries=r.matchingContext?require('./episode-matching.cjs').familyBases(r.matchingContext).filter(q=>!plan.includes(q)).slice(0,3):[];let fallbackPass=false;
   for(let recovery=0;recovery<2;recovery++){
    const all=[],identities=new Set(),attempted=[],add=rows=>{for(const a of rows){const key=a.source+'|'+(a.sourceKey||a.name);if(!identities.has(key)){identities.add(key);all.push(a);}}};
-   // A verified identity from an earlier episode skips the title plan entirely.
-   const known=!fallbackPass&&this.identity.cached(r);
-   if(known){attempted.push(known.query);try{add((await this.search(known.query)).filter(a=>a.source===known.source&&a.sourceKey===known.sourceKey).map(a=>Object.assign(a,{confirmedSubjectId:known.subjectId})));}catch(e){if(e.noRetry)throw e;lastError=e;}}
    if(!all.length)for(const query of plan){
     if(attempted.includes(query))continue;attempted.push(query);
     try{add(await this.search(query));}catch(e){if(e.noRetry)throw e;lastError=e;}
     if(hasDandan(all))break;
    }
-   // Exact titles stay the fast path. A missing or renamed preferred entry is
-   // recovered by a cross-database ID, never by guessing a sequel number.
-   if(!hasDandan(all)){try{await this.recoverSubject(r,all,attempted);}catch(e){if(e.noRetry)throw e;lastError=e;}}
    const candidates=rankAnimes(all,r).slice(0,4);this.record('candidates',{queries:attempted,episodeSort:r.episodeSort,episodeEp:r.episodeEp,total:all.length,candidates:candidates.map(a=>({source:a.source,name:a.name}))});
    if(!candidates.length){if(lastError)throw lastError;return this.empty('noMatch','未找到同名番剧和季度，请手动匹配');}
    let stale=false,commentRequests=0;
@@ -146,11 +161,14 @@ class CustomDanmaku{
   if(emptyResult)return emptyResult;if(lastError)throw lastError;
   return this.empty('noMatch','自动匹配未取得弹幕，可手动选择番剧和集数');
  }
- // A manual choice stays authoritative. Only an empty one may be replaced, and
- // only by a result verified through the Bangumi subject ID, never by a title guess.
+ // Keep populated manual choices. A missing/empty selection can recover only through verified IDs.
  async manualWithRecovery(r,selection){
-  const result=await this.manual(r,selection);if(result.items.length)return result;
-  try{const recovered=await this.automatic(r);if(recovered.items.length&&/^auto:subjectId:/.test(recovered.match&&recovered.match.method||''))return recovered;}catch(e){}
+  let result,missing;
+  try{result=await this.manual(r,selection);if(result.items.length)return result;}
+  catch(e){if(!['MANUAL_SUBJECT_MISSING','MANUAL_EPISODE_MISSING'].includes(e.code))throw e;missing=e;}
+  try{const recovered=await this.identifiedResult(r);if(recovered&&recovered.items.length)return recovered;}
+  catch(e){if(e.noRetry)throw e;}
+  if(missing)throw missing;
   return result;
  }
  empty(status,message){return {provider:'custom',status,message,groups:[{id:'custom',name:LABEL,provider:'custom',count:0,status,message}],items:[]};}

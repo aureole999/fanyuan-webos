@@ -29,7 +29,7 @@ function splitMatcher(r){
 function matchEpisodes(r,rows,mappedToSelf){
  if(!rows||!rows.length)return null;
  if(r.matchingContext&&!r.episodeType){
-  const result=require('./episode-matching.cjs').matchPage(r.matchingContext,{name:rows[0].subjectName,danmaku:true,episodes:rows.map(e=>Object.assign({},e,{name:e.episodeName,genericTitle:!e.episodeName}))});
+  const result=require('./episode-matching.cjs').matchPage(r.matchingContext,{name:rows[0].subjectName,danmaku:true,confirmed:!!mappedToSelf,episodes:rows.map(e=>Object.assign({},e,{name:e.episodeName,genericTitle:!e.episodeName}))});
   const found=result.matches.find(m=>r.episodeId?Number(m.episode.id)===Number(r.episodeId):Number(m.episode.sort)===Number(r.episodeSort));
   return found?{episode:found.row,method:'canonical:'+found.method}:null;
  }

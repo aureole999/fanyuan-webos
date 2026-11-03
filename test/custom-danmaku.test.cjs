@@ -40,7 +40,7 @@ test('manual matching persists platform identity and episode number, never reuse
  const r=await c.load(ctx,selection);assert.equal(r.episodeId,'888');assert.equal(r.match.method,'manual');
 });
 test('auth and rate-limit errors are actionable, non-retryable, and never echo Token-bearing URLs',async()=>{
- for(const status of [401,403,429]){let calls=0;const c=make(u=>{calls++;throw Error('源站返回 HTTP '+status+' '+u.href);});await assert.rejects(c.load(ctx),e=>e.statusCode===status&&e.noRetry&&!e.message.includes('private-token'));assert.equal(calls,1);}
+ for(const status of [401,403,429]){let calls=0;const c=make(u=>{if(u.hostname==='self.example')calls++;throw Error('源站返回 HTTP '+status+' '+u.href);});await assert.rejects(c.load(ctx),e=>e.statusCode===status&&e.noRetry&&!e.message.includes('private-token'));assert.equal(calls,1);}
 });
 test('transient comment 404 re-resolves IDs, while repeated successful loads reuse comment data',async()=>{
  let searches=0,requests=0;const c=make(u=>{if(u.pathname.endsWith('/search/anime'))return {animes:[anime(++searches)]};if(u.pathname.includes('/bangumi/'))return detail(searches*10);if(u.pathname.includes('/comment/')){requests++;if(requests===1)throw Error('源站返回 HTTP 404');return comments;}});
@@ -135,6 +135,7 @@ function identityFixture(options={}){
    return {animes:[{animeId:1,bangumiId:'future-part',animeTitle:'星旅 第三季 第2部分(未知)【TV动画】from dandan',source:'dandan'},{animeId:2,bangumiId:'renren-show',animeTitle:'星旅 第三季(2026)【动画】from renren',source:'renren'}]};
   }
   if(u.pathname.includes('/bangumi/')){
+   if(u.pathname.endsWith('/700')){if(!options.direct)throw Error('源站返回 HTTP 404');state.generation++;}
    const verified=Number(u.pathname.split('/').pop())>100;
    return {bangumi:{animeTitle:verified?'星旅 续篇(2026)【TV动画】from dandan':'星旅 第三季(2026)【动画】from renren',bangumiId:verified?'700':'renren-show',episodes:[...Array.from({length:5},(_,i)=>({episodeId:(verified?state.generation*1000:200)+i+1,episodeNumber:i+1,episodeTitle:'第'+(i+1)+'话'})),...(options.cumulative?[{episodeId:999,episodeNumber:53,episodeTitle:'第53话'}]:[])]}};
   }
@@ -176,4 +177,61 @@ test('a mirror answer without a matching subject is remembered across episodes',
 test('verified recovery does not repeat a title search that already ran',async()=>{
  const {client,current,state}=identityFixture();await client.load({...current,episodeSort:49,episodeEp:1});
  assert.equal(state.customQueries.filter(q=>q==='星旅 续篇').length,1);
+});
+test('verified IDs are tried before any populated title-only fallback and need no custom title search',async()=>{
+ const {client,current,state}=identityFixture({direct:true});
+ const r=await client.load({...current,episodeSort:53,episodeEp:5});
+ assert.equal(r.match.method,'auto:subjectId:exactEp');assert.equal(r.match.episodeName,'第5话');assert.equal(r.items.length,1);assert.deepEqual(state.customQueries,[]);assert.ok(state.comments.every(id=>id>1000));
+});
+test('a verified direct episode with an expired cache ID is refreshed before requesting comments again',async()=>{
+ const {client,current,state}=identityFixture({direct:true}),request=client.request;let stale=true;
+ client.request=async(url,opts)=>{if(new URL(url).pathname.includes('/comment/')&&stale){stale=false;throw Error('HTTP 404');}return request(url,opts);};
+ const r=await client.load({...current,episodeSort:53,episodeEp:5});assert.equal(r.items.length,1);assert.equal(r.match.method,'auto:subjectId:exactEp');assert.equal(state.generation,2);assert.deepEqual(state.customQueries,[]);
+});
+test('direct numeric ID collisions across platforms are rejected before falling back to an exact source ID search',async()=>{
+ const {client,current,state}=identityFixture({direct:true}),request=client.request;
+ client.request=async(url,opts)=>{const u=new URL(url);if(u.hostname==='self.example'&&u.pathname.endsWith('/bangumi/700'))return {text:JSON.stringify({bangumi:{animeId:700,bangumiId:'700',animeTitle:'同号的其他作品 from renren',source:'renren',episodes:[{episodeId:999,episodeNumber:5,episodeTitle:'第5话'}]}})};return request(url,opts);};
+ const r=await client.load({...current,episodeSort:53,episodeEp:5});assert.equal(r.match.method,'auto:subjectId:exactEp');assert.ok(!state.comments.includes(999));assert.deepEqual(state.customQueries,['星旅 续篇']);
+});
+test('a populated explicit manual source still overrides a verified automatic ID',async()=>{
+ const {client,current,state}=identityFixture({direct:true}),request=client.request;
+ client.request=async(url,opts)=>{if(new URL(url).pathname.endsWith('/comment/205'))return {text:JSON.stringify(comments)};return request(url,opts);};
+ const selection={query:'星旅 第三季',subjectName:'星旅 第三季(2026)【动画】from renren',source:'renren',sourceKey:'renren-show',episodeNumber:5,episodeName:''};
+ const r=await client.load({...current,episodeSort:53,episodeEp:5},selection);assert.equal(r.match.method,'manual');assert.equal(r.items[0].serviceId,'custom:renren');assert.equal(state.metadataSearch,0);
+});
+test('captured Kusuriya third-season ID beats the future-part and populated Animeko/Renren title results',async()=>{
+ const f=require('./fixtures/multiseason/kusuriya-id.json'),calls=[];
+ const c=make(u=>{const endpoint=u.hostname==='api.danmaku.weeblify.app'?u.searchParams.get('path'):u.pathname.split('/api')[1];calls.push(endpoint);
+  if(u.hostname==='api.danmaku.weeblify.app')return endpoint.startsWith('/v2/search/')?{animes:[{animeId:f.publicDetail.animeId,animeTitle:f.publicDetail.animeTitle}]}:{bangumi:f.publicDetail};
+  if(endpoint==='/v2/bangumi/19444')return {bangumi:f.selfDetail};
+  if(endpoint==='/v2/search/anime')return {animes:f.titleSearch.map(a=>({animeId:a.id,animeTitle:a.name,source:a.source,bangumiId:a.sourceKey}))};
+  if(endpoint==='/v2/comment/15297')return comments;
+  if(endpoint.startsWith('/v2/comment/'))return {comments:Array.from({length:7},(_,i)=>({...comments.comments[0],cid:i}))};
+  throw Error('Unexpected '+endpoint);
+ });
+ const r=await c.load({...ctx,subjectId:f.subjectId,episodeId:f.episodeId,subjectPrimaryName:f.matchingContext.subject.name,subjectNames:[f.matchingContext.subject.name,f.matchingContext.subject.originalName],episodeSort:f.episodeSort,episodeEp:f.episodeEp,episodeName:'白蛇仙女',episodeNames:['白蛇仙女'],matchingContext:f.matchingContext});
+ assert.equal(r.match.method,'auto:subjectId:canonical:ep');assert.match(r.match.subjectName,/续篇/);assert.match(r.match.episodeName,/第5话/);assert.equal(r.episodeId,'15297');assert.equal(r.items[0].serviceId,'custom:dandan');assert.ok(!calls.includes('/v2/search/anime'));assert.deepEqual(calls.filter(x=>x.startsWith('/v2/comment/')),['/v2/comment/15297']);
+});
+
+test('default read-only service never receives the saved custom Token and mode changes preserve custom configuration',async t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fy-default-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const s=new DanmakuSettings(dir);await s.init();
+ assert.deepEqual(s.custom(),{url:'https://danmu-api.aureole999.workers.dev',token:''});assert.equal(s.status().usingDefault,true);
+ await s.configure({customEnabled:true,customUrl:'https://self.example',customToken:'private-only'});await s.configure({customEnabled:false});assert.equal(s.custom().token,'');assert.equal(s.status().hasCustomToken,true);
+ const loaded=new DanmakuSettings(dir);await loaded.init();assert.equal(loaded.status().usingDefault,true);await loaded.configure({customEnabled:true});assert.equal(loaded.custom().token,'private-only');assert.equal(loaded.custom().url,'https://self.example');assert.ok(!JSON.stringify(loaded.status()).includes('private-only'));
+});
+test('selecting an unconfigured custom service never silently sends requests to the default service',async t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fy-empty-custom-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const s=new DanmakuSettings(dir);await s.init();await s.configure({customEnabled:true});assert.equal(s.custom().url,'');assert.equal(s.status().usingDefault,false);
+});
+test('switching to a service without the saved manual platform recovers by verified ID without changing the choice',async()=>{
+ const {client,current,state}=identityFixture({direct:true}),request=client.request,selection={query:'星旅 第三季',subjectName:'旧平台条目',source:'animeko',sourceKey:'old-server-id',episodeNumber:53,episodeName:'重逢'},before=JSON.stringify(selection);
+ const r=await client.load({...current,episodeSort:53,episodeEp:5},selection);assert.equal(r.match.method,'auto:subjectId:exactEp');assert.equal(r.items.length,1);assert.equal(JSON.stringify(selection),before);assert.ok(state.comments.every(id=>id>1000));
+});
+test('an unavailable manual source never recovers by a name-only guess when identity verification fails',async()=>{
+ for(const options of [{offline:true},{otherSubject:true}]){const {client,current,state}=identityFixture(options),selection={query:'星旅 第三季',subjectName:'旧平台条目',source:'animeko',sourceKey:'old-id',episodeNumber:53,episodeName:''};await assert.rejects(client.load({...current,episodeSort:53,episodeEp:5},selection),e=>e.code==='MANUAL_SUBJECT_MISSING');assert.equal(state.comments.length,0);}
+});
+test('an obsolete manual episode can recover the requested Bangumi episode but not a guessed chapter',async()=>{
+ const {client,current}=identityFixture({direct:true}),selection={query:'星旅 第三季',subjectName:'星旅 第三季(2026)【动画】from renren',source:'renren',sourceKey:'renren-show',episodeNumber:53,episodeName:''};const r=await client.load({...current,episodeSort:53,episodeEp:5},selection);assert.equal(r.match.episodeName,'第5话');assert.equal(r.match.method,'auto:subjectId:exactEp');
+});
+test('manual authentication failures never turn into automatic recovery requests',async()=>{
+ const {client,current,state}=identityFixture({direct:true});client.request=async()=>{throw Error('HTTP 403');};await assert.rejects(client.load(current,{query:'x',source:'animeko'}),e=>e.statusCode===403);assert.equal(state.metadataSearch,0);
 });

@@ -1,0 +1,876 @@
+{
+  "note": "Captured public metadata and self-hosted detail, 2026-11-03. No comments, access tokens or transient video URLs.",
+  "subjectId": 568244,
+  "episodeId": 1738551,
+  "episodeSort": 53,
+  "episodeEp": 5,
+  "matchingContext": {
+    "subject": {
+      "id": 568244,
+      "bgmId": 568244,
+      "name": "药屋少女的呢喃 第三季",
+      "name_cn": "药屋少女的呢喃 第三季",
+      "originalName": "薬屋のひとりごと 第3期",
+      "date": "2026-10-02",
+      "aliases": [
+        "Kusuriya no Hitorigoto 3rd Season",
+        "The Apothecary Diaries Season 3"
+      ],
+      "inlineSpecialCount": 0,
+      "episodes": [
+        {
+          "id": 1738547,
+          "type": 0,
+          "ep": 1,
+          "sort": 49,
+          "name": "蝗(いなご)",
+          "name_cn": "蝗虫"
+        },
+        {
+          "id": 1738548,
+          "type": 0,
+          "ep": 2,
+          "sort": 50,
+          "name": "火鼠の皮衣",
+          "name_cn": "火鼠的皮衣"
+        },
+        {
+          "id": 1738549,
+          "type": 0,
+          "ep": 3,
+          "sort": 51,
+          "name": "麺麭がなければ",
+          "name_cn": "何不食肉糜"
+        },
+        {
+          "id": 1738550,
+          "type": 0,
+          "ep": 4,
+          "sort": 52,
+          "name": "最後の一冊",
+          "name_cn": "最后一册"
+        },
+        {
+          "id": 1738551,
+          "type": 0,
+          "ep": 5,
+          "sort": 53,
+          "name": "白蛇仙女",
+          "name_cn": "白蛇仙女"
+        },
+        {
+          "id": 1738552,
+          "type": 0,
+          "ep": 6,
+          "sort": 54,
+          "name": "紙の村",
+          "name_cn": ""
+        },
+        {
+          "id": 1738553,
+          "type": 0,
+          "ep": 7,
+          "sort": 55,
+          "name": "",
+          "name_cn": ""
+        },
+        {
+          "id": 1738554,
+          "type": 0,
+          "ep": 8,
+          "sort": 56,
+          "name": "",
+          "name_cn": ""
+        },
+        {
+          "id": 1738555,
+          "type": 0,
+          "ep": 9,
+          "sort": 57,
+          "name": "",
+          "name_cn": ""
+        },
+        {
+          "id": 1738556,
+          "type": 0,
+          "ep": 10,
+          "sort": 58,
+          "name": "",
+          "name_cn": ""
+        },
+        {
+          "id": 1738557,
+          "type": 0,
+          "ep": 11,
+          "sort": 59,
+          "name": "",
+          "name_cn": ""
+        },
+        {
+          "id": 1738558,
+          "type": 0,
+          "ep": 12,
+          "sort": 60,
+          "name": "",
+          "name_cn": ""
+        }
+      ]
+    },
+    "series": [
+      {
+        "id": 420628,
+        "bgmId": 420628,
+        "name": "药屋少女的呢喃",
+        "name_cn": "药屋少女的呢喃",
+        "originalName": "薬屋のひとりごと",
+        "date": "2023-10-21",
+        "aliases": [
+          "药师少女的独语",
+          "Kusuriya no Hitorigoto",
+          "The Apothecary Diaries"
+        ],
+        "inlineSpecialCount": 0,
+        "episodes": [
+          {
+            "id": 1244591,
+            "type": 0,
+            "ep": 1,
+            "sort": 1,
+            "name": "猫猫",
+            "name_cn": "猫猫"
+          },
+          {
+            "id": 1244592,
+            "type": 0,
+            "ep": 2,
+            "sort": 2,
+            "name": "無愛想な薬師",
+            "name_cn": "冷漠的药师"
+          },
+          {
+            "id": 1244593,
+            "type": 0,
+            "ep": 3,
+            "sort": 3,
+            "name": "幽霊騒動",
+            "name_cn": "幽灵作祟"
+          },
+          {
+            "id": 1244594,
+            "type": 0,
+            "ep": 4,
+            "sort": 4,
+            "name": "恫喝",
+            "name_cn": "威胁"
+          },
+          {
+            "id": 1244595,
+            "type": 0,
+            "ep": 5,
+            "sort": 5,
+            "name": "暗躍",
+            "name_cn": "秘密行动"
+          },
+          {
+            "id": 1244596,
+            "type": 0,
+            "ep": 6,
+            "sort": 6,
+            "name": "園遊会",
+            "name_cn": "游园会"
+          },
+          {
+            "id": 1244597,
+            "type": 0,
+            "ep": 7,
+            "sort": 7,
+            "name": "里帰り",
+            "name_cn": "返家"
+          },
+          {
+            "id": 1244598,
+            "type": 0,
+            "ep": 8,
+            "sort": 8,
+            "name": "麦稈",
+            "name_cn": "麦秆"
+          },
+          {
+            "id": 1244599,
+            "type": 0,
+            "ep": 9,
+            "sort": 9,
+            "name": "自殺か他殺か",
+            "name_cn": "自杀或他杀？"
+          },
+          {
+            "id": 1244600,
+            "type": 0,
+            "ep": 10,
+            "sort": 10,
+            "name": "蜂蜜",
+            "name_cn": "蜂蜜"
+          },
+          {
+            "id": 1244601,
+            "type": 0,
+            "ep": 11,
+            "sort": 11,
+            "name": "二つを一つに",
+            "name_cn": "减二为一"
+          },
+          {
+            "id": 1244602,
+            "type": 0,
+            "ep": 12,
+            "sort": 12,
+            "name": "宦官と妓女",
+            "name_cn": "宦官与妓女"
+          },
+          {
+            "id": 1253876,
+            "type": 0,
+            "ep": 13,
+            "sort": 13,
+            "name": "外廷勤務",
+            "name_cn": "外廷勤务"
+          },
+          {
+            "id": 1253877,
+            "type": 0,
+            "ep": 14,
+            "sort": 14,
+            "name": "新しい淑妃",
+            "name_cn": "新人淑妃"
+          },
+          {
+            "id": 1253878,
+            "type": 0,
+            "ep": 15,
+            "sort": 15,
+            "name": "鱠",
+            "name_cn": "鱼脍"
+          },
+          {
+            "id": 1253879,
+            "type": 0,
+            "ep": 16,
+            "sort": 16,
+            "name": "鉛",
+            "name_cn": "铅"
+          },
+          {
+            "id": 1253880,
+            "type": 0,
+            "ep": 17,
+            "sort": 17,
+            "name": "街歩き",
+            "name_cn": "游览街市"
+          },
+          {
+            "id": 1253881,
+            "type": 0,
+            "ep": 18,
+            "sort": 18,
+            "name": "羅漢",
+            "name_cn": "罗汉"
+          },
+          {
+            "id": 1253882,
+            "type": 0,
+            "ep": 19,
+            "sort": 19,
+            "name": "偶然か必然か",
+            "name_cn": "偶然或必然"
+          },
+          {
+            "id": 1253883,
+            "type": 0,
+            "ep": 20,
+            "sort": 20,
+            "name": "曼荼羅華",
+            "name_cn": "曼陀罗花"
+          },
+          {
+            "id": 1253884,
+            "type": 0,
+            "ep": 21,
+            "sort": 21,
+            "name": "身請け作戦",
+            "name_cn": "赎身计"
+          },
+          {
+            "id": 1253885,
+            "type": 0,
+            "ep": 22,
+            "sort": 22,
+            "name": "青い薔薇",
+            "name_cn": "蓝玫瑰"
+          },
+          {
+            "id": 1253886,
+            "type": 0,
+            "ep": 23,
+            "sort": 23,
+            "name": "鳳仙花と片喰",
+            "name_cn": "凤仙花与酢浆草"
+          },
+          {
+            "id": 1253887,
+            "type": 0,
+            "ep": 24,
+            "sort": 24,
+            "name": "壬氏と猫猫",
+            "name_cn": "壬氏与猫猫"
+          }
+        ]
+      },
+      {
+        "id": 486347,
+        "bgmId": 486347,
+        "name": "药屋少女的呢喃 第二季",
+        "name_cn": "药屋少女的呢喃 第二季",
+        "originalName": "薬屋のひとりごと 第2期",
+        "date": "2025-01-10",
+        "aliases": [
+          "Kusuriya no Hitorigoto 2nd Season",
+          "药师少女的独语 第二季",
+          "Kusuriya no Hitorigoto Season 2",
+          "The Apothecary Diaries Season 2"
+        ],
+        "inlineSpecialCount": 0,
+        "episodes": [
+          {
+            "id": 1415053,
+            "type": 0,
+            "ep": 1,
+            "sort": 25,
+            "name": "猫猫と毛毛",
+            "name_cn": "猫猫和毛毛"
+          },
+          {
+            "id": 1415054,
+            "type": 0,
+            "ep": 2,
+            "sort": 26,
+            "name": "隊商",
+            "name_cn": "商队"
+          },
+          {
+            "id": 1415055,
+            "type": 0,
+            "ep": 3,
+            "sort": 27,
+            "name": "冬人夏草",
+            "name_cn": "冬人夏草"
+          },
+          {
+            "id": 1415056,
+            "type": 0,
+            "ep": 4,
+            "sort": 28,
+            "name": "鏡",
+            "name_cn": "镜子"
+          },
+          {
+            "id": 1415057,
+            "type": 0,
+            "ep": 5,
+            "sort": 29,
+            "name": "月精",
+            "name_cn": "月亮精灵"
+          },
+          {
+            "id": 1415058,
+            "type": 0,
+            "ep": 6,
+            "sort": 30,
+            "name": "みたび、水晶宮",
+            "name_cn": "再会水晶宫"
+          },
+          {
+            "id": 1415059,
+            "type": 0,
+            "ep": 7,
+            "sort": 31,
+            "name": "選択の廟",
+            "name_cn": "选定之庙"
+          },
+          {
+            "id": 1415060,
+            "type": 0,
+            "ep": 8,
+            "sort": 32,
+            "name": "皇太后",
+            "name_cn": "皇太后"
+          },
+          {
+            "id": 1415061,
+            "type": 0,
+            "ep": 9,
+            "sort": 33,
+            "name": "先帝",
+            "name_cn": "先帝"
+          },
+          {
+            "id": 1415062,
+            "type": 0,
+            "ep": 10,
+            "sort": 34,
+            "name": "怪談",
+            "name_cn": "怪谈"
+          },
+          {
+            "id": 1415063,
+            "type": 0,
+            "ep": 11,
+            "sort": 35,
+            "name": "狩り",
+            "name_cn": "狩猎"
+          },
+          {
+            "id": 1415064,
+            "type": 0,
+            "ep": 12,
+            "sort": 36,
+            "name": "華瑞月",
+            "name_cn": "华瑞月"
+          },
+          {
+            "id": 1415065,
+            "type": 0,
+            "ep": 13,
+            "sort": 37,
+            "name": "湯殿",
+            "name_cn": "浴场"
+          },
+          {
+            "id": 1415066,
+            "type": 0,
+            "ep": 14,
+            "sort": 38,
+            "name": "踊る幽霊",
+            "name_cn": "跳舞的亡灵"
+          },
+          {
+            "id": 1415067,
+            "type": 0,
+            "ep": 15,
+            "sort": 39,
+            "name": "氷菓",
+            "name_cn": "冰果"
+          },
+          {
+            "id": 1415068,
+            "type": 0,
+            "ep": 16,
+            "sort": 40,
+            "name": "巣食う悪意",
+            "name_cn": "深埋的恶意"
+          },
+          {
+            "id": 1415069,
+            "type": 0,
+            "ep": 17,
+            "sort": 41,
+            "name": "狐の里",
+            "name_cn": "狐狸之里"
+          },
+          {
+            "id": 1415070,
+            "type": 0,
+            "ep": 18,
+            "sort": 42,
+            "name": "鬼灯",
+            "name_cn": "灯笼果"
+          },
+          {
+            "id": 1415071,
+            "type": 0,
+            "ep": 19,
+            "sort": 43,
+            "name": "祭り",
+            "name_cn": "祭典"
+          },
+          {
+            "id": 1415072,
+            "type": 0,
+            "ep": 20,
+            "sort": 44,
+            "name": "砦",
+            "name_cn": "城塞"
+          },
+          {
+            "id": 1415073,
+            "type": 0,
+            "ep": 21,
+            "sort": 45,
+            "name": "蠆盆",
+            "name_cn": "虿盆"
+          },
+          {
+            "id": 1415074,
+            "type": 0,
+            "ep": 22,
+            "sort": 46,
+            "name": "禁軍",
+            "name_cn": "禁军"
+          },
+          {
+            "id": 1415075,
+            "type": 0,
+            "ep": 23,
+            "sort": 47,
+            "name": "子の一族",
+            "name_cn": "子字一族"
+          },
+          {
+            "id": 1415076,
+            "type": 0,
+            "ep": 24,
+            "sort": 48,
+            "name": "はじまり",
+            "name_cn": "开端"
+          }
+        ]
+      },
+      {
+        "id": 568244,
+        "bgmId": 568244,
+        "name": "药屋少女的呢喃 第三季",
+        "name_cn": "药屋少女的呢喃 第三季",
+        "originalName": "薬屋のひとりごと 第3期",
+        "date": "2026-10-02",
+        "aliases": [
+          "Kusuriya no Hitorigoto 3rd Season",
+          "The Apothecary Diaries Season 3"
+        ],
+        "inlineSpecialCount": 0,
+        "episodes": [
+          {
+            "id": 1738547,
+            "type": 0,
+            "ep": 1,
+            "sort": 49,
+            "name": "蝗(いなご)",
+            "name_cn": "蝗虫"
+          },
+          {
+            "id": 1738548,
+            "type": 0,
+            "ep": 2,
+            "sort": 50,
+            "name": "火鼠の皮衣",
+            "name_cn": "火鼠的皮衣"
+          },
+          {
+            "id": 1738549,
+            "type": 0,
+            "ep": 3,
+            "sort": 51,
+            "name": "麺麭がなければ",
+            "name_cn": "何不食肉糜"
+          },
+          {
+            "id": 1738550,
+            "type": 0,
+            "ep": 4,
+            "sort": 52,
+            "name": "最後の一冊",
+            "name_cn": "最后一册"
+          },
+          {
+            "id": 1738551,
+            "type": 0,
+            "ep": 5,
+            "sort": 53,
+            "name": "白蛇仙女",
+            "name_cn": "白蛇仙女"
+          },
+          {
+            "id": 1738552,
+            "type": 0,
+            "ep": 6,
+            "sort": 54,
+            "name": "紙の村",
+            "name_cn": ""
+          },
+          {
+            "id": 1738553,
+            "type": 0,
+            "ep": 7,
+            "sort": 55,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1738554,
+            "type": 0,
+            "ep": 8,
+            "sort": 56,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1738555,
+            "type": 0,
+            "ep": 9,
+            "sort": 57,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1738556,
+            "type": 0,
+            "ep": 10,
+            "sort": 58,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1738557,
+            "type": 0,
+            "ep": 11,
+            "sort": 59,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1738558,
+            "type": 0,
+            "ep": 12,
+            "sort": 60,
+            "name": "",
+            "name_cn": ""
+          }
+        ]
+      },
+      {
+        "id": 599893,
+        "bgmId": 599893,
+        "name": "药屋少女的呢喃 第三季 第2部分",
+        "name_cn": "药屋少女的呢喃 第三季 第2部分",
+        "originalName": "薬屋のひとりごと 第3期 第2クール",
+        "date": "",
+        "aliases": [],
+        "inlineSpecialCount": 0,
+        "episodes": [
+          {
+            "id": 1755969,
+            "type": 0,
+            "ep": 1,
+            "sort": 61,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755970,
+            "type": 0,
+            "ep": 2,
+            "sort": 62,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755971,
+            "type": 0,
+            "ep": 3,
+            "sort": 63,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755972,
+            "type": 0,
+            "ep": 4,
+            "sort": 64,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755973,
+            "type": 0,
+            "ep": 5,
+            "sort": 65,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755974,
+            "type": 0,
+            "ep": 6,
+            "sort": 66,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755975,
+            "type": 0,
+            "ep": 7,
+            "sort": 67,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755976,
+            "type": 0,
+            "ep": 8,
+            "sort": 68,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755977,
+            "type": 0,
+            "ep": 9,
+            "sort": 69,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755978,
+            "type": 0,
+            "ep": 10,
+            "sort": 70,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755979,
+            "type": 0,
+            "ep": 11,
+            "sort": 71,
+            "name": "",
+            "name_cn": ""
+          },
+          {
+            "id": 1755980,
+            "type": 0,
+            "ep": 12,
+            "sort": 72,
+            "name": "",
+            "name_cn": ""
+          }
+        ]
+      }
+    ]
+  },
+  "publicDetail": {
+    "animeId": 19444,
+    "animeTitle": "药屋少女的呢喃 续篇",
+    "bangumiUrl": "https://bangumi.tv/subject/568244",
+    "onlineDatabases": [
+      {
+        "name": "Bangumi.tv",
+        "url": "https://bangumi.tv/subject/568244"
+      },
+      {
+        "name": "MyAnimeList",
+        "url": "https://myanimelist.net/anime/61987"
+      },
+      {
+        "name": "AniDB",
+        "url": "https://anidb.net/anime/19444"
+      },
+      {
+        "name": "AniList",
+        "url": "https://anilist.co/anime/195516"
+      },
+      {
+        "name": "AniSearch",
+        "url": "https://anisearch.com/anime/20704"
+      },
+      {
+        "name": "AnimePlanet",
+        "url": "https://anime-planet.com/anime/the-apothecary-diaries-3rd-season"
+      }
+    ]
+  },
+  "selfDetail": {
+    "animeId": 19444,
+    "bangumiId": "19444",
+    "animeTitle": "药屋少女的呢喃 续篇(2026)【TV动画】from dandan",
+    "episodes": [
+      {
+        "episodeId": 15293,
+        "episodeNumber": "1",
+        "episodeTitle": "【dandan】 第1话"
+      },
+      {
+        "episodeId": 15294,
+        "episodeNumber": "2",
+        "episodeTitle": "【dandan】 第2话"
+      },
+      {
+        "episodeId": 15295,
+        "episodeNumber": "3",
+        "episodeTitle": "【dandan】 第3话"
+      },
+      {
+        "episodeId": 15296,
+        "episodeNumber": "4",
+        "episodeTitle": "【dandan】 第4话"
+      },
+      {
+        "episodeId": 15297,
+        "episodeNumber": "5",
+        "episodeTitle": "【dandan】 第5话"
+      },
+      {
+        "episodeId": 15298,
+        "episodeNumber": "6",
+        "episodeTitle": "【dandan】 第6话"
+      },
+      {
+        "episodeId": 15299,
+        "episodeNumber": "7",
+        "episodeTitle": "【dandan】 第7话"
+      },
+      {
+        "episodeId": 15300,
+        "episodeNumber": "8",
+        "episodeTitle": "【dandan】 第8话"
+      },
+      {
+        "episodeId": 15301,
+        "episodeNumber": "9",
+        "episodeTitle": "【dandan】 第9话"
+      },
+      {
+        "episodeId": 15302,
+        "episodeNumber": "10",
+        "episodeTitle": "【dandan】 第10话"
+      },
+      {
+        "episodeId": 15303,
+        "episodeNumber": "11",
+        "episodeTitle": "【dandan】 第11话"
+      },
+      {
+        "episodeId": 15304,
+        "episodeNumber": "12",
+        "episodeTitle": "【dandan】 第12话"
+      }
+    ]
+  },
+  "titleSearch": [
+    {
+      "id": "1753759735",
+      "name": "药屋少女的呢喃 第三季(2026)【TV动画】from animeko&renren",
+      "source": "animeko",
+      "sourceKey": "1753759735",
+      "date": "2026-10-02T14:00:00.000Z",
+      "episodeCount": 12,
+      "query": "药屋少女的呢喃 第三季"
+    },
+    {
+      "id": "19671",
+      "name": "药屋少女的呢喃 第三季 第2部分(未知)【TV动画】from dandan",
+      "source": "dandan",
+      "sourceKey": "19671",
+      "date": "",
+      "episodeCount": 12,
+      "query": "药屋少女的呢喃 第三季"
+    }
+  ]
+}

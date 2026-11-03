@@ -43,11 +43,11 @@ test('a service with neither a server nor the public mirror performs zero metada
  const s=new DanmakuService({settings,request:async()=>{calls++;throw Error('unexpected');}});
  const r=await s.load({subjectId:1,sort:1});assert.equal(calls,0);assert.equal(r.items.length,0);assert.deepEqual(r.providers.map(x=>x.id),['custom']);assert.equal(r.providers[0].status,'notConfigured');
 });
-test('without a server of its own the service uses the public dandanplay mirror',async t=>{
+test('without a server of its own the service uses the anonymous project service',async t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fy-dm-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
  const settings=new DanmakuSettings(dir);await settings.init();
- assert.deepEqual(settings.custom(),{url:'',token:'',public:true});assert.equal(settings.status().usingPublic,true);
- await settings.configure({customUrl:'https://self.example',customEnabled:false});assert.equal(settings.custom().public,true);
+ assert.deepEqual(settings.custom(),{url:'https://danmu-api.aureole999.workers.dev',token:''});assert.equal(settings.status().usingDefault,true);
+ await settings.configure({customUrl:'https://self.example',customEnabled:false});assert.equal(settings.status().usingDefault,true);
  await settings.configure({customEnabled:true});assert.equal(settings.custom().url,'https://self.example');assert.equal(settings.status().usingPublic,false);
  const paths=[];const {CustomDanmaku}=require('../src/custom-danmaku.cjs');
  const c=new CustomDanmaku({config:()=>({url:'',token:'',public:true}),request:async url=>{const u=new URL(url);assert.equal(u.origin+u.pathname,'https://api.danmaku.weeblify.app/ddp/v1');const p=u.searchParams.get('path');paths.push(p);
