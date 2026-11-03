@@ -72,9 +72,9 @@ npm run test:ui
 ## 致谢与许可证
 
 - 界面控件与焦点管理使用 [Enact / Sandstone](https://github.com/enactjs/sandstone)（Apache-2.0）；字体和依赖许可随安装包提供。
-- 本项目按 **AGPL-3.0** 许可证发布，详见 [`LICENSE.txt`](LICENSE.txt)。
+- 本项目按 **MIT** 许可证发布，详见 [`LICENSE.txt`](LICENSE.txt)。
 - 视频源规则格式与弹幕匹配参考 [`open-ani/animeko`](https://github.com/open-ani/animeko)。本仓库不包含任何视频源规则。
-- 滚动弹幕渲染复用自 [`asdf17128/bili-webos`](https://github.com/asdf17128/bili-webos)（MIT 许可证，详见 [`frontend/vendor/bilitv/LICENSE`](frontend/vendor/bilitv/LICENSE)）。
+- 弹幕渲染（`frontend/vendor/bilitv/player/DanmakuLayer.jsx`）与焦点管理（`frontend/focus.js`、`frontend/SidebarItem.jsx`）部分改写自 [`asdf17128/bili-webos`](https://github.com/asdf17128/bili-webos)（MIT 许可证，详见 [`frontend/vendor/bilitv/LICENSE`](frontend/vendor/bilitv/LICENSE)）。
 - 第三方依赖许可证保存在 [`THIRD_PARTY_NOTICES/`](THIRD_PARTY_NOTICES/)，包括 `webOSTV.js`（Apache-2.0）和 Mozilla 根证书包（MPL-2.0）。
 - 本项目为非官方实验移植版，与 Animeko、BiliTV 或 LG 官方无关。
 

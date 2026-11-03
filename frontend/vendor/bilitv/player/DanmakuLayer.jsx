@@ -1,3 +1,5 @@
+// Adapted from BiliTV (https://github.com/asdf17128/bili-webos), MIT License,
+// Copyright (c) 2026 yuanzhan and contributors. See frontend/vendor/bilitv/LICENSE.
 import React, { memo, useRef, useEffect } from 'react';
 import { computeDanmakuLayout } from '../../../danmaku.cjs';
 

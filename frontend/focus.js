@@ -1,3 +1,5 @@
+// Adapted from BiliTV (https://github.com/asdf17128/bili-webos), MIT License,
+// Copyright (c) 2026 yuanzhan and contributors. See frontend/vendor/bilitv/LICENSE.
 import {useLayoutEffect,useRef} from 'react';
 import Spotlight from '@enact/spotlight';
 import {remoteKey,recoverTarget} from './navigation.cjs';
