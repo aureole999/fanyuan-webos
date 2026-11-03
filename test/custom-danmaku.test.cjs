@@ -220,7 +220,9 @@ test('default read-only service never receives the saved custom Token and mode c
  const loaded=new DanmakuSettings(dir);await loaded.init();assert.equal(loaded.status().usingDefault,true);await loaded.configure({customEnabled:true});assert.equal(loaded.custom().token,'private-only');assert.equal(loaded.custom().url,'https://self.example');assert.ok(!JSON.stringify(loaded.status()).includes('private-only'));
 });
 test('selecting an unconfigured custom service never silently sends requests to the default service',async t=>{
- const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fy-empty-custom-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const s=new DanmakuSettings(dir);await s.init();await s.configure({customEnabled:true});assert.equal(s.custom().url,'');assert.equal(s.status().usingDefault,false);
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fy-empty-custom-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const s=new DanmakuSettings(dir);await s.init();await assert.rejects(s.configure({customEnabled:true}),/自建服务地址/);assert.equal(s.status().customEnabled,false);
+ // Settings saved enabled without an address (older versions) stay unconfigured instead of using the default.
+ fs.writeFileSync(path.join(dir,'danmaku-settings.json'),JSON.stringify({customEnabled:true,customUrl:'',customToken:''}));const old=new DanmakuSettings(dir);await old.init();assert.equal(old.custom().url,'');assert.equal(old.status().usingDefault,false);
 });
 test('switching to a service without the saved manual platform recovers by verified ID without changing the choice',async()=>{
  const {client,current,state}=identityFixture({direct:true}),request=client.request,selection={query:'星旅 第三季',subjectName:'旧平台条目',source:'animeko',sourceKey:'old-server-id',episodeNumber:53,episodeName:'重逢'},before=JSON.stringify(selection);

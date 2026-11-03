@@ -4,7 +4,7 @@ function fixture(){
  const episodes=Array.from({length:12},(_,i)=>({id:'ep'+(i+1),name:i===0?'1 The Unstoppable Chambermaid — a very long episode title':'第'+(i+1)+'集',sort:i+1,type:'main',url:'https://example.invalid/ep'+i}));
  const settings={defaultUrl:'https://danmu-api.aureole999.workers.dev',customEnabled:true,customUrl:'https://example.invalid',hasCustomToken:true};
  const subscription={id:'fixture-sub',url:'https://example.invalid/sub.json',enabled:true,updatePeriod:3600000,metadata:{name:'测试订阅'},sourceCount:2};
- window.__fixture={failDetail:false,errors:[],calls:{},last:{}};
+ window.__fixture={failDetail:false,errors:[],calls:{},last:{},settings};
  window.addEventListener('error',e=>window.__fixture.errors.push(e.message));
  window.addEventListener('unhandledrejection',e=>window.__fixture.errors.push(String(e.reason)));
  window.fetch=async(url,options)=>{
@@ -26,7 +26,7 @@ function fixture(){
   if(method==='bangumiClassics')data={items:Array.from({length:40},(_,n)=>({...subject,id:'classic'+n,bgmId:8000+n,name:'经典番 '+(n+1)}))};
   if(method==='subscriptions'||method.startsWith('subscription'))data={subscriptions:[subscription]};
   if(method==='danmakuSettings')data=settings;
-  if(method==='danmakuConfigure'){Object.assign(settings,p);data=settings;}
+  if(method==='danmakuConfigure'){if((p.customEnabled??settings.customEnabled)&&!(p.customUrl??settings.customUrl))data={returnValue:false,errorText:'请先填写自建服务地址'};else{Object.assign(settings,p);settings.usingDefault=!settings.customEnabled;data=settings;}}
   if(method==='customDanmakuTest')data={count:2};
   if(method==='resolve')data={url:'data:video/mp4;base64,'};
   if(method==='danmaku')data={items:[],providers:[{id:'custom',status:'empty'}],sources:[]};

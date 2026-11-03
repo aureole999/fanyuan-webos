@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {matchEpisodes,title}=require('../src/danmaku-match.cjs');
 const {DanmakuService,mergeResults}=require('../src/danmaku.cjs');
-const {DanmakuSettings}=require('../src/danmaku-settings.cjs');
+const {DanmakuSettings,DEFAULT_SERVICE_URL}=require('../src/danmaku-settings.cjs');
 const {renderItems,fixedWindow,computeDanmakuLayout,danmakuOptionLabel,danmakuTypesSummary}=require('../frontend/danmaku.cjs');
 const requestContext={subjectId:1,subjectPrimaryName:'测试番',subjectNames:['测试番','Test'],subjectPublishDate:'2024-05-01',episodeId:2,episodeSort:13,episodeEp:1,episodeName:'重逢',episodeNames:['重逢','再会']};
 test('exact translated title wins over conflicting numbering; sort precedes ep; full-width title punctuation normalizes',()=>{
@@ -38,7 +38,7 @@ test('per-type fixed comments respect track limits and seek-safe visibility boun
  assert.deepEqual(fixedWindow(comments,4,5,0),[]);
 });
 
-test('a service with neither a server nor the public mirror performs zero metadata or danmaku network calls',async()=>{
+test('a service without a server address performs zero metadata or danmaku network calls',async()=>{
  let calls=0;const settings={status:()=>({}),custom:()=>({})};
  const s=new DanmakuService({settings,request:async()=>{calls++;throw Error('unexpected');}});
  const r=await s.load({subjectId:1,sort:1});assert.equal(calls,0);assert.equal(r.items.length,0);assert.deepEqual(r.providers.map(x=>x.id),['custom']);assert.equal(r.providers[0].status,'notConfigured');
@@ -46,18 +46,20 @@ test('a service with neither a server nor the public mirror performs zero metada
 test('without a server of its own the service uses the anonymous project service',async t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'fy-dm-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
  const settings=new DanmakuSettings(dir);await settings.init();
- assert.deepEqual(settings.custom(),{url:'https://danmu-api.aureole999.workers.dev',token:''});assert.equal(settings.status().usingDefault,true);
+ assert.deepEqual(settings.custom(),{url:DEFAULT_SERVICE_URL,token:''});assert.equal(settings.status().usingDefault,true);
+ await assert.rejects(settings.configure({customEnabled:true}),/自建服务地址/);assert.equal(settings.status().customEnabled,false);
  await settings.configure({customUrl:'https://self.example',customEnabled:false});assert.equal(settings.status().usingDefault,true);
- await settings.configure({customEnabled:true});assert.equal(settings.custom().url,'https://self.example');assert.equal(settings.status().usingPublic,false);
+ await settings.configure({customEnabled:true});assert.equal(settings.custom().url,'https://self.example');assert.equal(settings.status().usingDefault,false);
+ await assert.rejects(settings.configure({customUrl:''}),/自建服务地址/);assert.equal(settings.custom().url,'https://self.example');
  const paths=[];const {CustomDanmaku}=require('../src/custom-danmaku.cjs');
- const c=new CustomDanmaku({config:()=>({url:'',token:'',public:true}),request:async url=>{const u=new URL(url);assert.equal(u.origin+u.pathname,'https://api.danmaku.weeblify.app/ddp/v1');const p=u.searchParams.get('path');paths.push(p);
-  if(p.startsWith('/v2/search/anime'))return {text:JSON.stringify({animes:[{animeId:42,bangumiId:'42',animeTitle:'测试番',episodeCount:1}]})};
-  if(p==='/v2/bangumi/42')return {text:JSON.stringify({bangumi:{animeId:42,bangumiId:'42',animeTitle:'测试番',episodes:[{episodeId:4201,episodeTitle:'第1话 开始',episodeNumber:'1'}]}})};
+ const c=new CustomDanmaku({config:()=>({url:DEFAULT_SERVICE_URL,token:''}),request:async url=>{const u=new URL(url);assert.equal(u.origin,DEFAULT_SERVICE_URL);const p=u.pathname+u.search;paths.push(p);
+  if(p.startsWith('/api/v2/search/anime'))return {text:JSON.stringify({animes:[{animeId:42,bangumiId:'42',animeTitle:'测试番',source:'dandan',episodeCount:1}]})};
+  if(p==='/api/v2/bangumi/42')return {text:JSON.stringify({bangumi:{animeId:42,bangumiId:'42',animeTitle:'测试番',episodes:[{episodeId:4201,episodeTitle:'第1话 开始',episodeNumber:'1'}]}})};
   return {text:JSON.stringify({count:1,comments:[{cid:1,p:'2.5,1,16777215,abc',m:'你好'}]})};}});
  const [anime]=await c.search('测试番');assert.equal(anime.source,'dandan');assert.equal(anime.sourceKey,'42');
  const [ep]=await c.detail(anime);const r=await c.comments(anime,ep,'auto');
  assert.equal(r.items.length,1);assert.equal(r.items[0].serviceId,'custom:dandan');
- assert.deepEqual(paths,['/v2/search/anime?keyword=%E6%B5%8B%E8%AF%95%E7%95%AA','/v2/bangumi/42','/v2/comment/4201?withRelated=true&chConvert=1']);
+ assert.deepEqual(paths,['/api/v2/search/anime?keyword=%E6%B5%8B%E8%AF%95%E7%95%AA','/api/v2/bangumi/42','/api/v2/comment/4201?format=json&duration=true']);
 });
 test('comments whose ids collide after JSON rounding are all kept, true duplicates are not',()=>{
  const {parseComments}=require('../src/custom-danmaku.cjs');
