@@ -11,6 +11,7 @@
     "app/src/utils/perf.js": "dc0bab411e3dfc14b407a0be0a57321d4ae10c79"
   },
   "localAdaptations": {
+    "player/DanmakuLayer.jsx": "Layout and density from shared danmaku settings; comments scroll by Web Animations with pixel end points (compositor-run on Chromium 79) instead of a CSS translateX(-100%) animation; BiliTV MIT attribution retained.",
     "hooks/useFocus.js": "Spotlight directional search core, cached DOM geometry, semantic IDs, scoped dialog/player focus, single scroll owner, async recovery, long-press and pointer ownership; BiliTV MIT attribution retained."
   }
 }
