@@ -12,8 +12,6 @@ const catalogApi=require('./catalog.cjs');
 let engine=new Engine([]);const recent=[];
 const SubscriptionManager=require('./subscription.cjs').SubscriptionManager;
 const DATA_DIR='/media/internal/io.github.fanyuantv.fanyuan.service';
-// Installs from before the app ID change keep their subscriptions and danmaku settings.
-if(!process.env.ANIMEKO_DATA_DIR&&process.env.ANIMEKO_LOCAL_DEV!=='1'&&!fs.existsSync(DATA_DIR))try{fs.renameSync('/media/internal/com.local.animesources.service',DATA_DIR);}catch(e){}
 const subscriptions=new SubscriptionManager({
   dir:process.env.ANIMEKO_DATA_DIR||(process.env.ANIMEKO_LOCAL_DEV==='1'?path.join(process.cwd(),'.local-data'):DATA_DIR),
   bundled:[],proxyBase:'https://api.animeko.org',onChange:active=>{engine=new Engine(active);}
