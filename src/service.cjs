@@ -11,9 +11,15 @@ const catalogApi=require('./catalog.cjs');
 // downloaded on first launch; users can add or replace subscriptions in settings.
 let engine=new Engine([]);const recent=[];
 const SubscriptionManager=require('./subscription.cjs').SubscriptionManager;
+// 0.8.0 moved the previous app's directory into DATA_DIR on some TVs; it stays owned by that
+// app's user and cannot be written. Use the first candidate that is missing or writable.
+function dataDir(base){
+  for(const dir of [base,base+'.data']){try{fs.accessSync(dir,fs.constants.R_OK|fs.constants.W_OK|fs.constants.X_OK);return dir;}catch(e){if(e.code==='ENOENT')return dir;}}
+  return base+'.data';
+}
 const DATA_DIR='/media/internal/io.github.fanyuantv.fanyuan.service';
 const subscriptions=new SubscriptionManager({
-  dir:process.env.ANIMEKO_DATA_DIR||(process.env.ANIMEKO_LOCAL_DEV==='1'?path.join(process.cwd(),'.local-data'):DATA_DIR),
+  dir:process.env.ANIMEKO_DATA_DIR||(process.env.ANIMEKO_LOCAL_DEV==='1'?path.join(process.cwd(),'.local-data'):dataDir(DATA_DIR)),
   bundled:[],proxyBase:'https://api.animeko.org',onChange:active=>{engine=new Engine(active);}
 });
 const danmakuSettings=new DanmakuSettings(subscriptions.dir),danmaku=new DanmakuService({settings:danmakuSettings});
