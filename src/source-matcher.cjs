@@ -18,6 +18,12 @@ function canonicalDetail(detail,context,confirmedPage){
   const used=new Set(episodes.filter(e=>!e.unavailable).map(e=>String(e.id))),unmatchedEpisodes=ch.episodes.filter(e=>!used.has(String(e.id))).map(e=>Object.assign({},e,{unmatched:true,sourceSort:e.sort,sourceEpisodeName:e.name,sourceIndex:sourceIndices.get(String(e.id))}));
   channels.push(Object.assign({},ch,{episodes,unmatchedEpisodes,matchedCount:result.available,matchKind:result.kind}));
  }
+ // A page the user picked stays playable even when no chapter maps: every source chapter is offered as
+ // an unmatched episode instead of the page failing.
+ if(!channels.length&&confirmedPage)for(const ch of detail.channels||[]){if(!(ch.episodes||[]).length)continue;
+  const episodes=mainEpisodes(context.subject).map(ep=>({id:'bgm:'+ep.id,unavailable:true,bgmEpisodeId:Number(ep.id),bgmEp:ep.ep==null?null:Number(ep.ep),bgmSubjectId:context.subject.id,sort:String(ep.sort),type:'main',name:(Number(ep.sort)===0?'0':ep.ep)+' '+(ep.name_cn||ep.name||'第'+ep.ep+'集')}));
+  channels.push(Object.assign({},ch,{episodes,unmatchedEpisodes:ch.episodes.map((e,i)=>Object.assign({},e,{unmatched:true,sourceSort:e.sort,sourceEpisodeName:e.name,sourceIndex:i})),matchedCount:0,matchKind:'unmatched'}));
+ }
  if(!channels.length){const err=Error(rejected.some(r=>r.reason==='duplicateEpisodeTitle')?'这条线路的集名重复，无法可靠对应剧集，请换一个源':'这个页面没有可靠对应到本季的剧集，请选择其他页面或视频源');err.code='EPISODE_MAPPING_UNCERTAIN';err.rejected=rejected;throw err;}
  return Object.assign({},detail,{subject:Object.assign({},detail.subject,{sourceSubjectName:detail.subject.sourceSubjectName||detail.subject.name,name:context.subject.name,originalName:context.subject.originalName,bgmId:context.subject.id}),channels,canonical:true,mappingWarnings:rejected});
 }

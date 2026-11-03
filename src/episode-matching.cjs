@@ -54,7 +54,8 @@ function matchPage(context,page){
  for(const sub of context.series||[context.subject])for(const ep of mainEpisodes(sub))for(const t of canonTitles(ep)){if(!titleOwners.has(t))titleOwners.set(t,new Set());titleOwners.get(t).add(String(ep.id));}
  const rowsFor=ep=>Array.from(new Set([].concat.apply([],canonTitles(ep).map(t=>titleRows.get(t)||[]))));
  // Repeated named chapters can indicate duplicate or displaced source entries. Never infer an offset through them.
- for(const ep of own){if(!page.danmaku&&rowsFor(ep).length>1)return empty('duplicateEpisodeTitle');}
+ // On a page the user confirmed, a repeat is a second copy of that chapter (e.g. a re-upload): the first is used.
+ for(const ep of own){if(!page.danmaku&&!page.confirmed&&rowsFor(ep).length>1)return empty('duplicateEpisodeTitle');}
  const ownAnchorCount=own.filter(e=>rowsFor(e).length&&canonTitles(e).some(t=>titleOwners.has(t)&&titleOwners.get(t).size===1)).length;
  if(page.danmaku&&ownAnchorCount>=Math.min(2,own.length))kind='own';
  let mode;
@@ -77,7 +78,7 @@ function matchPage(context,page){
  function expected(ep){return mode==='sort'?Number(ep.sort):mode==='season'?Number(ep.sort)-seasonFirst+1:ep.ep==null?null:Number(ep.ep);}
  const matches=[];
  for(const ep of own){
-  const byTitle=rowsFor(ep);let row=byTitle.length===1?byTitle[0]:page.danmaku&&byTitle.length?byTitle.find(e=>/dandan/.test(e.displayName||''))||byTitle[0]:null,method='title';
+  const byTitle=rowsFor(ep);let row=byTitle.length===1||(page.confirmed&&byTitle.length)?byTitle[0]:page.danmaku&&byTitle.length?byTitle.find(e=>/dandan/.test(e.displayName||''))||byTitle[0]:null,method='title';
   if(!row){const candidates=numberRows.get(expected(ep))||[];if(candidates.length===1){row=candidates[0];method=mode;}}
   if(!row)continue;
   const got=titleOf(row),knownOther=titleOwners.has(got)&&!titleOwners.get(got).has(String(ep.id));

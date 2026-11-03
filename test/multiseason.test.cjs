@@ -113,3 +113,20 @@ test('manual source page search returns exact matches and candidates without res
  const records=videos.filter(v=>v.sourceId==='source-a'&&/^黑礁/.test(v.subject.name)).map(v=>v.subject),engine={search:async()=>records,detail:()=>{throw Error('Manual picker must not read episode pages');}},service=new SourceMatcher(()=>engine,{context:async()=>context(980)});
  const r=await service.search('source-a',{bgmId:980,name:context(980).subject.name},true);assert.ok(r.manualRequired);assert.equal(r.detail,undefined);assert.equal(new Set(r.items.map(s=>s.url)).size,r.items.length);assert.equal(r.items[0].matchKind,'own');assert.ok(r.items.some(s=>s.matchKind!=='own'));assert.equal(r.items.length,records.length);
 });
+
+test('a confirmed page with a repeated chapter maps it once and stays playable when nothing maps',()=>{
+ const {canonicalDetail}=require('../src/source-matcher.cjs');
+ const subject={id:9,bgmId:9,name:'测试番',name_cn:'测试番',originalName:'テスト',date:'2024-01-01',episodes:[1,2,3].map(n=>({id:900+n,type:0,sort:n,ep:n,name_cn:['开端之章','第二个故事','最后的旅程'][n-1]}))};
+ const ctx={subject,series:[subject]};
+ // Episode 2 is listed twice, as sites do for a re-upload.
+ const page={subject:{name:'测试番',url:'u'},channels:[{name:'线路1',episodes:[{id:'a1',sort:'1',name:'第1集 开端之章'},{id:'a2',sort:'2',name:'第2集 第二个故事'},{id:'a2b',sort:'2',name:'第2集 第二个故事'},{id:'a3',sort:'3',name:'第3集 最后的旅程'}]}]};
+ // Automatic matching stays strict; the page the user picks maps 1-3 with the first copy of 2.
+ assert.throws(()=>canonicalDetail(page,ctx,false),e=>e.code==='EPISODE_MAPPING_UNCERTAIN');
+ const confirmed=canonicalDetail(page,ctx,true);
+ assert.deepEqual(confirmed.channels[0].episodes.map(e=>e.id),['a1','a2','a3']);assert.deepEqual(confirmed.channels[0].unmatchedEpisodes.map(e=>e.id),['a2b']);
+ // A confirmed page whose chapters cannot be placed offers them all as unmatched episodes.
+ const odd={subject:{name:'测试番',url:'u'},channels:[{name:'线路1',episodes:[{id:'x1',sort:'1',name:'花絮'},{id:'x2',sort:'1',name:'花絮'}]}]};
+ assert.throws(()=>canonicalDetail(odd,ctx,false),e=>e.code==='EPISODE_MAPPING_UNCERTAIN');
+ const kept=canonicalDetail(odd,ctx,true);
+ assert.ok(kept.channels[0].episodes.every(e=>e.unavailable));assert.deepEqual(kept.channels[0].unmatchedEpisodes.map(e=>e.id),['x1','x2']);
+});

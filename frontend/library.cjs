@@ -52,7 +52,8 @@ function playbackTarget(detail,entry){
   for(const channelIndex of order){const eps=channels[channelIndex].episodes||[];let episode;
     if(!entry)episode=eps.find(e=>(e.type||'main').toLowerCase()==='main')||eps[0];
     else{const sameSource=detail.subject.sourceId===entry.sourceId;
-      episode=entry.episode.bgmEpisodeId?eps.find(e=>e.bgmEpisodeId===entry.episode.bgmEpisodeId):sameSource&&eps.find(e=>e.id===entry.episode.id);
+      // A chapter played from 其它源集数 is found among this channel's unmatched episodes.
+      episode=entry.episode.bgmEpisodeId?eps.find(e=>e.bgmEpisodeId===entry.episode.bgmEpisodeId):sameSource&&(eps.find(e=>e.id===entry.episode.id)||(entry.episode.unmatched&&(channels[channelIndex].unmatchedEpisodes||[]).find(e=>e.id===entry.episode.id)));
       if(!episode&&!entry.episode.bgmEpisodeId){const n=entry.episode.sort;const matches=eps.filter(e=>n!==undefined&&n!==null&&String(n).trim()!==''&&e.sort!==undefined&&e.sort!==null&&String(e.sort).trim()!==''&&Number.isFinite(Number(n))&&Number(e.sort)===Number(n)&&(e.type||'main').toLowerCase()===(entry.episode.type||'main').toLowerCase());if(matches.length===1)episode=matches[0];}
     }
     if(episode&&!episode.unavailable)return {episode,channelIndex,startAt:entry&&!entry.completed?entry.position:0};

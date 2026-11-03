@@ -61,3 +61,11 @@ test('manual video page selection persists per Bangumi subject and source, witho
 test('unmatched source playback keeps its manual identity when saved for continue watching',()=>{
  const lib=makeLibrary(store());lib.saveProgress('one',{...subject,bgmId:undefined},{...ep,type:'unmatched',unmatched:true},40,1400);assert.equal(lib.history()[0].episode.unmatched,true);assert.equal(lib.history()[0].subject.bgmId,undefined);
 });
+
+test('resuming a chapter played from 其它源集数 finds it among the unmatched episodes',()=>{
+ const detail={subject:{sourceId:'s1',url:'u'},channels:[{name:'A',episodes:[{id:'r1',bgmEpisodeId:101,sort:'1',type:'main'}],unmatchedEpisodes:[{id:'r13',sort:'13',name:'第13集',unmatched:true}]}]};
+ const entry={sourceId:'s1',position:300,completed:false,episode:{id:'r13',sort:'13',type:'unmatched',unmatched:true,channelName:'A'}};
+ assert.deepEqual(playbackTarget(detail,entry),{episode:detail.channels[0].unmatchedEpisodes[0],channelIndex:0,startAt:300});
+ // On another source the source-local chapter id means nothing.
+ assert.equal(playbackTarget({...detail,subject:{sourceId:'s2',url:'v'}},entry),null);
+});
