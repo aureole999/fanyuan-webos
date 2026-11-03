@@ -1224,6 +1224,20 @@ input::placeholder {
   justify-content: center;
 }
 
+/* Sandstone's Marquee client otherwise keeps its intrinsic text width in a grid cell. */
+#root .episode-button .control-client {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+#root .episode-button .control-client > div {
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+}
+
 #root .episode-button .control-bg {
   background: #1f222a;
   border-color: rgba(255, 255, 255, 0.07);

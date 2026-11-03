@@ -1,0 +1,401 @@
+[
+  {
+    "source": "source-a",
+    "query": "黑礁",
+    "at": "2026-11-03T05:14:06.057Z",
+    "elapsed": 889,
+    "items": [
+      {
+        "name": "黑礁第一季",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/8714.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/8714.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "黑礁第三季",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/7502.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/7502.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "黑礁第二季",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/5963.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/5963.html",
+        "sourceId": "source-a"
+      }
+    ]
+  },
+  {
+    "source": "source-a",
+    "query": "无职转生",
+    "at": "2026-11-03T05:14:06.557Z",
+    "elapsed": 499,
+    "items": [
+      {
+        "name": "无职转生Ⅲ 到了异世界就拿出真本事 第三季",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/12915.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/12915.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "无职转生Ⅲ 到了异世界就拿出真本事",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/12899.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/12899.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "无职转生：到了异世界就拿出真本事 第三季",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/12917.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/12917.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "无职转生Ⅱ 到了异世界就拿出真本事 Part 2",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/106.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/106.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "无职转生Ⅱ～到了异世界就拿出真本事～",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/5831.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/5831.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "无职转生Ⅱ ～到了异世界就拿出真本事～",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/1868.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/1868.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "无职转生：到了异世界就拿出真本事",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/2250.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/2250.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "无职转生Ⅱ ～到了异世界就拿出真本事",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/441.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/441.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "无职转生：到了异世界就拿出真本事 下部",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/7717.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/7717.html",
+        "sourceId": "source-a"
+      }
+    ]
+  },
+  {
+    "source": "source-a",
+    "query": "从零开始的异世界生活",
+    "at": "2026-11-03T05:14:07.545Z",
+    "elapsed": 988,
+    "items": [
+      {
+        "name": "Re：从零开始的异世界生活第四季",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/12603.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/12603.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 第三季 反击篇",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/10777.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/10777.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "Re：从零开始的异世界生活第三季反击篇",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/10770.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/10770.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 第三季",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/10646.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/10646.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "从零开始的异世界生活 第二季 上部",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/3057.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/3057.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "从零开始的异世界生活 第二季 下部",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/3056.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/3056.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "从零开始的异世界生活 新编集版",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/2308.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/2308.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "从零开始的异世界生活 冰结之绊",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/4198.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/4198.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "从零开始的异世界生活 雪之回忆",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/4197.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/4197.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "Re：从零开始的异世界生活第二季",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/7741.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/7741.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 雪之回忆",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/7373.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/7373.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 新编集版",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/6654.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/6654.html",
+        "sourceId": "source-a"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 冰结之绊",
+        "url": "https://source-a.example.test/index.php/vod/detail/id/6358.html",
+        "id": "https://source-a.example.test/index.php/vod/detail/id/6358.html",
+        "sourceId": "source-a"
+      }
+    ]
+  },
+  {
+    "source": "qukanba",
+    "query": "黑礁",
+    "error": "源站返回 HTTP 403"
+  },
+  {
+    "source": "qukanba",
+    "query": "无职转生",
+    "error": "源站返回 HTTP 403"
+  },
+  {
+    "source": "qukanba",
+    "query": "从零开始的异世界生活",
+    "error": "源站返回 HTTP 403"
+  },
+  {
+    "source": "source-b",
+    "query": "黑礁",
+    "at": "2026-11-03T05:14:05.846Z",
+    "elapsed": 679,
+    "items": [
+      {
+        "name": "黑骸",
+        "url": "https://source-b.example.test/voddetail/2016683616.html",
+        "id": "https://source-b.example.test/voddetail/2016683616.html",
+        "sourceId": "source-b"
+      }
+    ]
+  },
+  {
+    "source": "source-b",
+    "query": "无职转生",
+    "at": "2026-11-03T05:14:06.349Z",
+    "elapsed": 501,
+    "items": [
+      {
+        "name": "无职转生：到了异世界就拿出真本事",
+        "url": "https://source-b.example.test/voddetail/2021515864.html",
+        "id": "https://source-b.example.test/voddetail/2021515864.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "无职转生：到了异世界就拿出真本事 OVA",
+        "url": "https://source-b.example.test/voddetail/2022777780.html",
+        "id": "https://source-b.example.test/voddetail/2022777780.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "无职转生Ⅱ 到了异世界就拿出真本事 Part 2",
+        "url": "https://source-b.example.test/voddetail/2024578657.html",
+        "id": "https://source-b.example.test/voddetail/2024578657.html",
+        "sourceId": "source-b"
+      }
+    ]
+  },
+  {
+    "source": "source-b",
+    "query": "从零开始的异世界生活",
+    "at": "2026-11-03T05:14:07.403Z",
+    "elapsed": 1053,
+    "items": [
+      {
+        "name": "Re：从零开始的异世界生活",
+        "url": "https://source-b.example.test/voddetail/2016577234.html",
+        "id": "https://source-b.example.test/voddetail/2016577234.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 第二季",
+        "url": "https://source-b.example.test/voddetail/2020355197.html",
+        "id": "https://source-b.example.test/voddetail/2020355197.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 雪之回忆",
+        "url": "https://source-b.example.test/voddetail/2018142147.html",
+        "id": "https://source-b.example.test/voddetail/2018142147.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 第三季",
+        "url": "https://source-b.example.test/voddetail/2024332138.html",
+        "id": "https://source-b.example.test/voddetail/2024332138.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 第三季",
+        "url": "https://source-b.example.test/voddetail/202430393.html",
+        "id": "https://source-b.example.test/voddetail/202430393.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 冰结之绊",
+        "url": "https://source-b.example.test/voddetail/2019609515.html",
+        "id": "https://source-b.example.test/voddetail/2019609515.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 新编集版",
+        "url": "https://source-b.example.test/voddetail/2020940023.html",
+        "id": "https://source-b.example.test/voddetail/2020940023.html",
+        "sourceId": "source-b"
+      },
+      {
+        "name": "Re：从零开始的异世界生活 第二季 Part.2",
+        "url": "https://source-b.example.test/voddetail/2021215153.html",
+        "id": "https://source-b.example.test/voddetail/2021215153.html",
+        "sourceId": "source-b"
+      }
+    ]
+  },
+  {
+    "source": "source-c",
+    "query": "黑礁",
+    "at": "2026-11-03T05:14:05.918Z",
+    "elapsed": 750,
+    "items": [
+      {
+        "sourceId": "source-c",
+        "id": "1087",
+        "name": "黑礁",
+        "url": "https://source-c.example.test/anime/1087"
+      }
+    ]
+  },
+  {
+    "source": "source-c",
+    "query": "无职转生",
+    "at": "2026-11-03T05:14:06.519Z",
+    "elapsed": 601,
+    "items": [
+      {
+        "sourceId": "source-c",
+        "id": "3403",
+        "name": "无职转生 第三季 ～到了异世界就拿出真本事～",
+        "url": "https://source-c.example.test/anime/3403"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "633",
+        "name": "无职转生～到了异世界就拿出真本事～ 第2部分",
+        "url": "https://source-c.example.test/anime/633"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "631",
+        "name": "无职转生～到了异世界就拿出真本事～",
+        "url": "https://source-c.example.test/anime/631"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "2073",
+        "name": "无职转生 第二季 ～到了异世界就拿出真本事～ 第2部分",
+        "url": "https://source-c.example.test/anime/2073"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "636",
+        "name": "无职转生 第二季 ～到了异世界就拿出真本事～",
+        "url": "https://source-c.example.test/anime/636"
+      }
+    ]
+  },
+  {
+    "source": "source-c",
+    "query": "从零开始的异世界生活",
+    "at": "2026-11-03T05:14:07.738Z",
+    "elapsed": 1218,
+    "items": [
+      {
+        "sourceId": "source-c",
+        "id": "3306",
+        "name": "Re：从零开始的异世界生活 第四季 丧失篇",
+        "url": "https://source-c.example.test/anime/3306"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "1396",
+        "name": "Re：从零开始的异世界生活 新编集版",
+        "url": "https://source-c.example.test/anime/1396"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "1394",
+        "name": "Re：从零开始的异世界生活",
+        "url": "https://source-c.example.test/anime/1394"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "1395",
+        "name": "Re：从零开始的异世界生活 第二季",
+        "url": "https://source-c.example.test/anime/1395"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "3402",
+        "name": "Re：从零开始的异世界生活 第四季 夺还篇",
+        "url": "https://source-c.example.test/anime/3402"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "2611",
+        "name": "Re：从零开始的异世界生活 第三季 袭击篇",
+        "url": "https://source-c.example.test/anime/2611"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "2893",
+        "name": "Re：从零开始的异世界生活 第三季 反击篇",
+        "url": "https://source-c.example.test/anime/2893"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "1397",
+        "name": "Re：从零开始的异世界生活 雪之回忆",
+        "url": "https://source-c.example.test/anime/1397"
+      },
+      {
+        "sourceId": "source-c",
+        "id": "1398",
+        "name": "Re：从零开始的异世界生活 冰结之绊",
+        "url": "https://source-c.example.test/anime/1398"
+      }
+    ]
+  }
+]

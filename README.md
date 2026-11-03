@@ -32,14 +32,14 @@ npm run build
 ares-package dist/app dist/service -o .
 ```
 
-打包完成后会在当前目录生成 `com.local.animesources_0.7.4_all.ipk`。
+打包完成后会在当前目录生成 `com.local.animesources_0.7.5_all.ipk`。
 
 ### 2. 安装到电视
 
 确保电视已开启 Developer Mode 并通过 `ares-setup-device` 配置好设备名（如 `YOUR_TV`）：
 
 ```sh
-ares-install --device YOUR_TV com.local.animesources_0.7.4_all.ipk
+ares-install --device YOUR_TV com.local.animesources_0.7.5_all.ipk
 ares-launch --device YOUR_TV com.local.animesources
 ```
 
@@ -80,3 +80,14 @@ npm run test:ui
 ### 弹幕作品身份核验
 
 自动匹配在首个名称查询未找到优先弹弹play条目时，通过只读的弹弹play镜像作品资料核对 Bangumi 作品 ID，识别译名或季度命名不同的同一作品。身份关联（包括镜像确认没有对应条目的结果）按作品缓存 30 分钟，镜像无法连接时 1 分钟后重试；切集时重新解析当前服务的剧集 ID，区分季内集号与累计集号。未开启自建服务时，搜索、作品资料和弹幕都来自该镜像；开启自建服务后，镜像只用于核验作品身份，弹幕从自建服务获取。均不需要账号或密钥。手动关联始终优先：只有当它返回空弹幕、且自动匹配通过 Bangumi 作品 ID 核验时才会被替代，按名称猜测的结果不会覆盖手动选择。
+
+
+### 多季番与源集号映射
+
+详情页有 Bangumi 身份时，以该条目的正片列表为选集基准。视频源页面按条目内 `ep`、Bangumi `sort`、季内连续编号分别匹配；分割放送、跨季合并、序章和特别篇均保留各自身份。集名冲突、重复或集数结构不足以确认时不自动播放。缺失剧集显示为“此线路暂无”，不会把后续剧集往前挪。
+
+`src/episode-matching.cjs` 是视频和弹幕共用的纯匹配规则；`src/bangumi-context.cjs` 只读取 Bangumi 资料并缓存系列和剧集；`src/source-matcher.cjs` 负责搜源、读取线路和生成保留原始播放 ID 的映射。播放器将明确的 Bangumi 剧集 ID 交给弹幕服务。已有源进度可继续读取，新进度按 Bangumi 剧集 ID 跨源保存。
+
+`npm test` 包含 `test/multiseason.test.cjs`。`test/fixtures/multiseason/` 保存实际查询的公开名称、集号及页面列表，覆盖黑礁、无职、Re:0，以及独立验证的 86、进击的巨人、夏目友人帐和灵能百分百；不含访问令牌或临时视频地址。回归完全离线，包含搜索到播放映射和自动弹幕调用的回放。
+
+不转换“陆／六”等作品名称中的写法。自动匹配不能确认页面时保留候选，用户手动选择后按条目和视频源保存在本机；再次选择同一视频源可清除该页关联重新匹配。

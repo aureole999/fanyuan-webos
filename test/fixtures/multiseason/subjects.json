@@ -1,0 +1,1649 @@
+[
+  {
+    "id": 979,
+    "name": "黑礁",
+    "original": "BLACK LAGOON",
+    "date": "2006-04-08",
+    "episodes": [
+      {
+        "id": 1474,
+        "ep": 1,
+        "sort": 1,
+        "type": 0,
+        "name": "The Black Lagoon",
+        "name_cn": ""
+      },
+      {
+        "id": 1475,
+        "ep": 2,
+        "sort": 2,
+        "type": 0,
+        "name": "Mangrove Heaven",
+        "name_cn": ""
+      },
+      {
+        "id": 1476,
+        "ep": 3,
+        "sort": 3,
+        "type": 0,
+        "name": "Ring-Ding Ship Chase",
+        "name_cn": ""
+      },
+      {
+        "id": 1477,
+        "ep": 4,
+        "sort": 4,
+        "type": 0,
+        "name": "Die Rückkehr des Adlers",
+        "name_cn": ""
+      },
+      {
+        "id": 1478,
+        "ep": 5,
+        "sort": 5,
+        "type": 0,
+        "name": "Eagle Hunting and Hunting Eagles",
+        "name_cn": ""
+      },
+      {
+        "id": 1479,
+        "ep": 6,
+        "sort": 6,
+        "type": 0,
+        "name": "Moonlit Hunting Grounds",
+        "name_cn": ""
+      },
+      {
+        "id": 1480,
+        "ep": 7,
+        "sort": 7,
+        "type": 0,
+        "name": "Calm Down, Two Men",
+        "name_cn": ""
+      },
+      {
+        "id": 1481,
+        "ep": 8,
+        "sort": 8,
+        "type": 0,
+        "name": "Rasta Blasta",
+        "name_cn": ""
+      },
+      {
+        "id": 1482,
+        "ep": 9,
+        "sort": 9,
+        "type": 0,
+        "name": "Maid to Kill",
+        "name_cn": ""
+      },
+      {
+        "id": 1483,
+        "ep": 10,
+        "sort": 10,
+        "type": 0,
+        "name": "The Unstoppable Chambermaid",
+        "name_cn": ""
+      },
+      {
+        "id": 1484,
+        "ep": 11,
+        "sort": 11,
+        "type": 0,
+        "name": "Lock'n Load Revolution",
+        "name_cn": ""
+      },
+      {
+        "id": 1485,
+        "ep": 12,
+        "sort": 12,
+        "type": 0,
+        "name": "Guerrillas in the Jungle",
+        "name_cn": ""
+      }
+    ],
+    "name_cn": "黑礁",
+    "aliases": [
+      "ブラック・ラグーン",
+      "ブラックラグーン"
+    ],
+    "relations": [
+      {
+        "id": 980,
+        "relation": "续集",
+        "type": 2,
+        "name": "BLACK LAGOON The Second Barrage",
+        "name_cn": "黑礁 The Second Barrage"
+      },
+      {
+        "id": 64276,
+        "relation": "衍生",
+        "type": 2,
+        "name": "BLACK LAGOON オマケ漫画",
+        "name_cn": "黑礁 特典小剧场"
+      }
+    ],
+    "originalName": "BLACK LAGOON"
+  },
+  {
+    "id": 6985,
+    "name": "黑礁 Roberta’s Blood Trail",
+    "original": "BLACK LAGOON Roberta’s Blood Trail",
+    "date": "2010-07-17",
+    "episodes": [
+      {
+        "id": 37941,
+        "ep": 1,
+        "sort": 25,
+        "type": 0,
+        "name": "Collateral Massacre",
+        "name_cn": ""
+      },
+      {
+        "id": 37942,
+        "ep": 2,
+        "sort": 26,
+        "type": 0,
+        "name": "An Office Man's Tactics",
+        "name_cn": ""
+      },
+      {
+        "id": 37943,
+        "ep": 3,
+        "sort": 27,
+        "type": 0,
+        "name": "Angel in the Crosshairs",
+        "name_cn": ""
+      },
+      {
+        "id": 37944,
+        "ep": 4,
+        "sort": 28,
+        "type": 0,
+        "name": "Oversaturation Kill Box",
+        "name_cn": ""
+      },
+      {
+        "id": 37945,
+        "ep": 5,
+        "sort": 29,
+        "type": 0,
+        "name": "Codename Paradise,Status MIA",
+        "name_cn": ""
+      }
+    ],
+    "name_cn": "黑礁 Roberta’s Blood Trail",
+    "aliases": [
+      "黑礁 第三季",
+      "黑礁 罗贝尔特的复仇"
+    ],
+    "relations": [
+      {
+        "id": 980,
+        "relation": "前传",
+        "type": 2,
+        "name": "BLACK LAGOON The Second Barrage",
+        "name_cn": "黑礁 The Second Barrage"
+      }
+    ],
+    "originalName": "BLACK LAGOON Roberta’s Blood Trail"
+  },
+  {
+    "id": 980,
+    "name": "黑礁 The Second Barrage",
+    "original": "BLACK LAGOON The Second Barrage",
+    "date": "2006-10-02",
+    "episodes": [
+      {
+        "id": 1486,
+        "ep": 1,
+        "sort": 13,
+        "type": 0,
+        "name": "The Vampire Twins Comen",
+        "name_cn": ""
+      },
+      {
+        "id": 1487,
+        "ep": 2,
+        "sort": 14,
+        "type": 0,
+        "name": "Bloodsport Fairytale",
+        "name_cn": ""
+      },
+      {
+        "id": 1488,
+        "ep": 3,
+        "sort": 15,
+        "type": 0,
+        "name": "Swan Song at Dawn",
+        "name_cn": ""
+      },
+      {
+        "id": 1489,
+        "ep": 4,
+        "sort": 16,
+        "type": 0,
+        "name": "Greenback Jane",
+        "name_cn": ""
+      },
+      {
+        "id": 1490,
+        "ep": 5,
+        "sort": 17,
+        "type": 0,
+        "name": "The Roanapur Freakshow Circus",
+        "name_cn": ""
+      },
+      {
+        "id": 1491,
+        "ep": 6,
+        "sort": 18,
+        "type": 0,
+        "name": "Mr. Benny's Good Fortune",
+        "name_cn": ""
+      },
+      {
+        "id": 1492,
+        "ep": 7,
+        "sort": 19,
+        "type": 0,
+        "name": "Fujiyama Gangsta Paradise",
+        "name_cn": ""
+      },
+      {
+        "id": 1493,
+        "ep": 8,
+        "sort": 20,
+        "type": 0,
+        "name": "The Succession",
+        "name_cn": ""
+      },
+      {
+        "id": 1494,
+        "ep": 9,
+        "sort": 21,
+        "type": 0,
+        "name": "Two Father's Little Soldier Girls",
+        "name_cn": ""
+      },
+      {
+        "id": 1495,
+        "ep": 10,
+        "sort": 22,
+        "type": 0,
+        "name": "The Dark Tower",
+        "name_cn": ""
+      },
+      {
+        "id": 1496,
+        "ep": 11,
+        "sort": 23,
+        "type": 0,
+        "name": "Snow White's Payback",
+        "name_cn": ""
+      },
+      {
+        "id": 1497,
+        "ep": 12,
+        "sort": 24,
+        "type": 0,
+        "name": "The Gunslingers",
+        "name_cn": ""
+      }
+    ],
+    "name_cn": "黑礁 The Second Barrage",
+    "aliases": [
+      "黑礁 第二季"
+    ],
+    "relations": [
+      {
+        "id": 979,
+        "relation": "前传",
+        "type": 2,
+        "name": "BLACK LAGOON",
+        "name_cn": "黑礁"
+      },
+      {
+        "id": 6985,
+        "relation": "续集",
+        "type": 2,
+        "name": "BLACK LAGOON Roberta’s Blood Trail",
+        "name_cn": "黑礁 Roberta’s Blood Trail"
+      },
+      {
+        "id": 64276,
+        "relation": "衍生",
+        "type": 2,
+        "name": "BLACK LAGOON オマケ漫画",
+        "name_cn": "黑礁 特典小剧场"
+      }
+    ],
+    "originalName": "BLACK LAGOON The Second Barrage"
+  },
+  {
+    "id": 277554,
+    "name": "无职转生～到了异世界就拿出真本事～",
+    "original": "無職転生 ～異世界行ったら本気だす～",
+    "date": "2021-01-10",
+    "episodes": [
+      {
+        "id": 994895,
+        "ep": 1,
+        "sort": 1,
+        "type": 0,
+        "name": "無職転生",
+        "name_cn": "无职转生"
+      },
+      {
+        "id": 994896,
+        "ep": 2,
+        "sort": 2,
+        "type": 0,
+        "name": "师匠",
+        "name_cn": "师父"
+      },
+      {
+        "id": 994897,
+        "ep": 3,
+        "sort": 3,
+        "type": 0,
+        "name": "友達",
+        "name_cn": "朋友"
+      },
+      {
+        "id": 994898,
+        "ep": 4,
+        "sort": 4,
+        "type": 0,
+        "name": "緊急家族會議",
+        "name_cn": "紧急家族会议"
+      },
+      {
+        "id": 994899,
+        "ep": 5,
+        "sort": 5,
+        "type": 0,
+        "name": "お嬢様と暴力",
+        "name_cn": "大小姐与暴力"
+      },
+      {
+        "id": 994900,
+        "ep": 6,
+        "sort": 6,
+        "type": 0,
+        "name": "ロアの休日",
+        "name_cn": "罗亚假期"
+      },
+      {
+        "id": 994901,
+        "ep": 7,
+        "sort": 7,
+        "type": 0,
+        "name": "努力の先にあるもの",
+        "name_cn": "在努力之后能到手的东西"
+      },
+      {
+        "id": 994902,
+        "ep": 8,
+        "sort": 8,
+        "type": 0,
+        "name": "ターニングポイント1",
+        "name_cn": "转折点1"
+      },
+      {
+        "id": 994903,
+        "ep": 9,
+        "sort": 9,
+        "type": 0,
+        "name": "邂逅",
+        "name_cn": "邂逅"
+      },
+      {
+        "id": 994904,
+        "ep": 10,
+        "sort": 10,
+        "type": 0,
+        "name": "人の命と初仕事",
+        "name_cn": "人命与第一次工作"
+      },
+      {
+        "id": 994905,
+        "ep": 11,
+        "sort": 11,
+        "type": 0,
+        "name": "子供と戦士",
+        "name_cn": "孩子与战士"
+      },
+      {
+        "id": 974879,
+        "ep": 0,
+        "sort": 0,
+        "type": 4,
+        "name": "PV1",
+        "name_cn": ""
+      }
+    ],
+    "name_cn": "无职转生～到了异世界就拿出真本事～",
+    "aliases": [
+      "无职转生 ～在异世界认真地活下去～",
+      "Jobless Reincarnation ~I Will Seriously Try If I Go to Another World~",
+      "Mushoku Tensei ~Isekai Ittara Honki Dasu~"
+    ],
+    "relations": [
+      {
+        "id": 325585,
+        "relation": "续集",
+        "type": 2,
+        "name": "無職転生 ～異世界行ったら本気だす～ 第2クール",
+        "name_cn": "无职转生～到了异世界就拿出真本事～ 第2部分"
+      }
+    ],
+    "originalName": "無職転生 ～異世界行ったら本気だす～"
+  },
+  {
+    "id": 325585,
+    "name": "无职转生～到了异世界就拿出真本事～ 第2部分",
+    "original": "無職転生 ～異世界行ったら本気だす～ 第2クール",
+    "date": "2021-10-03",
+    "episodes": [
+      {
+        "id": 1002052,
+        "ep": 1,
+        "sort": 12,
+        "type": 0,
+        "name": "魔眼を持つ女",
+        "name_cn": "持有魔眼的女人"
+      },
+      {
+        "id": 1002053,
+        "ep": 2,
+        "sort": 13,
+        "type": 0,
+        "name": "すれ違い",
+        "name_cn": "擦肩而过"
+      },
+      {
+        "id": 1002054,
+        "ep": 3,
+        "sort": 14,
+        "type": 0,
+        "name": "只より高いものはない",
+        "name_cn": "没有比免费更贵的东西"
+      },
+      {
+        "id": 1002055,
+        "ep": 4,
+        "sort": 15,
+        "type": 0,
+        "name": "ドルディア村のスローライフ",
+        "name_cn": "德路迪亚村的悠哉生活"
+      },
+      {
+        "id": 1002056,
+        "ep": 5,
+        "sort": 16,
+        "type": 0,
+        "name": "親子げんか",
+        "name_cn": "父子吵架"
+      },
+      {
+        "id": 1002057,
+        "ep": 6,
+        "sort": 17,
+        "type": 0,
+        "name": "再会",
+        "name_cn": "再会"
+      },
+      {
+        "id": 1002058,
+        "ep": 7,
+        "sort": 18,
+        "type": 0,
+        "name": "それぞれの旅",
+        "name_cn": "各自的旅行"
+      },
+      {
+        "id": 1002059,
+        "ep": 8,
+        "sort": 19,
+        "type": 0,
+        "name": "ルート選択",
+        "name_cn": "路线选择"
+      },
+      {
+        "id": 1002060,
+        "ep": 9,
+        "sort": 20,
+        "type": 0,
+        "name": "妹侍女の生まれた日",
+        "name_cn": "妹妹女仆诞生之日"
+      },
+      {
+        "id": 1002061,
+        "ep": 10,
+        "sort": 21,
+        "type": 0,
+        "name": "ターニングポイント2",
+        "name_cn": "转折点2"
+      },
+      {
+        "id": 1002062,
+        "ep": 11,
+        "sort": 22,
+        "type": 0,
+        "name": "現実（ユメ）",
+        "name_cn": "现实（梦）"
+      },
+      {
+        "id": 1002063,
+        "ep": 12,
+        "sort": 23,
+        "type": 0,
+        "name": "目覚め、一歩、",
+        "name_cn": "醒来，跨出一步"
+      },
+      {
+        "id": 1066854,
+        "ep": 0,
+        "sort": 24,
+        "type": 1,
+        "name": "エリスのゴブリン討伐",
+        "name_cn": "艾莉丝的哥布林讨伐"
+      },
+      {
+        "id": 1055863,
+        "ep": 0,
+        "sort": 0,
+        "type": 4,
+        "name": "第2クール放送直前スペシャル",
+        "name_cn": ""
+      }
+    ],
+    "name_cn": "无职转生～到了异世界就拿出真本事～ 第2部分",
+    "aliases": [
+      "无职转生 ～在异世界认真地活下去～ 第2部分",
+      "Mushoku Tensei: Isekai Ittara Honki Dasu Part 2",
+      "Mushoku Tensei: Jobless Reincarnation Part 2",
+      "無職轉生 到了異世界就拿出真本事 後半",
+      "无职转生 ～在异世界认真地活下去～ 后半"
+    ],
+    "relations": [
+      {
+        "id": 277554,
+        "relation": "前传",
+        "type": 2,
+        "name": "無職転生 ～異世界行ったら本気だす～",
+        "name_cn": "无职转生～到了异世界就拿出真本事～"
+      },
+      {
+        "id": 373247,
+        "relation": "续集",
+        "type": 2,
+        "name": "無職転生Ⅱ ～異世界行ったら本気だす～",
+        "name_cn": "无职转生 第二季 ～到了异世界就拿出真本事～"
+      }
+    ],
+    "originalName": "無職転生 ～異世界行ったら本気だす～ 第2クール"
+  },
+  {
+    "id": 373247,
+    "name": "无职转生 第二季 ～到了异世界就拿出真本事～",
+    "original": "無職転生Ⅱ ～異世界行ったら本気だす～",
+    "date": "2023-07-02",
+    "episodes": [
+      {
+        "id": 1212094,
+        "ep": 1,
+        "sort": 0,
+        "type": 0,
+        "name": "守護術師フィッツ",
+        "name_cn": "守护术师菲兹"
+      },
+      {
+        "id": 1212095,
+        "ep": 2,
+        "sort": 1,
+        "type": 0,
+        "name": "失意の魔術師",
+        "name_cn": "失意的魔术师"
+      },
+      {
+        "id": 1212096,
+        "ep": 3,
+        "sort": 2,
+        "type": 0,
+        "name": "真夜中の森",
+        "name_cn": "深夜里的森林"
+      },
+      {
+        "id": 1212097,
+        "ep": 4,
+        "sort": 3,
+        "type": 0,
+        "name": "急接近",
+        "name_cn": "快速进展"
+      },
+      {
+        "id": 1212098,
+        "ep": 5,
+        "sort": 4,
+        "type": 0,
+        "name": "推薦状",
+        "name_cn": "推荐信"
+      },
+      {
+        "id": 1212099,
+        "ep": 6,
+        "sort": 5,
+        "type": 0,
+        "name": "ラノア魔法大学",
+        "name_cn": "拉诺亚魔法大学"
+      },
+      {
+        "id": 1212100,
+        "ep": 7,
+        "sort": 6,
+        "type": 0,
+        "name": "死にたくない",
+        "name_cn": "我不想死"
+      },
+      {
+        "id": 1212101,
+        "ep": 8,
+        "sort": 7,
+        "type": 0,
+        "name": "獣族令嬢拉致監禁事件",
+        "name_cn": "兽族大小姐绑架监禁事件"
+      },
+      {
+        "id": 1212102,
+        "ep": 9,
+        "sort": 8,
+        "type": 0,
+        "name": "絶望の婚約者",
+        "name_cn": "绝望的婚约者"
+      },
+      {
+        "id": 1212103,
+        "ep": 10,
+        "sort": 9,
+        "type": 0,
+        "name": "白い仮面",
+        "name_cn": "白色面具"
+      },
+      {
+        "id": 1212104,
+        "ep": 11,
+        "sort": 10,
+        "type": 0,
+        "name": "この気持ち",
+        "name_cn": "这份心意"
+      },
+      {
+        "id": 1212105,
+        "ep": 12,
+        "sort": 11,
+        "type": 0,
+        "name": "あなたへ",
+        "name_cn": "给你"
+      },
+      {
+        "id": 1233193,
+        "ep": 13,
+        "sort": 12,
+        "type": 0,
+        "name": "伝えたい",
+        "name_cn": "想告诉你"
+      }
+    ],
+    "name_cn": "无职转生 第二季 ～到了异世界就拿出真本事～",
+    "aliases": [
+      "无职转生 第二季 ～在异世界认真地活下去～",
+      "Mushoku Tensei II: Isekai Ittara Honki Dasu",
+      "Mushoku Tensei: Jobless Reincarnation Season 2"
+    ],
+    "relations": [
+      {
+        "id": 325585,
+        "relation": "前传",
+        "type": 2,
+        "name": "無職転生 ～異世界行ったら本気だす～ 第2クール",
+        "name_cn": "无职转生～到了异世界就拿出真本事～ 第2部分"
+      },
+      {
+        "id": 444557,
+        "relation": "续集",
+        "type": 2,
+        "name": "無職転生Ⅱ ～異世界行ったら本気だす～ 第2クール",
+        "name_cn": "无职转生 第二季 ～到了异世界就拿出真本事～ 第2部分"
+      }
+    ],
+    "originalName": "無職転生Ⅱ ～異世界行ったら本気だす～"
+  },
+  {
+    "id": 140001,
+    "name": "Re：从零开始的异世界生活",
+    "original": "Re:ゼロから始める異世界生活",
+    "date": "2016-04-03",
+    "episodes": [
+      {
+        "id": 621357,
+        "ep": 1,
+        "sort": 1,
+        "type": 0,
+        "name": "始まりの終わりと終わりの始まり",
+        "name_cn": "起始的终结和终结的起始"
+      },
+      {
+        "id": 621358,
+        "ep": 2,
+        "sort": 2,
+        "type": 0,
+        "name": "再会の魔女",
+        "name_cn": "再遇魔女"
+      },
+      {
+        "id": 621359,
+        "ep": 3,
+        "sort": 3,
+        "type": 0,
+        "name": "ゼロから始まる異世界生活",
+        "name_cn": "从零开始的异世界生活"
+      },
+      {
+        "id": 621360,
+        "ep": 4,
+        "sort": 4,
+        "type": 0,
+        "name": "ロズワール邸の団欒",
+        "name_cn": "罗兹瓦尔邸的团聚"
+      },
+      {
+        "id": 621361,
+        "ep": 5,
+        "sort": 5,
+        "type": 0,
+        "name": "約束した朝は遠く",
+        "name_cn": "约定的早晨遥不可及"
+      },
+      {
+        "id": 621362,
+        "ep": 6,
+        "sort": 6,
+        "type": 0,
+        "name": "鎖の音",
+        "name_cn": "锁链之音"
+      },
+      {
+        "id": 621363,
+        "ep": 7,
+        "sort": 7,
+        "type": 0,
+        "name": "ナツキ・スバルのリスタート",
+        "name_cn": "菜月昴的重新开始"
+      },
+      {
+        "id": 621364,
+        "ep": 8,
+        "sort": 8,
+        "type": 0,
+        "name": "泣いて泣き喚いて泣き止んだから",
+        "name_cn": "哭过喊过便会停止哭泣"
+      },
+      {
+        "id": 621365,
+        "ep": 9,
+        "sort": 9,
+        "type": 0,
+        "name": "勇気の意味",
+        "name_cn": "勇气的意义"
+      },
+      {
+        "id": 621366,
+        "ep": 10,
+        "sort": 10,
+        "type": 0,
+        "name": "鬼がかったやり方",
+        "name_cn": "如有鬼助的做法"
+      },
+      {
+        "id": 621367,
+        "ep": 11,
+        "sort": 11,
+        "type": 0,
+        "name": "レム",
+        "name_cn": "蕾姆"
+      },
+      {
+        "id": 621368,
+        "ep": 12,
+        "sort": 12,
+        "type": 0,
+        "name": "再来の王都",
+        "name_cn": "再访王都"
+      },
+      {
+        "id": 626044,
+        "ep": 13,
+        "sort": 13,
+        "type": 0,
+        "name": "自称騎士ナツキ・スバル",
+        "name_cn": "自称骑士的菜月昴"
+      },
+      {
+        "id": 626045,
+        "ep": 14,
+        "sort": 14,
+        "type": 0,
+        "name": "絶望という病",
+        "name_cn": "名为绝望的疾病"
+      },
+      {
+        "id": 626046,
+        "ep": 15,
+        "sort": 15,
+        "type": 0,
+        "name": "狂気の外側",
+        "name_cn": "疯狂的外侧"
+      },
+      {
+        "id": 626047,
+        "ep": 16,
+        "sort": 16,
+        "type": 0,
+        "name": "豚の欲望",
+        "name_cn": "猪的欲望"
+      },
+      {
+        "id": 626048,
+        "ep": 17,
+        "sort": 17,
+        "type": 0,
+        "name": "醜態の果てに",
+        "name_cn": "丑态的尽头"
+      },
+      {
+        "id": 626049,
+        "ep": 18,
+        "sort": 18,
+        "type": 0,
+        "name": "ゼロから",
+        "name_cn": "从零开始"
+      },
+      {
+        "id": 626050,
+        "ep": 19,
+        "sort": 19,
+        "type": 0,
+        "name": "白鯨攻略戦",
+        "name_cn": "白鲸攻略战"
+      },
+      {
+        "id": 626051,
+        "ep": 20,
+        "sort": 20,
+        "type": 0,
+        "name": "ヴィルヘルム・ヴァン・アストレア",
+        "name_cn": "威尔海姆·梵·阿斯特雷亚"
+      },
+      {
+        "id": 626052,
+        "ep": 21,
+        "sort": 21,
+        "type": 0,
+        "name": "絶望に抗う賭け",
+        "name_cn": "反抗绝望的赌博"
+      },
+      {
+        "id": 626053,
+        "ep": 22,
+        "sort": 22,
+        "type": 0,
+        "name": "怠惰一閃",
+        "name_cn": "怠惰一闪"
+      },
+      {
+        "id": 626054,
+        "ep": 23,
+        "sort": 23,
+        "type": 0,
+        "name": "悪辣なる怠惰",
+        "name_cn": "恶毒的怠惰"
+      },
+      {
+        "id": 626055,
+        "ep": 24,
+        "sort": 24,
+        "type": 0,
+        "name": "自称騎士と最優の騎士",
+        "name_cn": "自称骑士与最优的骑士"
+      },
+      {
+        "id": 626353,
+        "ep": 25,
+        "sort": 25,
+        "type": 0,
+        "name": "ただそれだけの物語",
+        "name_cn": "仅此而已的故事"
+      },
+      {
+        "id": 626365,
+        "ep": 0,
+        "sort": 0,
+        "type": 4,
+        "name": "特番「Re:ゼロから始める異世界体験」",
+        "name_cn": "特别节目「Re：从零开始异世界体验」"
+      }
+    ],
+    "name_cn": "Re：从零开始的异世界生活",
+    "aliases": [
+      "Re:Zero kara Hajimeru Isekai Seikatsu",
+      "rezero",
+      "Re0",
+      "Re: Life a Different World from Zero"
+    ],
+    "relations": [
+      {
+        "id": 441795,
+        "relation": "联动",
+        "type": 2,
+        "name": "僕の心のヤバイやつ 第2期",
+        "name_cn": "我心里危险的东西 第二季"
+      },
+      {
+        "id": 564421,
+        "relation": "角色出演",
+        "type": 2,
+        "name": "異世界かるてっと3",
+        "name_cn": "异世界四重奏 第三季"
+      },
+      {
+        "id": 177998,
+        "relation": "衍生",
+        "type": 2,
+        "name": "Re:ゼロから始める休憩時間",
+        "name_cn": "Re：从零开始的休息时间"
+      },
+      {
+        "id": 185837,
+        "relation": "衍生",
+        "type": 2,
+        "name": "Re:プチから始める異世界生活",
+        "name_cn": "Re：从迷你开始的异世界生活"
+      },
+      {
+        "id": 225462,
+        "relation": "番外篇",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 Memory Snow",
+        "name_cn": "Re：从零开始的异世界生活 雪之回忆"
+      },
+      {
+        "id": 261805,
+        "relation": "番外篇",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 氷結の絆",
+        "name_cn": "Re：从零开始的异世界生活 冰结之绊"
+      },
+      {
+        "id": 262865,
+        "relation": "角色出演",
+        "type": 2,
+        "name": "異世界かるてっと",
+        "name_cn": "异世界四重奏"
+      },
+      {
+        "id": 285422,
+        "relation": "角色出演",
+        "type": 2,
+        "name": "異世界かるてっと２",
+        "name_cn": "异世界四重奏 第二季"
+      },
+      {
+        "id": 296195,
+        "relation": "总集篇",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 新編集版",
+        "name_cn": "Re：从零开始的异世界生活 新编集版"
+      },
+      {
+        "id": 278826,
+        "relation": "续集",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 2nd season",
+        "name_cn": "Re：从零开始的异世界生活 第二季"
+      },
+      {
+        "id": 303126,
+        "relation": "角色出演",
+        "type": 2,
+        "name": "劇場版 異世界かるてっと ～あなざーわーるど～",
+        "name_cn": "剧场版 异世界四重奏 ～Another World～"
+      }
+    ],
+    "originalName": "Re:ゼロから始める異世界生活"
+  },
+  {
+    "id": 444557,
+    "name": "无职转生 第二季 ～到了异世界就拿出真本事～ 第2部分",
+    "original": "無職転生Ⅱ ～異世界行ったら本気だす～ 第2クール",
+    "date": "2024-04-07",
+    "episodes": [
+      {
+        "id": 1233194,
+        "ep": 1,
+        "sort": 13,
+        "type": 0,
+        "name": "夢のマイホーム",
+        "name_cn": "我梦想中的家"
+      },
+      {
+        "id": 1233195,
+        "ep": 2,
+        "sort": 14,
+        "type": 0,
+        "name": "披露宴",
+        "name_cn": "婚礼"
+      },
+      {
+        "id": 1233196,
+        "ep": 3,
+        "sort": 15,
+        "type": 0,
+        "name": "遥か",
+        "name_cn": "遥远"
+      },
+      {
+        "id": 1233197,
+        "ep": 4,
+        "sort": 16,
+        "type": 0,
+        "name": "ノルンとアイシャ",
+        "name_cn": "诺伦与爱夏"
+      },
+      {
+        "id": 1233198,
+        "ep": 5,
+        "sort": 17,
+        "type": 0,
+        "name": "兄貴の気持ち",
+        "name_cn": "大哥的心意"
+      },
+      {
+        "id": 1233199,
+        "ep": 6,
+        "sort": 18,
+        "type": 0,
+        "name": "ターニングポイント3",
+        "name_cn": "转折点3"
+      },
+      {
+        "id": 1233200,
+        "ep": 7,
+        "sort": 19,
+        "type": 0,
+        "name": "砂漠の旅",
+        "name_cn": "沙漠之旅"
+      },
+      {
+        "id": 1233201,
+        "ep": 8,
+        "sort": 20,
+        "type": 0,
+        "name": "迷宮入り",
+        "name_cn": "进入迷宫"
+      },
+      {
+        "id": 1233202,
+        "ep": 9,
+        "sort": 21,
+        "type": 0,
+        "name": "第六階層の魔法陣",
+        "name_cn": "第六层的魔法阵"
+      },
+      {
+        "id": 1233203,
+        "ep": 10,
+        "sort": 22,
+        "type": 0,
+        "name": "親",
+        "name_cn": "双亲"
+      },
+      {
+        "id": 1233204,
+        "ep": 11,
+        "sort": 23,
+        "type": 0,
+        "name": "帰ろう",
+        "name_cn": "回去吧"
+      },
+      {
+        "id": 1233205,
+        "ep": 12,
+        "sort": 24,
+        "type": 0,
+        "name": "嗣ぐ",
+        "name_cn": "继承"
+      },
+      {
+        "id": 1347148,
+        "ep": 0,
+        "sort": 18.5,
+        "type": 1,
+        "name": "無職転生Ⅱ ～異世界行ったら本気だす～ 【転移迷宮編】直前スペシャル",
+        "name_cn": ""
+      }
+    ],
+    "name_cn": "无职转生 第二季 ～到了异世界就拿出真本事～ 第2部分",
+    "aliases": [
+      "无职转生 第二季 ～在异世界认真地活下去～ 第2部分",
+      "Mushoku Tensei II: Isekai Ittara Honki Dasu (2024)",
+      "Mushoku Tensei: Jobless Reincarnation Season 2 (2024)",
+      "Mushoku Tensei: Jobless Reincarnation Season 2 part 2",
+      "Mushoku Tensei II: Isekai Ittara Honki Dasu part 2"
+    ],
+    "relations": [
+      {
+        "id": 373247,
+        "relation": "前传",
+        "type": 2,
+        "name": "無職転生Ⅱ ～異世界行ったら本気だす～",
+        "name_cn": "无职转生 第二季 ～到了异世界就拿出真本事～"
+      },
+      {
+        "id": 501963,
+        "relation": "续集",
+        "type": 2,
+        "name": "無職転生Ⅲ ～異世界行ったら本気だす～",
+        "name_cn": "无职转生 第三季 ～到了异世界就拿出真本事～"
+      }
+    ],
+    "originalName": "無職転生Ⅱ ～異世界行ったら本気だす～ 第2クール"
+  },
+  {
+    "id": 278826,
+    "name": "Re：从零开始的异世界生活 第二季",
+    "original": "Re:ゼロから始める異世界生活 2nd season",
+    "date": "2020-07-08",
+    "episodes": [
+      {
+        "id": 957951,
+        "ep": 1,
+        "sort": 26,
+        "type": 0,
+        "name": "それぞれの誓い",
+        "name_cn": "各自的誓言"
+      },
+      {
+        "id": 957952,
+        "ep": 2,
+        "sort": 27,
+        "type": 0,
+        "name": "次なる場所",
+        "name_cn": "下一个地方"
+      },
+      {
+        "id": 957953,
+        "ep": 3,
+        "sort": 28,
+        "type": 0,
+        "name": "待ちかねた再会",
+        "name_cn": "久候多时的重逢"
+      },
+      {
+        "id": 957954,
+        "ep": 4,
+        "sort": 29,
+        "type": 0,
+        "name": "親子",
+        "name_cn": "亲子"
+      },
+      {
+        "id": 957955,
+        "ep": 5,
+        "sort": 30,
+        "type": 0,
+        "name": "踏み出した一歩",
+        "name_cn": "踏出的一步"
+      },
+      {
+        "id": 957956,
+        "ep": 6,
+        "sort": 31,
+        "type": 0,
+        "name": "少女の福音",
+        "name_cn": "少女的福音"
+      },
+      {
+        "id": 957957,
+        "ep": 7,
+        "sort": 32,
+        "type": 0,
+        "name": "ユージン",
+        "name_cn": "朋友"
+      },
+      {
+        "id": 957958,
+        "ep": 8,
+        "sort": 33,
+        "type": 0,
+        "name": "命の価値",
+        "name_cn": "生命的价值"
+      },
+      {
+        "id": 957959,
+        "ep": 9,
+        "sort": 34,
+        "type": 0,
+        "name": "らぶらぶらぶらぶらぶらぶゆー",
+        "name_cn": "爱爱爱爱爱爱你"
+      },
+      {
+        "id": 957960,
+        "ep": 10,
+        "sort": 35,
+        "type": 0,
+        "name": "地獄なら知っている",
+        "name_cn": "地狱的话我已经体验过了"
+      },
+      {
+        "id": 957961,
+        "ep": 11,
+        "sort": 36,
+        "type": 0,
+        "name": "死の味",
+        "name_cn": "死亡的味道"
+      },
+      {
+        "id": 957962,
+        "ep": 12,
+        "sort": 37,
+        "type": 0,
+        "name": "魔女たちの茶会",
+        "name_cn": "魔女们的茶会"
+      },
+      {
+        "id": 967250,
+        "ep": 13,
+        "sort": 38,
+        "type": 0,
+        "name": "泣きたくなる音",
+        "name_cn": "想哭的声音"
+      }
+    ],
+    "name_cn": "Re：从零开始的异世界生活 第二季",
+    "aliases": [
+      "Re:Zero kara Hajimeru Isekai Seikatsu (2020)",
+      "Re0 第二季",
+      "Re:ゼロから始める異世界生活2"
+    ],
+    "relations": [
+      {
+        "id": 140001,
+        "relation": "前传",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活",
+        "name_cn": "Re：从零开始的异世界生活"
+      },
+      {
+        "id": 310194,
+        "relation": "衍生",
+        "type": 2,
+        "name": "Re:ゼロから始める休憩時間 2nd Season",
+        "name_cn": "Re：从零开始的休息时间2"
+      },
+      {
+        "id": 316247,
+        "relation": "续集",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 2nd season 後半クール",
+        "name_cn": "Re：从零开始的异世界生活 第二季 后半部分"
+      }
+    ],
+    "originalName": "Re:ゼロから始める異世界生活 2nd season"
+  },
+  {
+    "id": 316247,
+    "name": "Re：从零开始的异世界生活 第二季 后半部分",
+    "original": "Re:ゼロから始める異世界生活 2nd season 後半クール",
+    "date": "2021-01-06",
+    "episodes": [
+      {
+        "id": 994750,
+        "ep": 1,
+        "sort": 39,
+        "type": 0,
+        "name": "STRAIGHT BET",
+        "name_cn": "孤注一掷"
+      },
+      {
+        "id": 994751,
+        "ep": 2,
+        "sort": 40,
+        "type": 0,
+        "name": "オットー・スーウェン／信じる理由",
+        "name_cn": "奥托·苏文 / 相信的理由"
+      },
+      {
+        "id": 994752,
+        "ep": 3,
+        "sort": 41,
+        "type": 0,
+        "name": "クウェインの石は一人じゃ上がらない",
+        "name_cn": "独自一人无法举起女王之石"
+      },
+      {
+        "id": 994753,
+        "ep": 4,
+        "sort": 42,
+        "type": 0,
+        "name": "記憶の旅路",
+        "name_cn": "记忆的旅途"
+      },
+      {
+        "id": 994754,
+        "ep": 5,
+        "sort": 43,
+        "type": 0,
+        "name": "平家星の笑った日",
+        "name_cn": "参宿四（Betelgeuse）微笑的日子"
+      },
+      {
+        "id": 994755,
+        "ep": 6,
+        "sort": 44,
+        "type": 0,
+        "name": "エリオール大森林の永久凍土",
+        "name_cn": "艾力欧尔大森林的永久冻土"
+      },
+      {
+        "id": 994756,
+        "ep": 7,
+        "sort": 45,
+        "type": 0,
+        "name": "聖域の始まりと、崩壊の始まり",
+        "name_cn": "圣域的开始与，崩坏的开始"
+      },
+      {
+        "id": 994757,
+        "ep": 8,
+        "sort": 46,
+        "type": 0,
+        "name": "咆哮の再会",
+        "name_cn": "咆哮的再会"
+      },
+      {
+        "id": 994758,
+        "ep": 9,
+        "sort": 47,
+        "type": 0,
+        "name": "水面に映る幸せ",
+        "name_cn": "映照在水面上的幸福"
+      },
+      {
+        "id": 994759,
+        "ep": 10,
+        "sort": 48,
+        "type": 0,
+        "name": "血と臓物まで愛して",
+        "name_cn": "连鲜血与内脏都一并痛爱"
+      },
+      {
+        "id": 994760,
+        "ep": 11,
+        "sort": 49,
+        "type": 0,
+        "name": "俺を選べ",
+        "name_cn": "选我吧"
+      },
+      {
+        "id": 994761,
+        "ep": 12,
+        "sort": 50,
+        "type": 0,
+        "name": "月下、出鱈目なステップ",
+        "name_cn": "月下、随性的舞步"
+      }
+    ],
+    "name_cn": "Re：从零开始的异世界生活 第二季 后半部分",
+    "aliases": [
+      "Re:Zero kara Hajimeru Isekai Seikatsu (2021)",
+      "Re0 第二季后半"
+    ],
+    "relations": [
+      {
+        "id": 278826,
+        "relation": "前传",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 2nd season",
+        "name_cn": "Re：从零开始的异世界生活 第二季"
+      },
+      {
+        "id": 310194,
+        "relation": "衍生",
+        "type": 2,
+        "name": "Re:ゼロから始める休憩時間 2nd Season",
+        "name_cn": "Re：从零开始的休息时间2"
+      },
+      {
+        "id": 425998,
+        "relation": "续集",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 3rd season 襲擊編",
+        "name_cn": "Re：从零开始的异世界生活 第三季 袭击篇"
+      }
+    ],
+    "originalName": "Re:ゼロから始める異世界生活 2nd season 後半クール"
+  },
+  {
+    "id": 425998,
+    "name": "Re：从零开始的异世界生活 第三季 袭击篇",
+    "original": "Re:ゼロから始める異世界生活 3rd season 襲擊編",
+    "date": "2024-10-02",
+    "episodes": [
+      {
+        "id": 1353850,
+        "ep": 1,
+        "sort": 51,
+        "type": 0,
+        "name": "劇場型悪意",
+        "name_cn": "剧场型恶意"
+      },
+      {
+        "id": 1353851,
+        "ep": 2,
+        "sort": 52,
+        "type": 0,
+        "name": "氷炎の結末",
+        "name_cn": "冰炎之结果"
+      },
+      {
+        "id": 1353852,
+        "ep": 3,
+        "sort": 53,
+        "type": 0,
+        "name": "ゴージャス・タイガー",
+        "name_cn": "华丽猛虎"
+      },
+      {
+        "id": 1353853,
+        "ep": 4,
+        "sort": 54,
+        "type": 0,
+        "name": "都市庁舎奪還作戦",
+        "name_cn": "都市市政厅夺还作战"
+      },
+      {
+        "id": 1353854,
+        "ep": 5,
+        "sort": 55,
+        "type": 0,
+        "name": "濁流",
+        "name_cn": "浊流"
+      },
+      {
+        "id": 1353855,
+        "ep": 6,
+        "sort": 56,
+        "type": 0,
+        "name": "騎士の条件",
+        "name_cn": "骑士的条件"
+      },
+      {
+        "id": 1353856,
+        "ep": 7,
+        "sort": 57,
+        "type": 0,
+        "name": "最も新しい英雄と最も古い英雄",
+        "name_cn": "最新的英雄与最古老的英雄"
+      },
+      {
+        "id": 1353857,
+        "ep": 8,
+        "sort": 58,
+        "type": 0,
+        "name": "いつか好きになる人",
+        "name_cn": "总有一天会喜欢上的人"
+      }
+    ],
+    "name_cn": "Re：从零开始的异世界生活 第三季 袭击篇",
+    "aliases": [
+      "Re：從零開始的異世界生活 第三季 襲擊篇",
+      "Re0 第三季",
+      "Re0 3",
+      "rezero s3",
+      "Re:Zero kara Hajimeru Isekai Seikatsu (2024)",
+      "Re:ゼロから始める異世界生活 (2024)",
+      "Re:Zero kara Hajimeru Isekai Seikatsu 3rd Season Shuugeki Hen",
+      "Re:ZERO -Starting Life in Another World- Season 3 Shuugeki Hen"
+    ],
+    "relations": [
+      {
+        "id": 316247,
+        "relation": "前传",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 2nd season 後半クール",
+        "name_cn": "Re：从零开始的异世界生活 第二季 后半部分"
+      },
+      {
+        "id": 510728,
+        "relation": "续集",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 3rd season 反擊編",
+        "name_cn": "Re：从零开始的异世界生活 第三季 反击篇"
+      },
+      {
+        "id": 516311,
+        "relation": "衍生",
+        "type": 2,
+        "name": "Re:ゼロから始める休憩時間 3rd season",
+        "name_cn": "Re：从零开始的休息时间3"
+      }
+    ],
+    "originalName": "Re:ゼロから始める異世界生活 3rd season 襲擊編"
+  },
+  {
+    "id": 510728,
+    "name": "Re：从零开始的异世界生活 第三季 反击篇",
+    "original": "Re:ゼロから始める異世界生活 3rd season 反擊編",
+    "date": "2025-02-05",
+    "episodes": [
+      {
+        "id": 1388677,
+        "ep": 1,
+        "sort": 59,
+        "type": 0,
+        "name": "混戦都市",
+        "name_cn": "混战都市"
+      },
+      {
+        "id": 1388678,
+        "ep": 2,
+        "sort": 60,
+        "type": 0,
+        "name": "強欲攻略戦",
+        "name_cn": "强欲攻略战"
+      },
+      {
+        "id": 1388679,
+        "ep": 3,
+        "sort": 61,
+        "type": 0,
+        "name": "リリアナ・マスカレード",
+        "name_cn": "莉莉安娜·玛斯柯瑞德"
+      },
+      {
+        "id": 1388680,
+        "ep": 4,
+        "sort": 62,
+        "type": 0,
+        "name": "レグルス・コルニアス",
+        "name_cn": "雷格鲁斯·柯尼亚斯"
+      },
+      {
+        "id": 1388681,
+        "ep": 5,
+        "sort": 63,
+        "type": 0,
+        "name": "戦士の称賛",
+        "name_cn": "战士的称赞"
+      },
+      {
+        "id": 1388682,
+        "ep": 6,
+        "sort": 64,
+        "type": 0,
+        "name": "テレシア・ヴァン・アストレア",
+        "name_cn": "特蕾西亚·梵·阿斯特雷亚"
+      },
+      {
+        "id": 1388683,
+        "ep": 7,
+        "sort": 65,
+        "type": 0,
+        "name": "醜悪なる晩餐会",
+        "name_cn": "丑恶的晚餐会"
+      },
+      {
+        "id": 1388684,
+        "ep": 8,
+        "sort": 66,
+        "type": 0,
+        "name": "プリステラ攻防戦リザルト",
+        "name_cn": "扑利斯提拉政防战结果"
+      }
+    ],
+    "name_cn": "Re：从零开始的异世界生活 第三季 反击篇",
+    "aliases": [
+      "Re：從零開始的異世界生活 第三季 反擊篇",
+      "Re:Zero kara Hajimeru Isekai Seikatsu (2025)",
+      "Re:Zero - Starting Life in Another World (2025)",
+      "re0 第三季 反击篇",
+      "re0 第三季 反擊篇"
+    ],
+    "relations": [
+      {
+        "id": 425998,
+        "relation": "前传",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 3rd season 襲擊編",
+        "name_cn": "Re：从零开始的异世界生活 第三季 袭击篇"
+      },
+      {
+        "id": 516311,
+        "relation": "衍生",
+        "type": 2,
+        "name": "Re:ゼロから始める休憩時間 3rd season",
+        "name_cn": "Re：从零开始的休息时间3"
+      },
+      {
+        "id": 547888,
+        "relation": "续集",
+        "type": 2,
+        "name": "Re:ゼロから始める異世界生活 4th season 喪失編",
+        "name_cn": "Re：从零开始的异世界生活 第四季 丧失篇"
+      }
+    ],
+    "originalName": "Re:ゼロから始める異世界生活 3rd season 反擊編"
+  }
+]

@@ -4,10 +4,10 @@ import SidebarItem from './SidebarItem';
 import {dailyPick,dayKey} from './discover.cjs';
 import ThemeDecorator from '@enact/sandstone/ThemeDecorator';
 import Popup from '@enact/sandstone/Popup';
-import {initKeyboardNav,onFocusChange,setFocus,getCurrentFocusId,setContentContext,focusFirstContent,focusSidebar,setLastSidebarFocus,isPointerFocus} from './focus';
+import {initKeyboardNav,onFocusChange,setFocus,getCurrentFocusId,setContentContext,focusFirstContent,focusSidebar,setLastSidebarFocus,isPointerFocus,resetContentMemory} from './focus';
 import {FocusButton,FocusSearchInput,PosterCard,TextCard,Icon,Empty,Loading,FocusContainer,PageFocusContainer,ContentScroller,ScrollGroup,SettingsRow,LiteButton} from './components';
 import {call} from './api';
-import {makeLibrary,cleanName,seriesKey} from './library.cjs';
+import {makeLibrary,cleanName,seriesKey,playbackTarget} from './library.cjs';
 import Player from './Player';
 // Injected from package.json by build.cjs.
 const APP_VERSION=__APP_VERSION__;
@@ -23,7 +23,7 @@ const MENU=[['home','首页','home'],['history','观看历史','history'],['cale
 const DAY=['周一','周二','周三','周四','周五','周六','周日'];
 const today=(new Date().getDay()||7);
 function shortTime(seconds){const m=Math.floor((seconds||0)/60);return m?`${m} 分钟`:'刚刚开始';}
-function alternate(channel,episode){const sameType=e=>(e.type||'main').toLowerCase();return channel.episodes.find(e=>{const a=Number(e.sort),b=Number(episode.sort);return (Number.isFinite(a)&&Number.isFinite(b)?a===b:e.sort===episode.sort)&&sameType(e)===sameType(episode);});}
+function alternate(channel,episode){const sameType=e=>(e.type||'main').toLowerCase();return channel.episodes.find(e=>{if(e.unavailable)return false;const a=Number(e.sort),b=Number(episode.sort);return (Number.isFinite(a)&&Number.isFinite(b)?a===b:e.sort===episode.sort)&&sameType(e)===sameType(episode);});}
 function Dialog({value,onClose}){
   const last=useRef(value);if(value)last.current=value;
   const {title='',options=[]}=value||last.current||{};
@@ -31,7 +31,7 @@ function Dialog({value,onClose}){
   // Size the scroller to the options it holds (up to 640px), so a short list never scrolls on focus.
   // The popup mounts its body later than this component, so measure when the list element attaches.
   const [fit,setFit]=useState(null),measure=el=>{if(el&&el.offsetHeight&&el.offsetHeight!==fit)setFit(el.offsetHeight);};
-  return <Popup open={!!value} position="center" spotlightId="dialog" className="selection-popup" css={{body:'popup-body'}} onClose={onClose} onShow={()=>setTimeout(()=>setFocus(options.length?'dialog-'+Math.max(0,activeIndex):'dialog-close'),0)}><div className="dialog-heading"><h2>{title}</h2><FocusButton id="dialog-close" className="dialog-close" row={-1} group="dialog" onSelect={onClose} aria-label="关闭弹窗"><Icon name="close" size={24}/></FocusButton></div><ContentScroller className="dialog-options" verticalScrollbar="hidden" style={{height:Math.min(640,fit||Math.max(180,options.length*118))}}><div ref={measure} className="dialog-options-inner">{options.map((o,i)=><FocusButton key={i} id={'dialog-'+i} row={i} group="dialog" className={'dialog-option'+(o.active?' active':'')} label={o.description} slotAfter={o.active?<span className="dialog-option-check"><Icon name="check" size={18}/> 当前</span>:null} onSelect={o.action}>{o.label}</FocusButton>)}</div></ContentScroller></Popup>;
+  return <Popup open={!!value} position="center" spotlightId="dialog" className="selection-popup" css={{body:'popup-body'}} onClose={onClose} onHide={()=>setTimeout(()=>last.current?.onHide?.(),0)} onShow={()=>setTimeout(()=>setFocus(options.length?'dialog-'+Math.max(0,activeIndex):'dialog-close'),0)}><div className="dialog-heading"><h2>{title}</h2><FocusButton id="dialog-close" className="dialog-close" row={-1} group="dialog" onSelect={onClose} aria-label="关闭弹窗"><Icon name="close" size={24}/></FocusButton></div><ContentScroller className="dialog-options" verticalScrollbar="hidden" style={{height:Math.min(640,fit||Math.max(180,options.length*118))}}><div ref={measure} className="dialog-options-inner">{options.map((o,i)=><FocusButton key={i} id={'dialog-'+i} row={i} group="dialog" className={'dialog-option'+(o.active?' active':'')} label={o.description} slotAfter={o.active?<span className="dialog-option-check"><Icon name="check" size={18}/> 当前</span>:null} onSelect={o.action}>{o.label}</FocusButton>)}</div></ContentScroller></Popup>;
 }
 // Moving through the sidebar previews a page only after the remote rests on it; passing over an
 // item must not render that page (a page switch costs 300–500 ms of main thread on the C1).
@@ -56,18 +56,20 @@ function App({className}){
   useEffect(()=>{if(page!=='home'){setDiscoverShown(false);return;}let t;const f=requestAnimationFrame(()=>{t=setTimeout(()=>setDiscoverShown(true),0);});return()=>{cancelAnimationFrame(f);clearTimeout(t);};},[page]);
   const [calendar,setCalendar]=useState([]),[day,setDay]=useState(today),[calendarError,setCalendarError]=useState(''),[calendarBusy,setCalendarBusy]=useState(true);
   const [keyword,setKeyword]=useState(''),[results,setResults]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[detail,setDetail]=useState(null),[meta,setMeta]=useState(null),[candidates,setCandidates]=useState([]),[channel,setChannel]=useState(0),[settings,setSettings]=useState(()=>library.settings()),[revision,setRevision]=useState(0),[dialog,setDialog]=useState(null),[player,setPlayer]=useState(null),[toast,setToast]=useState(''),[favFilter,setFavFilter]=useState('all');
+  const [detailSourceId,setDetailSourceId]=useState(null),[playPending,setPlayPending]=useState(false);
+  const pendingPlay=useRef(null);
   const [related,setRelated]=useState([]),relatedId=page==='detail'?meta?.bgmId||0:0;
   useEffect(()=>{setRelated([]);if(!relatedId)return;let live=true;call('bangumiRelated',{id:relatedId}).then(r=>{if(live)setRelated(r.items||[]);}).catch(()=>{});return()=>{live=false;};},[relatedId]);
   const drawer=useRef(true),previewTimer=useRef(null);
   const token=useRef(0),toastTimer=useRef(null),inputRef=useRef(null),scroller=useRef(null),lastPage=useRef('home'),lastCard=useRef(null),current=useRef({});
-  current.current={page,drawer:drawer.current,sources,sourceId,calendar,results,detail,meta,channel,player,dialog,settings};
+  current.current={page,drawer:drawer.current,sources,sourceId,detailSourceId,calendar,results,detail,meta,channel,player,dialog,settings,error,busy};
   const currentSource=sources.find(s=>s.id===sourceId);
   function menuPage(){const p=current.current.page;return p==='detail'?lastPage.current:SETTINGS_PAGES.includes(p)?'settings':p;}
   function setDrawer(value){if(drawer.current===value)return;drawer.current=value;current.current.drawer=value;const el=document.querySelector('.sidebar');if(el)el.dataset.expanded=String(value);}
   function notify(text){setToast(text);clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(''),3200);}
   function refresh(){setRevision(n=>n+1);}
   function updateSettings(patch){setSettings(library.setSettings(patch));}
-  function go(next,enter=false){clearTimeout(previewTimer.current);if(next===current.current.page){setDrawer(!enter);if(enter)focusFirstContent();return;}token.current++;setContentContext(next);setPage(next);setDrawer(!enter);setDetail(null);setMeta(null);setCandidates([]);setError('');setBusy(false);if(scroller.current)scroller.current.scrollTop=0;if(enter)focusFirstContent();}
+  function go(next,enter=false){clearTimeout(previewTimer.current);if(next===current.current.page){setDrawer(!enter);if(enter)focusFirstContent();return;}cancelPlayRequest();token.current++;setContentContext(next);setPage(next);setDrawer(!enter);setDetail(null);setMeta(null);setCandidates([]);setError('');setBusy(false);if(scroller.current)scroller.current.scrollTop=0;if(enter)focusFirstContent();}
   async function refreshSources(){const r=await call('sources');setSources(r.sources);const selected=current.current.sourceId;if(r.sources.length&&!r.sources.some(s=>s.id===selected)){setSourceId(r.sources[0].id);localStorage.setItem('sourceId',r.sources[0].id);}return r;}
   // Home discovery rows; a failure just leaves a row out.
   function loadDiscover(){call('bangumiPopular').then(r=>setPopular(r.items||[])).catch(()=>{});call('bangumiClassics').then(r=>setClassics(r.items||[])).catch(()=>{});}
@@ -89,7 +91,7 @@ function App({className}){
     });
     const enter=e=>{const item=MENU.find(m=>'sidebar-'+m[0]===e.detail);if(item){if(menuPage()!==item[0])go(item[0],true);else{setDrawer(false);focusFirstContent();}}};
     const sidebar=()=>{const s=current.current;if(s.player||s.dialog)return;clearTimeout(previewTimer.current);setDrawer(true);setFocus('sidebar-'+menuPage());};
-    const back=()=>{const s=current.current;if(s.player)return;if(s.dialog){setDialog(null);return;}if(SETTINGS_PAGES.includes(s.page)){go('settings',true);return;}if(s.page==='detail'){token.current++;setDetail(null);setMeta(null);setCandidates([]);setPage(lastPage.current);setContentContext(lastPage.current);setError('');setBusy(false);setTimeout(()=>lastCard.current?setFocus(lastCard.current):focusFirstContent(),50);}else if(s.drawer){if(s.page==='home'){if(window.webOS?.platformBack)webOS.platformBack();}else go('home',true);}else{setDrawer(true);focusSidebar();}};
+    const back=()=>{const s=current.current;if(s.player)return;if(s.dialog){setDialog(null);return;}if(SETTINGS_PAGES.includes(s.page)){go('settings',true);return;}if(s.page==='detail'){cancelPlayRequest();token.current++;setDetail(null);setMeta(null);setCandidates([]);setPage(lastPage.current);setContentContext(lastPage.current);setError('');setBusy(false);setTimeout(()=>lastCard.current?setFocus(lastCard.current):focusFirstContent(),50);}else if(s.drawer){if(s.page==='home'){if(window.webOS?.platformBack)webOS.platformBack();}else go('home',true);}else{setDrawer(true);focusSidebar();}};
     window.addEventListener('tv-enter-content',enter);window.addEventListener('tv-enter-sidebar',sidebar);window.addEventListener('tv-back',back);
     setTimeout(()=>{setDrawer(true);setFocus('sidebar-home');},100);
     return()=>{clearTimeout(previewTimer.current);off();window.removeEventListener('tv-enter-content',enter);window.removeEventListener('tv-enter-sidebar',sidebar);window.removeEventListener('tv-back',back);};
@@ -102,43 +104,71 @@ function App({className}){
     setDialog({title:'弹幕类型与色彩',options:DANMAKU_TYPES.map(t=>({label:t.label+'：'+(t.on(s)?'开启':'关闭'),description:t.description,active:t.on(s),action:()=>toggle(danmakuTypePatch(t,s))})).concat({label:'完成',description:'返回弹幕样式',action:()=>setDialog(null)})});
   }
   function chooseDanmakuField(field){const f=DANMAKU_FIELDS[field];if(field==='types')chooseDanmakuTypes();else chooseOption(f.label,current.current.settings[f.key],DANMAKU_OPTIONS[field],v=>updateSettings({[f.key]:v}));}
-  async function chooseSource(){let available;try{available=(await refreshSources()).sources;}catch(e){notify(e.message);return;}setDialog({title:'选择视频源',options:available.map(s=>({label:s.name,description:s.factoryId==='json-api'?'接口源 · 原始订阅规则':'网页源 · 原始订阅规则',active:s.id===sourceId,action:()=>{setSourceId(s.id);localStorage.setItem('sourceId',s.id);setDialog(null);if(page==='detail')loadTitleSource(meta||detail?.subject,s.id);else if(page==='search'&&keyword.trim())runSearch(keyword,s.id);}}))});}
+  async function chooseSource(){
+    const origin=getCurrentFocusId(),context=current.current,subject=context.meta||context.detail?.subject,inDetail=context.page==='detail';let picked=false;let available;
+    try{available=(await refreshSources()).sources;}catch(e){notify(e.message);return;}
+    if(current.current.page!==context.page||current.current.meta!==context.meta)return;
+    setFocus('header-source');setDialog({title:inDetail?'这部番的视频源':'默认视频源',onHide:()=>{if(picked&&current.current.page==='detail'){if(!setFocus('content-2-0'))setFocus('content-0-0');}else if(!setFocus(origin))setFocus('header-source');},options:available.map(s=>({label:s.name,description:s.factoryId==='json-api'?'接口源 · 原始订阅规则':'网页源 · 原始订阅规则',active:s.id===(inDetail?context.detailSourceId:context.sourceId),action:()=>{
+      picked=true;setDialog(null);
+      if(inDetail){library.setSourceFor(subject,s.id);library.setVideoMapping(subject,s.id,null);loadTitleSource(subject,s.id);}
+      else{setSourceId(s.id);localStorage.setItem('sourceId',s.id);if(context.page==='search'&&keyword.trim())runSearch(keyword,s.id);}
+    }}))});
+  }
   async function runSearch(q=keyword,id=sourceId){
-    q=q.trim();if(!q)return;const seq=++token.current;library.addSearch(q);setKeyword(q);setBusy(true);setError('');setPage('search');setContentContext('search');setDrawer(false);setDetail(null);setMeta(null);setCandidates([]);setResults([]);
+    q=q.trim();if(!q)return;cancelPlayRequest();const seq=++token.current;library.addSearch(q);setKeyword(q);setBusy(true);setError('');setPage('search');setContentContext('search');setDrawer(false);setDetail(null);setMeta(null);setCandidates([]);setResults([]);
     try{
       const r=await call('search',{sourceId:id,keyword:q});if(seq!==token.current)return;setResults(r.items);setBusy(false);setTimeout(()=>setFocus('content-1-0'),50);
       call('bangumiSearch',{keyword:q}).then(data=>{if(seq!==token.current)return;setResults(items=>items.map(x=>{const matches=data.items.filter(m=>cleanName(m.name)===cleanName(x.name)||cleanName(m.originalName)===cleanName(x.name));return matches.length===1?{...x,...{bgmId:matches[0].bgmId,cover:matches[0].cover,score:matches[0].score,date:matches[0].date,originalName:matches[0].originalName}}:x;}));}).catch(()=>{});
     }catch(e){if(seq===token.current){setError(e.message);setBusy(false);}}
   }
-  useEffect(()=>{if(error&&!busy&&!player&&!dialog){setFocus('content-0-4');}},[error,busy,player,dialog]);
-  function enterDetailBase(subject){if(page!=='detail'){lastPage.current=page;lastCard.current=getCurrentFocusId();}setPage('detail');setContentContext('detail:'+seriesKey(subject));setDrawer(false);setError('');setDetail(null);setCandidates([]);setChannel(0);setMeta(subject);focusFirstContent();if(scroller.current)scroller.current.scrollTop=0;}
-  async function sourceDetail(subject,id=sourceId,metadata=null){
-    const seq=++token.current;setBusy(true);setError('');setCandidates([]);
+  useEffect(()=>{if(error&&!busy&&!player&&!dialog){setFocus(page==='detail'?'content-2-0':'content-0-4');}},[page,error,busy,player,dialog]);
+  function enterDetailBase(subject){cancelPlayRequest();token.current++;if(page!=='detail'){lastPage.current=page;lastCard.current=getCurrentFocusId();}setPage('detail');setContentContext('detail:'+seriesKey(subject));resetContentMemory();setDrawer(false);setError('');setDetail(null);setCandidates([]);setChannel(0);setMeta(subject);focusFirstContent();if(scroller.current)scroller.current.scrollTop=0;}
+  async function sourceDetail(subject,id=sourceId,metadata=null,confirmedPage=false){
+    const remembered=!confirmedPage&&library.videoMapping(metadata||subject,id);if(remembered){sourceDetail(remembered,id,metadata||subject,true);return;}
+    const seq=++token.current;setDetailSourceId(id);setBusy(true);setError('');setDetail(null);setCandidates([]);
     const merged={...subject,...(metadata?{bgmId:metadata.bgmId,cover:metadata.cover,score:metadata.score,summary:metadata.summary,date:metadata.date,episodeCount:metadata.episodeCount,tags:metadata.tags}:{}),sourceId:id};
-    try{const r=await call('detail',{sourceId:id,subject:merged});if(seq!==token.current)return;setDetail(r);setChannel(0);setBusy(false);setTimeout(()=>setFocus('content-2-0'),60);}catch(e){if(seq===token.current){setError(e.message);setBusy(false);}}
+    try{const r=await call('detail',{sourceId:id,subject:merged,confirmedPage});if(seq!==token.current)return;if(!r.channels?.some(ch=>ch.episodes?.length))throw Error('这个源没有找到可播放的剧集，请换一个源');if(confirmedPage)library.setVideoMapping(metadata||subject,id,subject);setDetail({...r,subject:{...merged,...r.subject,sourceId:id}});setChannel(r.channels.findIndex(ch=>ch.episodes?.length));setBusy(false);}catch(e){if(seq===token.current){setError(e.message);setBusy(false);}}
   }
   function openSource(subject){
-    const id=subject.sourceId||sourceId;setSourceId(id);localStorage.setItem('sourceId',id);enterDetailBase(subject);sourceDetail(subject,id,subject.bgmId?subject:null);
-    const apply=r=>{if(current.current.page==='detail'&&cleanName(current.current.meta?.name)===cleanName(subject.name))setMeta({...r.subject,sourceId:id});};
-    if(subject.bgmId)call('bangumiDetail',{id:subject.bgmId}).then(apply).catch(()=>{});
-    else call('bangumiSearch',{keyword:subject.name}).then(r=>{const exact=r.items.filter(x=>cleanName(x.name)===cleanName(subject.name)||cleanName(x.originalName)===cleanName(subject.name));if(exact.length===1)return call('bangumiDetail',{id:exact[0].bgmId}).then(apply);}).catch(()=>{});
+    const id=library.sourceFor(subject)||subject.sourceId||sourceId;enterDetailBase(subject);setBusy(true);const seq=token.current;
+    const begin=metadata=>{if(seq!==token.current)return;setMeta(metadata);if(subject.sourceId&&id!==subject.sourceId)loadTitleSource(metadata,id);else sourceDetail(subject,id,metadata);};
+    if(subject.bgmId){begin(subject);return;}
+    call('bangumiSearch',{keyword:subject.name}).then(r=>{const exact=r.items.filter(x=>cleanName(x.name)===cleanName(subject.name)||cleanName(x.originalName)===cleanName(subject.name));if(exact.length===1)return call('bangumiDetail',{id:exact[0].bgmId}).then(r=>begin({...subject,...r.subject}));begin(subject);}).catch(()=>begin(subject));
   }
   async function loadTitleSource(subject,id=sourceId){
-    if(!subject)return;const seq=++token.current;setBusy(true);setError('');setDetail(null);setCandidates([]);
-    try{const r=await call('search',{sourceId:id,keyword:subject.name});if(seq!==token.current)return;const exact=r.items.filter(x=>cleanName(x.name)===cleanName(subject.name)||cleanName(x.name)===cleanName(subject.originalName));if(exact.length===1)sourceDetail(exact[0],id,subject);else{setCandidates(r.items.map(x=>({...x,sourceId:id})));setBusy(false);setTimeout(()=>setFocus('content-2-0'),50);}}catch(e){if(seq===token.current){setError(e.message);setBusy(false);}}
+    if(!subject)return;const remembered=library.videoMapping(subject,id);if(remembered){sourceDetail(remembered,id,subject,true);return;}const seq=++token.current;setDetailSourceId(id);setBusy(true);setError('');setDetail(null);setCandidates([]);
+    try{const r=await call(subject.bgmId?'matchSource':'search',subject.bgmId?{sourceId:id,subject}:{sourceId:id,keyword:subject.name});if(seq!==token.current)return;
+      if(r.detail){setDetail(r.detail);setChannel(r.detail.channels.findIndex(ch=>ch.episodes.some(e=>!e.unavailable)));setCandidates([]);setBusy(false);return;}
+      const items=r.items||[],exact=items.filter(x=>cleanName(x.name)===cleanName(subject.name)||cleanName(x.name)===cleanName(subject.originalName));if(!r.manualRequired&&exact.length===1)sourceDetail(exact[0],id,subject);else{setCandidates(items.map(x=>({...x,sourceId:id})));if(!items.length)setError('这个源没有找到这部番剧，请换一个源');setBusy(false);setTimeout(()=>{if(seq===token.current)setFocus('content-2-0');},50);}}catch(e){if(seq===token.current){setError(e.message);setBusy(false);}}
   }
-  function openTitle(subject){enterDetailBase(subject);if(subject.bgmId){call('bangumiDetail',{id:subject.bgmId}).then(r=>{if(current.current.page==='detail'&&current.current.meta?.bgmId===subject.bgmId)setMeta(r.subject);}).catch(()=>{});}loadTitleSource(subject);}
+
+  function openTitle(subject){enterDetailBase(subject);if(subject.bgmId){call('bangumiDetail',{id:subject.bgmId}).then(r=>{if(current.current.page==='detail'&&current.current.meta?.bgmId===subject.bgmId)setMeta(r.subject);}).catch(()=>{});}loadTitleSource(subject,library.sourceFor(subject)||sourceId);}
   function toggleFavorite(){const subject=meta||detail?.subject;if(subject){const saved=library.toggleFavorite(subject);refresh();notify(saved?'已加入本地收藏':'已取消收藏');}}
   function startPlay(ep,index=channel,startAt){
-    if(!detail)return;const source=detail.subject.sourceId||sourceId,subject={...detail.subject,...(meta?.bgmId?{bgmId:meta.bgmId,cover:meta.cover,score:meta.score}: {})};const ch=detail.channels[index];const i=ch.episodes.findIndex(x=>x.id===ep.id);
-    setPlayer({key:Date.now(),sourceId:source,subject,episode:ep,channels:detail.channels,channelIndex:index,hasNext:i>=0&&i<ch.episodes.length-1,startAt});
+    cancelPlayRequest();if(!detail)return;if(ep.unavailable){notify('这条线路没有对应的剧集，请换源');return;}const source=detail.subject.sourceId||sourceId,subject={...detail.subject,...(meta?.bgmId?{bgmId:meta.bgmId,cover:meta.cover,score:meta.score}: {})};const ch=detail.channels[index],eps=ch.episodes.filter(e=>(e.type||'main')===(ep.type||'main'));const i=eps.findIndex(x=>x.id===ep.id);
+    setPlayer({key:Date.now(),sourceId:source,subject,episode:ep,channels:detail.channels,channelIndex:index,hasNext:i>=0&&i<eps.length-1&&!eps[i+1].unavailable,startAt});
   }
   function closePlayer(){setPlayer(null);refresh();}
-  function nextEpisode(){const p=current.current.player;if(!p)return;const eps=p.channels[p.channelIndex].episodes,i=eps.findIndex(e=>e.id===p.episode.id);if(i>=0&&i+1<eps.length)startPlay(eps[i+1],p.channelIndex,0);else notify('已是此线路最后一集');}
+  function nextEpisode(){const p=current.current.player;if(!p)return;const eps=p.channels[p.channelIndex].episodes.filter(e=>(e.type||'main')===(p.episode.type||'main')),i=eps.findIndex(e=>e.id===p.episode.id);if(i>=0&&i+1<eps.length)startPlay(eps[i+1],p.channelIndex,0);else notify('已是此线路最后一集');}
   function switchPlayingChannel(i){const p=current.current.player;if(!p)return;const ep=alternate(p.channels[i],p.episode);if(!ep){notify('此线路没有匹配到当前集，请从选集中选择');return;}const old=library.progress(p.sourceId,p.subject,p.episode);setChannel(i);startPlay(ep,i,old?.position||0);}
-  async function resume(entry){
-    const subject=entry.subject,id=entry.sourceId;setSourceId(id);localStorage.setItem('sourceId',id);enterDetailBase(subject);const seq=++token.current;setBusy(true);
-    try{const r=await call('detail',{sourceId:id,subject});if(seq!==token.current)return;setDetail(r);setBusy(false);const ci=r.channels.findIndex(c=>c.match===entry.episode.channelMatch||c.name===entry.episode.channelName);const ch=r.channels[Math.max(0,ci)],ep=ch.episodes.find(e=>e.id===entry.episode.id)||alternate(ch,entry.episode);if(!ep){notify('上次的剧集已变化，请重新选择');return;}const ix=ch.episodes.indexOf(ep);setChannel(Math.max(0,ci));setPlayer({key:Date.now(),sourceId:id,subject,episode:ep,channels:r.channels,channelIndex:Math.max(0,ci),hasNext:ix<ch.episodes.length-1,startAt:entry.completed?0:entry.position});}catch(e){if(seq===token.current){setError(e.message);setBusy(false);}}
+  function cancelPlayRequest(){pendingPlay.current=null;setPlayPending(false);}
+  function requestPlay(entry){
+    if(current.current.player||pendingPlay.current)return;
+    pendingPlay.current={entry:entry||null};setPlayPending(true);
+    if(current.current.error){cancelPlayRequest();notify('请先选择可播放的视频源');}
+  }
+  useEffect(()=>{
+    if(page!=='detail'||!playPending||busy||dialog||player)return;
+    if(error){cancelPlayRequest();return;}
+    if(!detail||!pendingPlay.current)return;
+    const entry=pendingPlay.current.entry,target=playbackTarget(detail,entry);cancelPlayRequest();
+    if(!target){notify(entry?'这个源未找到上次观看的集数，请核对季度并选择剧集':'这条线路没有第一集，请选择其他线路或视频源');setFocus('content-2-0');return;}
+    setChannel(target.channelIndex);startPlay(target.episode,target.channelIndex,target.startAt);
+  },[page,playPending,busy,dialog,player,error,detail]);
+  function resume(entry){
+    const subject=entry.subject,id=library.sourceFor(subject)||entry.sourceId||sourceId;enterDetailBase(subject);
+    pendingPlay.current={entry};setPlayPending(true);
+    if(id===entry.sourceId&&subject.url)sourceDetail(subject,id,subject);else loadTitleSource(subject,id);
   }
   function renderCards(items,startRow=1,historyItems=null,offset=0){return <div className={'poster-grid cols-'+settings.gridCols}>{items.map((s,i)=>{const h=historyItems?.[offset+i];return <PosterCard key={(s.bgmId||s.url||s.id)+'-'+(offset+i)} subject={s} row={startRow+Math.floor(i/settings.gridCols)} col={i%settings.gridCols} progress={h} actionLabel={h?h.episode.name+' · '+shortTime(h.position):undefined} onSelect={()=>h?resume(h):s.url?openSource(s):openTitle(s)}/>;})}</div>;}
   // A heading travels with its first row in one ScrollGroup, so focus scrolling reveals both and
@@ -148,9 +178,10 @@ function App({className}){
   function textSection(heading,items,startRow,onPick){return gridSection(heading,items,3,startRow,(list,row,offset)=><div className="source-results">{list.map((x,i)=><TextCard key={(x.url||x.id)+'-'+(offset+i)} subject={x} row={row+Math.floor(i/3)} col={i%3} onSelect={()=>onPick(x)}/>)}</div>);}
   // Grouped settings rows. Each group is one ScrollGroup so its heading scrolls in with its rows.
   function settingsGroups(groups){let row=0;return <div className="settings-list">{groups.map(([heading,rows])=><ScrollGroup key={heading} className="settings-group"><h2 className="settings-group-title">{heading}</h2>{rows.map(x=>{row++;return <SettingsRow key={x[0]} id={`content-${row}-0`} row={row} label={x[0]} value={x[1]} onSelect={x[2]}/>;})}</ScrollGroup>)}</div>;}
+  const resumeEntry=page==='detail'&&meta?library.latestProgress(meta):null,continueEntry=resumeEntry&&!resumeEntry.completed?resumeEntry:null;
   const progressFor=page==='detail'&&detail?library.progressLookup():null;
   // Related titles sit below whatever the detail page shows: episodes (rows 2+, 7 per row), candidate matches (3 per row) or nothing yet.
-  const relatedRow=busy?2:candidates.length?2+Math.ceil(candidates.length/3):detail?2+Math.ceil(detail.channels[channel].episodes.length/7):1;
+  const relatedRow=error?3:busy?2:candidates.length?2+Math.ceil(candidates.length/3):detail?2+Math.ceil(detail.channels[channel].episodes.length/7):1;
   const relatedLabel=x=>(x.relation==='系列'?(x.date&&meta?.date&&x.date<meta.date?'前传':'续集'):x.relation)+(x.date?' · '+x.date.slice(0,4):x.platform?' · '+x.platform:'');
   const favorites=library.favorites(),history=library.history(),todayItems=calendar.find(d=>d.id===today)?.items||[],dayItems=calendar.find(d=>d.id===day)?.items||[];
   // Page-level notes sit in the fixed header, outside the scroller, so they never need focus to be seen.
@@ -169,10 +200,10 @@ function App({className}){
   return <div id="tv-frame" className={className}>
     <div className="app-shell" aria-hidden={!!player}>
       <Sidebar active={menuPage()} disabled={!!player||!!dialog} expanded={drawer.current} actions={actions}/>
-      <PageFocusContainer spotlightId="content" spotlightDisabled={!!player||!!dialog} className="main-content"><PageHeader title={title} subtitle={subtitle} page={page} sourceName={currentSource?.name} actions={actions}/>
+      <PageFocusContainer spotlightId="content" spotlightDisabled={!!player||!!dialog} className="main-content"><PageHeader title={title} subtitle={subtitle} page={page} sourceName={(page==='detail'?sources.find(s=>s.id===detailSourceId):currentSource)?.name} actions={actions}/>
         <ContentScroller apiRef={scroller}>
           <div key={page+(page==='detail'?':'+(meta?.bgmId||meta?.name||''):'')} className="page-stage">
-          {error&&<div className="error-banner"><span>{error}</span><FocusButton id="content-0-4" row={0} col={4} recoveryPriority={2} onSelect={chooseSource}>换一个源</FocusButton></div>}
+          {error&&page!=='detail'&&<div className="error-banner"><span>{error}</span><FocusButton id="content-0-4" row={0} col={4} recoveryPriority={2} onSelect={chooseSource}>换一个源</FocusButton></div>}
           {page==='home'&&<>
             {history.length>0&&cardSection(<h2 className="section-title">继续观看 <span>已在这台电视上保存</span></h2>,history.slice(0,settings.gridCols).map(x=>x.subject),1,history.slice(0,settings.gridCols))}
             {calendarBusy||calendarError?<section className="grid-section"><ScrollGroup className="section-lead">{todayHeading}{calendarBusy?<Loading/>:<><Empty title="时间表暂未加载">{calendarError}</Empty><FocusButton id="content-calendar-retry" row={todayRow} onSelect={loadCalendar}>重新加载</FocusButton></>}</ScrollGroup></section>:cardSection(todayHeading,todayItems.slice(0,20),todayRow)}
@@ -188,8 +219,8 @@ function App({className}){
           {page==='favorites'&&<><div className="filter-tabs">{[['all','全部'],['wish','想看'],['watching','在看'],['done','看过']].map((x,i)=><LiteButton key={x[0]} id={`content-0-${i}`} row={0} col={i} label={x[1]} className={favFilter===x[0]?'active':''} onSelect={()=>setFavFilter(x[0])}><span>{x[1]}</span></LiteButton>)}</div><div key={favFilter} className="tab-stage">{favorites.length?renderCards(favorites.filter(x=>favFilter==='all'||(x.status||'wish')===favFilter)):<Empty title="收藏喜欢的番剧">打开番剧详情，选择“加入收藏”。数据仅保存在这台电视。</Empty>}</div></>}
           {page==='history'&&(history.length?renderCards(history.map(x=>x.subject),1,history):<Empty title="从第一集开始">播放过的番剧和进度会自动出现在这里。</Empty>)}
           {page==='detail'&&<>
-            <ScrollGroup className="subject-hero">{meta?.cover?<img src={coverThumbnail(meta.cover)} className="subject-cover" alt=""/>:<div className="subject-cover blank"><Icon name="tv" size={70}/></div>}<div className="subject-info"><div className="subject-meta">{meta?.score>0&&<strong>★ {Number(meta.score).toFixed(1)}</strong>}{meta?.date&&<span>{meta.date}</span>}{meta?.episodeCount>0&&<span>全 {meta.episodeCount} 集</span>}</div><h2>{meta?.originalName||title}</h2><p className="subject-summary">{meta?.summary||'选择播放源与剧集。收藏和观看进度会保存在本机。'}</p>{meta?.tags?.length>0&&<div className="subject-tags">{meta.tags.slice(0,6).map(t=><span key={t}>{t}</span>)}</div>}<div className="subject-actions"><FocusButton id="content-0-0" row={0} col={0} className={library.isFavorite(meta||detail?.subject||{})?'active':'primary'} onSelect={toggleFavorite}><Icon name="star" size={21}/>{library.isFavorite(meta||detail?.subject||{})?'已收藏':'加入收藏'}</FocusButton><FocusButton id="content-0-1" row={0} col={1} className="quiet" onSelect={()=>{const s=meta||detail?.subject;if(!s)return;chooseOption('设置追番状态',library.favoriteStatus?.(s)||'wish',[{value:'wish',label:'想看',description:'加入想看列表，方便日后查找'},{value:'watching',label:'在看',description:'正在追更或观看中的番剧'},{value:'done',label:'看过',description:'已经看完的番剧'}],nextStatus=>{if(!library.isFavorite(s))library.toggleFavorite(s);library.setFavoriteStatus?.(s,nextStatus);refresh();notify('已更新本地追番状态');});}}>状态：{({wish:'想看',watching:'在看',done:'看过'})[library.favoriteStatus?.(meta||detail?.subject||{})||'wish']}</FocusButton></div></div></ScrollGroup>
-            {busy?<Loading text="正在读取线路和剧集…"/>:candidates.length>0?textSection(<h2 className="section-title">选择对应番剧 <span>请核对季度和名称</span></h2>,candidates,2,s=>sourceDetail(s,s.sourceId,meta)):detail&&<><div className="channel-tabs">{detail.channels.map((ch,i)=><FocusButton key={i} id={`content-1-${i}`} row={1} col={i} className={channel===i?'active':''} onSelect={()=>setChannel(i)}>{ch.name}<small>{ch.episodes.length} 集</small></FocusButton>)}</div><div key={channel} className="episode-grid tab-stage">{detail.channels[channel].episodes.map((ep,i)=>{const progress=progressFor(detail.subject.sourceId||sourceId,detail.subject,ep);return <FocusButton key={ep.id} id={`content-${2+Math.floor(i/7)}-${i%7}`} row={2+Math.floor(i/7)} col={i%7} className={'episode-button '+(progress?.completed?'watched':'')} onSelect={()=>startPlay(ep)} onLongPress={()=>{library.markComplete(detail.subject.sourceId||sourceId,detail.subject,ep,!progress?.completed);refresh();notify(progress?.completed?'已取消已看标记':'已标记为看过');}}><span>{ep.name}</span>{progress?.completed?<small>✓ 已看</small>:progress?.position>0?<small>{shortTime(progress.position)}</small>:null}</FocusButton>;})}</div></>}
+            <ScrollGroup className="subject-hero">{meta?.cover?<img src={coverThumbnail(meta.cover)} className="subject-cover" alt=""/>:<div className="subject-cover blank"><Icon name="tv" size={70}/></div>}<div className="subject-info"><div className="subject-meta">{meta?.score>0&&<strong>★ {Number(meta.score).toFixed(1)}</strong>}{meta?.date&&<span>{meta.date}</span>}{meta?.episodeCount>0&&<span>全 {meta.episodeCount} 集</span>}</div><h2>{meta?.originalName||title}</h2><p className="subject-summary">{meta?.summary||'选择播放源与剧集。收藏和观看进度会保存在本机。'}</p>{meta?.tags?.length>0&&<div className="subject-tags">{meta.tags.slice(0,6).map(t=><span key={t}>{t}</span>)}</div>}<div className="subject-actions"><FocusButton id="content-0-0" row={0} col={0} className="primary" onSelect={()=>requestPlay(continueEntry)}><Icon name="play" size={21}/>{playPending?'加载后播放…':continueEntry?'继续观看':'从头播放'}</FocusButton><FocusButton id="content-0-1" row={0} col={1} className={library.isFavorite(meta||detail?.subject||{})?'active':'quiet'} onSelect={toggleFavorite}><Icon name="star" size={21}/>{library.isFavorite(meta||detail?.subject||{})?'已收藏':'加入收藏'}</FocusButton><FocusButton id="content-0-2" row={0} col={2} className="quiet" onSelect={()=>{const s=meta||detail?.subject;if(!s)return;chooseOption('设置追番状态',library.favoriteStatus?.(s)||'wish',[{value:'wish',label:'想看',description:'加入想看列表，方便日后查找'},{value:'watching',label:'在看',description:'正在追更或观看中的番剧'},{value:'done',label:'看过',description:'已经看完的番剧'}],nextStatus=>{if(!library.isFavorite(s))library.toggleFavorite(s);library.setFavoriteStatus?.(s,nextStatus);refresh();notify('已更新本地追番状态');});}}>状态：{({wish:'想看',watching:'在看',done:'看过'})[library.favoriteStatus?.(meta||detail?.subject||{})||'wish']}</FocusButton></div></div></ScrollGroup>
+            {error?<div className="error-banner detail-source-error"><span>{error}</span><FocusButton id="content-2-0" row={2} col={0} recoveryPriority={2} onSelect={chooseSource}>换一个源</FocusButton></div>:busy?<Loading text="正在读取线路和剧集…"/>:candidates.length>0?textSection(<h2 className="section-title">选择对应番剧 <span>请核对季度和名称</span></h2>,candidates,2,s=>sourceDetail(s,s.sourceId,meta,true)):detail&&<><div className="channel-tabs">{detail.channels.map((ch,i)=><FocusButton key={i} id={`content-1-${i}`} row={1} col={i} className={channel===i?'active':''} onSelect={()=>setChannel(i)}>{ch.name}<small>{ch.episodes.length} 集</small></FocusButton>)}</div><div key={channel} className="episode-grid tab-stage">{detail.channels[channel].episodes.map((ep,i)=>{const progress=progressFor(detail.subject.sourceId||sourceId,detail.subject,ep);return <FocusButton key={ep.id} id={`content-${2+Math.floor(i/7)}-${i%7}`} row={2+Math.floor(i/7)} col={i%7} className={'episode-button '+(progress?.completed?'watched':'')} disabled={!!ep.unavailable} onSelect={()=>startPlay(ep)} onLongPress={()=>{library.markComplete(detail.subject.sourceId||sourceId,detail.subject,ep,!progress?.completed);refresh();notify(progress?.completed?'已取消已看标记':'已标记为看过');}}><span>{ep.name}</span>{ep.unavailable?<small>此线路暂无</small>:progress?.completed?<small>✓ 已看</small>:progress?.position>0?<small>{shortTime(progress.position)}</small>:null}</FocusButton>;})}</div></>}
             {related.length>0&&gridSection(<h2 className="section-title">关联作品 <span>同系列的其他季度、剧场版与番外</span></h2>,related,settings.gridCols,relatedRow,(list,row,offset)=><div className={'poster-grid cols-'+settings.gridCols}>{list.map((s,i)=><PosterCard key={s.bgmId} subject={s} row={row+Math.floor(i/settings.gridCols)} col={i%settings.gridCols} actionLabel={relatedLabel(s)} onSelect={()=>openTitle(s)}/>)}</div>)}
           </>}
           {page==='danmakuSettings'&&<DanmakuSettings notify={notify}/>}

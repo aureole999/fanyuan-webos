@@ -12,9 +12,9 @@ function validateBase(value){
  u.pathname=u.pathname.replace(/\/+$/,'').replace(/\/api\/v2$/,'');return u.href.replace(/\/$/,'');
 }
 function canonicalName(value){return String(value||'').replace(/【[^】]*】/g,'').replace(/\((?:(?:19|20)\d{2}|未知)\)/g,'').replace(/\s*from\s+[\w&-]+\s*$/i,'').trim();}
-function stripEpisode(value){return String(value||'').replace(/^【[^】]*】\s*/,'').replace(/^(?:SP?|C)\s*\d+(?:\.\d+)?\s+/i,'').replace(/^第\s*[\d.]+\s*[话話集]\s*/,'').replace(/^(?:番外編|番外篇|特别篇|特別篇)\s+/,'').trim();}
+function stripEpisode(value){return String(value||'').replace(/^【[^】]*】\s*/,'').replace(/^(?:SP?|O|C)\s*\d+(?:\.\d+)?\s+/i,'').replace(/^第\s*[\d.]+\s*[话話集]\s*/,'').replace(/^(?:番外編|番外篇|特别篇|特別篇)\s+/,'').trim();}
 function normalizeNumber(raw){return /^\d+(?:\.\d+)?$/.test(String(raw))?String(Number(raw)):String(raw==null?'':raw);}
-function episodeNumber(e){if(/^(?:SP?|C)\s*\d+(?:\.\d+)?\s+/i.test(String(e.episodeTitle||'').replace(/^【[^】]*】\s*/,'')))return null;const m=/^第\s*(\d+(?:\.\d+)?)\s*[话話集]/.exec(String(e.episodeTitle||'').replace(/^【[^】]*】\s*/,''));return normalizeNumber(m?m[1]:e.episodeNumber);}
+function episodeNumber(e){if(/^(?:SP?|O|C)\s*\d+(?:\.\d+)?\s+/i.test(String(e.episodeTitle||'').replace(/^【[^】]*】\s*/,'')))return null;const m=/^第\s*(\d+(?:\.\d+)?)\s*[话話集]/.exec(String(e.episodeTitle||'').replace(/^【[^】]*】\s*/,''));return normalizeNumber(m?m[1]:e.episodeNumber);}
 function animeIdentity(a){return {subjectName:a.name,source:a.source||'',sourceKey:a.sourceKey||''};}
 function sameAnime(a,selection){
  if(selection.source&&a.source!==selection.source)return false;
@@ -26,8 +26,8 @@ function rankAnimes(rows,r){
  const wantedDub=(r.subjectNames||[]).some(n=>dub.test(n));
  return rows.map((a,index)=>{const canonical=canonicalName(a.name),name=normalize(canonical),confirmed=!!r.subjectId&&String(a.confirmedSubjectId)===String(r.subjectId),exact=confirmed||rawNames.some(n=>sameSubjectName(n,canonical));let score=confirmed?200:exact?100:names.some(n=>name.includes(n)||n.includes(name))?70:0;
   if(!wantedDub&&dub.test(a.name))score-=100;const year=String(r.subjectPublishDate||'').slice(0,4);if(year&&a.date&&a.date.slice(0,4)!==year)score-=10;
-  const kind=split?split.classify(canonicalName(a.name)):null;
-  return {anime:a,score,index,exact,allowed:exact||(kind==='own'||kind==='season')};}).filter(x=>x.score>0&&x.allowed).sort((a,b)=>Number(b.exact)-Number(a.exact)||b.score-a.score||Number(b.anime.source==='dandan')-Number(a.anime.source==='dandan')||a.index-b.index).map(x=>x.anime);
+  const kind=split?split.classify(canonicalName(a.name)):null,canonicalKind=r.matchingContext?require('./episode-matching.cjs').pageKind(r.matchingContext,canonical):null,compatible=canonicalKind&&!['unrelated','otherSeason'].includes(canonicalKind);if(compatible&&score<=0)score=35;
+  return {anime:a,score,index,exact,dateMatch:!!(year&&a.date&&a.date.slice(0,4)===year),allowed:exact||compatible||(kind==='own'||kind==='season')};}).filter(x=>x.score>0&&x.allowed).sort((a,b)=>Number(b.anime.source==='dandan')-Number(a.anime.source==='dandan')||(r.matchingContext?Number(b.dateMatch)-Number(a.dateMatch):0)||Number(b.exact)-Number(a.exact)||b.score-a.score||a.index-b.index).map(x=>x.anime);
 }
 function parseComments(data,fallbackSource){
  if(!Array.isArray(data.comments))throw error('弹幕服务未返回 JSON comments 列表');
@@ -117,10 +117,11 @@ class CustomDanmaku{
   if(!queries.length)return this.empty('noMatch','缺少番剧名，请手动匹配');
   const compact=[];for(const name of queries){const prefix=name.split(/[～~:：]/)[0].trim();if(prefix.length>=2&&prefix!==name&&!seenQueries.has(normalize(prefix))){seenQueries.add(normalize(prefix));compact.push(prefix);}}
   const plan=queries.slice(0,3).concat(compact.slice(0,4)),hasDandan=all=>rankAnimes(all,r).some(a=>a.source==='dandan');
+  const baseQueries=r.matchingContext?require('./episode-matching.cjs').familyBases(r.matchingContext).filter(q=>!plan.includes(q)).slice(0,3):[];let fallbackPass=false;
   for(let recovery=0;recovery<2;recovery++){
    const all=[],identities=new Set(),attempted=[],add=rows=>{for(const a of rows){const key=a.source+'|'+(a.sourceKey||a.name);if(!identities.has(key)){identities.add(key);all.push(a);}}};
    // A verified identity from an earlier episode skips the title plan entirely.
-   const known=this.identity.cached(r);
+   const known=!fallbackPass&&this.identity.cached(r);
    if(known){attempted.push(known.query);try{add((await this.search(known.query)).filter(a=>a.source===known.source&&a.sourceKey===known.sourceKey).map(a=>Object.assign(a,{confirmedSubjectId:known.subjectId})));}catch(e){if(e.noRetry)throw e;lastError=e;}}
    if(!all.length)for(const query of plan){
     if(attempted.includes(query))continue;attempted.push(query);
@@ -139,6 +140,7 @@ class CustomDanmaku{
     if(++commentRequests>2)break;
     const result=await this.comments(anime,found.episode,'auto:'+(anime.confirmedSubjectId?'subjectId:':'')+found.method);if(result.items.length)return result;emptyResult=result;
    }catch(e){if(e.noRetry)throw e;if(e.statusCode===404){stale=true;break;}lastError=e;}
+   if(!stale&&r.matchingContext&&!fallbackPass&&baseQueries.length){plan.splice(0,plan.length,...baseQueries);fallbackPass=true;continue;}
    if(!stale)break;
   }
   if(emptyResult)return emptyResult;if(lastError)throw lastError;

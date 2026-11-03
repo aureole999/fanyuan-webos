@@ -1,5 +1,6 @@
 import React,{useState,useEffect,useRef,useCallback,useMemo,useLayoutEffect} from 'react';
 import {call} from './api';
+import {playbackFailure} from './playback-error.cjs';
 import {Icon,LiteButton,FocusContainer,ControlRow,ContentScroller,ScrubBar,ScrollGroup} from './components';
 import DanmakuLayer from './vendor/bilitv/player/DanmakuLayer';
 import {setCustomKeyHandler,claimRemoteFocus,setFocus,activateFocusScope,getCurrentFocusId} from './focus';
@@ -17,6 +18,7 @@ function time(t){if(!Number.isFinite(t))return '00:00';const m=Math.floor(t/60),
 export default function Player({item,library,settings,onSettings,onClose,onNext,onEpisode,onSwitchChannel}){
   const {sourceId,subject,episode,channels,channelIndex}=item;
   const videoRef=useRef(null),mounted=useRef(true),resumeApplied=useRef(false),lastSaved=useRef(0),generation=useRef(0),controlsRef=useRef(true),panelRef=useRef(''),panelHistory=useRef([]),panelTarget=useRef(null),timer=useRef(null),nextTimer=useRef(null),seekTimer=useRef(null),dmGeneration=useRef(0),customGeneration=useRef(0);
+  const playbackError=useRef(null);
   const lastControlFocus=useRef('player-controls-0');
   // Scrubbing moves a preview position; the video seeks once, when the remote rests (or on OK).
   const scrub=useRef({target:null,start:0,count:0,timer:null}),focusOnShow=useRef(null);
@@ -34,7 +36,14 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   function show(){if(seekSession.current.active())return;if(!controlsRef.current){const v=videoRef.current;if(v){setCurrent(v.currentTime||0);if(Number.isFinite(v.duration))setDuration(v.duration);}}controlsRef.current=true;setControls(true);clearTimeout(timer.current);timer.current=setTimeout(()=>{if(videoRef.current&&!videoRef.current.paused&&!panelRef.current&&scrub.current.target==null){hideControls();}},5000);}
   function save(completed=false){const v=videoRef.current;if(v&&v.duration>0)library.saveProgress(sourceId,subject,episode,v.currentTime,v.duration,completed||v.ended);}
   function close(){save();onClose();}
-  function toggle(){const v=videoRef.current;if(!v)return;if(v.paused){const p=v.play();p&&p.catch(()=>setMessage('按播放键重试'));}else v.pause();show();}
+  function reportPlaybackFailure(error,v=videoRef.current,token=generation.current){
+    if(!mounted.current||v!==videoRef.current||token!==generation.current)return;
+    const failure=playbackFailure(v?.error,error);if(!failure)return;
+    if(playbackError.current?.failed&&!failure.failed)return;
+    playbackError.current=failure;setMessage(failure.message);setFailed(failure.failed);if(failure.failed)setControls(true);
+  }
+  function playVideo(v,token=generation.current){try{const p=v.play();if(p&&p.catch)p.catch(e=>reportPlaybackFailure(e,v,token));}catch(e){reportPlaybackFailure(e,v,token);}}
+  function toggle(){const v=videoRef.current;if(!v)return;if(v.paused)playVideo(v);else v.pause();show();}
   // Moves the preview by the held-key step, or by a fixed amount (the skip shortcut); one seek on commit.
   function scrubBy(dir,amount,delay=650){
     const v=videoRef.current;if(!v||!Number.isFinite(v.duration))return;const st=scrub.current;
@@ -71,7 +80,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   }
   async function loadDanmaku(bgmId,episodeId){
     setDmInfo('正在加载弹幕…');setDmError('');const token=++dmGeneration.current;
-    try{const r=await call('danmaku',{subjectId:bgmId,episodeId,sort:episode.sort,type:episode.type,sourceEpisodeNumbers:(channels[channelIndex]?.episodes||[]).filter(e=>!e.type||e.type==='main').map(e=>Number(e.sort)).filter(Number.isFinite).slice(0,3000),subject,videoDuration:videoRef.current?.duration||0,customSelection:library.customDanmakuMapping(subject,episode)});if(!mounted.current||token!==dmGeneration.current)return;if(bgmId)library.setMapping(subject,bgmId);applyDanmaku(r);}
+    try{const r=await call('danmaku',{subjectId:bgmId,episodeId:episodeId||(Number(bgmId)===Number(subject.bgmId)?episode.bgmEpisodeId:undefined),sort:episode.sort,type:episode.type,sourceEpisodeNumbers:(channels[channelIndex]?.episodes||[]).filter(e=>!e.type||e.type==='main').map(e=>Number(e.sort)).filter(Number.isFinite).slice(0,3000),subject,videoDuration:videoRef.current?.duration||0,customSelection:library.customDanmakuMapping(subject,episode)});if(!mounted.current||token!==dmGeneration.current)return;if(bgmId)library.setMapping(subject,bgmId);applyDanmaku(r);}
     catch(e){if(mounted.current&&token===dmGeneration.current){setDmInfo('弹幕未匹配');setDmError(e.message);}}
   }
   async function findCustom(){
@@ -93,9 +102,9 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     return loadDanmaku(mapped||null);
   }
   const start=useCallback(async()=>{
-    const token=++generation.current;setFailed(false);setMessage('正在解析播放地址…');
-    try{const r=await call('resolve',{sourceId,subject,episode});if(!mounted.current||token!==generation.current)return;const v=videoRef.current;v.src=r.url;v.load();const p=v.play();if(p&&p.catch)p.catch(()=>setMessage('按 OK 开始播放'));autoDanmaku();}
-    catch(e){if(mounted.current&&token===generation.current){setMessage(e.message);setFailed(true);}}
+    const token=++generation.current;playbackError.current=null;setFailed(false);setMessage('正在解析播放地址…');
+    try{const r=await call('resolve',{sourceId,subject,episode});if(!mounted.current||token!==generation.current)return;const v=videoRef.current;v.src=r.url;v.load();playVideo(v,token);autoDanmaku();}
+    catch(e){if(mounted.current&&token===generation.current){playbackError.current={failed:true,message:e.message};setMessage(e.message);setFailed(true);}}
   },[]);
   useEffect(()=>{
     mounted.current=true;start();
@@ -139,7 +148,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     setCustomKeyHandler(handler);return()=>setCustomKeyHandler(null);
   },[episode,offset,speed,settings,panel]);
   useEffect(()=>{window.__fanYuanPlayer={diagnostics:()=>{const v=videoRef.current;return {playing:!!v&&!v.paused,time:v?.currentTime,readyState:v?.readyState,videoWidth:v?.videoWidth,danmaku:danmakus.length,providers:dmProviders,sources:dmSources,error:v?.error?.code};}};return()=>delete window.__fanYuanPlayer;},[danmakus,dmProviders,dmSources]);
-  function ready(){const v=videoRef.current;setDuration(v.duration);if(!resumeApplied.current){resumeApplied.current=true;const saved=library.progress(sourceId,subject,episode);const position=item.startAt!=null?item.startAt:saved&&!saved.completed?saved.position:0;if(position>3&&position<v.duration-12){v.currentTime=position;setMessage('已续播到 '+time(position));setTimeout(()=>mounted.current&&setMessage(''),1800);}}}
+  function ready(){const v=videoRef.current;setDuration(v.duration);if(!resumeApplied.current){resumeApplied.current=true;const saved=library.progress(sourceId,subject,episode);const position=item.startAt!=null?item.startAt:saved&&!saved.completed?saved.position:0;if(position>3&&position<v.duration-12){v.currentTime=position;if(!playbackError.current?.failed)setMessage('已续播到 '+time(position));setTimeout(()=>mounted.current&&!playbackError.current?.failed&&setMessage(''),1800);}}}
   function ended(){save(true);setControls(true);if(settingsRef.current.autoplayNext&&item.hasNext){setCountdown(5);let left=5;clearInterval(nextTimer.current);nextTimer.current=setInterval(()=>{left--;setCountdown(left);if(left<=0){clearInterval(nextTimer.current);onNext();}},1000);}else setMessage('本集播放结束');}
   function adjustOffset(n){const value=offset+n;setOffset(value);library.setOffset(subject,value);}
   function applySpeed(next){try{videoRef.current.playbackRate=next;setSpeed(videoRef.current.playbackRate);hidePanel();}catch(e){setMessage('此格式暂不支持倍速');}}
@@ -164,15 +173,15 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
           {!panel?(()=>{
             // Ids follow focus priority (play is index 0, 下一集 1); the layout is centered: content on
             // the left, previous / play / next in the middle, danmaku and speed on the right.
-            const eps=channels[channelIndex]?.episodes||[],at=eps.findIndex(e=>e.id===episode.id);
+            const eps=(channels[channelIndex]?.episodes||[]).filter(e=>(e.type||'main')===(episode.type||'main')),at=eps.findIndex(e=>e.id===episode.id);
             const play=button(paused?'播放':'暂停',toggle,paused?'play':'pause','player-primary',{iconOnly:true});
             const next=button('下一集',()=>{save();onNext();},'next','player-next',{disabled:!item.hasNext});
-            const prev=button('上一集',()=>{if(at>0){save();onEpisode(eps[at-1]);}},'next','player-prev',{disabled:!(at>0)});
+            const prev=button('上一集',()=>{if(at>0){save();onEpisode(eps[at-1]);}},'next','player-prev',{disabled:!(at>0)||!!eps[at-1]?.unavailable});
             const list=button('选集',()=>openPanel('episodes'),'episodes'),line=button('线路',()=>openPanel('channels'),'channel');
             const dm=button('弹幕',()=>onSettings({danmaku:!settings.danmaku}),'chat','player-toggle',{after:<span className={'player-switch'+(settings.danmaku?' on':'')} aria-hidden="true"/>});
             const dmSet=button('弹幕设置',()=>openPanel('danmaku'),'settings'),rate=button(speedLabel(speed),()=>openPanel('speed'),'speed');
             return <ControlRow className="player-control-row"><div className="player-section start">{list}{line}</div><div className="player-section center">{prev}{play}{next}</div><div className="player-section end">{dm}{dmSet}{rate}</div></ControlRow>;})():<ContentScroller className="player-panel" spotlightId={'panel-'+panel}><div className="panel-title"><div className="panel-heading"><h2>{panelTitle(panel)}</h2>{note&&<p className="panel-description">{note}</p>}{panelError&&<p className="error-text">{dmError}</p>}</div>{button(panelHistory.current.length>1?'返回上一级':'返回控制栏',hidePanel)}</div>
-            {panel==='episodes'&&<div className="player-episode-grid">{(channels[channelIndex]?.episodes||[]).map(ep=>button(ep.name,()=>{save();onEpisode(ep);},null,ep.id===episode.id?'active':''))}</div>}
+            {panel==='episodes'&&<div className="player-episode-grid">{(channels[channelIndex]?.episodes||[]).map(ep=>button(ep.name,()=>{save();onEpisode(ep);},null,ep.id===episode.id?'active':'',{disabled:!!ep.unavailable}))}</div>}
             {panel==='channels'&&<div className="player-channel-grid">{channels.map((ch,i)=>button(ch.name,()=>{save();onSwitchChannel(i);},null,i===channelIndex?'active':''))}</div>}
             {panel==='speed'&&<div className="player-settings-grid">{[[0.75,'0.75×'],[1,'1.0× · 正常'],[1.25,'1.25×'],[1.5,'1.5×'],[2,'2.0×']].map(([v,label])=>button(label,()=>applySpeed(v),null,speed===v?'active':''))}</div>}
             {panel==='danmaku'&&<>
@@ -191,7 +200,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
         </div>;
   },[showUi,panel,paused,speed,settings,offset,dmInfo,dmError,customBusy,customSubject,customSubjects,customEpisodes,dmSources,sourcePrefs,channels,channelIndex,episode,subject,sourceId,library,start,onSettings,onNext,onEpisode,onSwitchChannel,onClose]);
   return <FocusContainer spotlightId="player" spotlightRestrict="self-only" className="player-page" onMouseMove={show}>
-    <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{setPaused(false);setMessage('');setFailed(false);if(controlsRef.current)show();}} onPause={()=>{setPaused(true);save();show();}} onWaiting={()=>setMessage('正在缓冲…')} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){setMessage(`此线路播放失败（${videoRef.current.error?.code||'未知'}）`);setFailed(true);setControls(true);}}}/>
+    <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{playbackError.current=null;setPaused(false);setMessage('');setFailed(false);if(controlsRef.current)show();}} onPause={()=>{setPaused(true);save();show();}} onWaiting={()=>{if(!playbackError.current?.failed)setMessage('正在缓冲…');}} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){reportPlaybackFailure(null);}}}/>
     <div className="danmaku-wrap" style={{opacity:settings.danmakuOpacity}}><DanmakuLayer danmakus={danmakus} currentTime={current-offset} paused={paused} enabled={settings.danmaku} fontScale={settings.danmakuScale} settings={settings}/>{settings.danmaku&&topFixed.map((d,i)=><div key={'top-'+d.time+'-'+i} className="fixed-danmaku top" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}{settings.danmaku&&bottomFixed.map((d,i)=><div key={'bot-'+d.time+'-'+i} className="fixed-danmaku bottom" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${-i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}</div>
     {seekHint&&!controls&&<div className="seek-hint">{seekHint}</div>}
     {!controls&&seekHint&&<div className="seek-progress" role="status" aria-label="跳转进度"><span>{time(scrubTarget!=null?scrubTarget:current)}</span><div className="seek-progress-track"><i style={{width:`${duration?Math.min(100,Math.max(0,(scrubTarget!=null?scrubTarget:current)/duration*100)):0}%`}}/></div><span>{time(duration)}</span></div>}

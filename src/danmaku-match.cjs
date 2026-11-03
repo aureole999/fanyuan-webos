@@ -27,7 +27,13 @@ function splitMatcher(r){
  return {previousIds:previous.map(p=>p.subjectId),classify,match(name,rows,mappedToSelf){let kind=classify(name);if(kind==='otherSeason')return null;if(mappedToSelf&&kind==='other')kind='own';const nums=new Set(rows.map(number).filter(n=>n!=null));if(!nums.size)return null;let expected;if(Math.min(...nums)>1)return rows.find(e=>number(e)===seasonNumber||number(e)===r.episodeSort)||null;if(kind==='own'&&nums.size<=own.episodeCount+2)expected=r.episodeEp;else if(nums.size<=previousCount+extra)return null;else expected=seasonNumber;return rows.find(e=>number(e)===expected)||null;}};
 }
 function matchEpisodes(r,rows,mappedToSelf){
- if(!rows||!rows.length)return null;const split=splitMatcher(r),names=new Set((r.episodeNames||[]).concat(r.episodeName||'').map(title).filter(Boolean));
+ if(!rows||!rows.length)return null;
+ if(r.matchingContext&&!r.episodeType){
+  const result=require('./episode-matching.cjs').matchPage(r.matchingContext,{name:rows[0].subjectName,danmaku:true,episodes:rows.map(e=>Object.assign({},e,{name:e.episodeName,genericTitle:!e.episodeName}))});
+  const found=result.matches.find(m=>r.episodeId?Number(m.episode.id)===Number(r.episodeId):Number(m.episode.sort)===Number(r.episodeSort));
+  return found?{episode:found.row,method:'canonical:'+found.method}:null;
+ }
+ const split=splitMatcher(r),names=new Set((r.episodeNames||[]).concat(r.episodeName||'').map(title).filter(Boolean));
  const candidates=(split?rows.filter(e=>split.classify(e.subjectName)!=='otherSeason'):rows).filter(e=>names.has(title(e.episodeName)));
  let exact=candidates.length===1?candidates[0]:null;
  if(r.episodeType)return exact?{episode:exact,method:'exactTitle'}:null;

@@ -23,3 +23,37 @@ test('episode list reads one progress snapshot, with fresh data after a write',(
  assert.equal(lookup('one',subject,ep).position,30);assert.equal(reads,1);assert.equal(lookup('two',subject,ep),null);
  lib.saveProgress('one',subject,ep,60,1400);assert.equal(lib.progressLookup()('one',subject,ep).position,60);
 });
+
+test('per-series source survives metadata enrichment and keeps seasons independent',()=>{
+ const st=store(),a=makeLibrary(st),plain={name:subject.name};
+ a.setSourceFor(plain,'two');const b=makeLibrary(st);assert.equal(b.sourceFor(subject),'two');
+ b.setSourceFor(subject,'three');assert.equal(b.sourceFor({...subject,sourceId:'one'}),'three');
+ assert.equal(b.sourceFor({...subject,bgmId:400603}),null);assert.equal(b.sourceFor({name:subject.name+' 第二季'}),null);
+ b.saveProgress('one',subject,ep,15,100);assert.equal(b.sourceFor(subject),'three');assert.equal(b.latestProgress(plain).position,15);
+ assert.equal(st.getItem('sourceId'),null);
+});
+const {playbackTarget}=require('../frontend/library.cjs');
+test('resume matches episode number/type across sources, never reused IDs or first episode',()=>{
+ const entry={sourceId:'one',episode:{id:'ep1',sort:3,type:'main'},position:120};
+ const detail={subject:{sourceId:'two'},channels:[{episodes:[{id:'ep1',sort:1,type:'main'},{id:'special',sort:3,type:'sp'},{id:'new3',sort:'3',type:'main'}]}]};
+ assert.deepEqual(playbackTarget(detail,entry),{episode:detail.channels[0].episodes[2],channelIndex:0,startAt:120});
+ assert.equal(playbackTarget(detail,{...entry,episode:{sort:7}}),null);
+ assert.equal(playbackTarget(detail,{...entry,episode:{sort:''}}),null);
+ assert.equal(playbackTarget({...detail,channels:[{episodes:[{sort:3},{sort:'3'}]}]},entry),null);
+ assert.equal(playbackTarget(detail,null).episode.sort,1);
+});
+
+test('canonical episode progress survives switching sources and still reads old source-keyed progress',()=>{
+ const lib=makeLibrary(store());lib.saveProgress('one',subject,ep,40,1400);assert.equal(lib.progress('one',subject,{...ep,bgmEpisodeId:999}).position,40);
+ lib.saveProgress('one',subject,{...ep,bgmEpisodeId:999},80,1400);
+ assert.equal(lib.progress('two',{...subject,url:'https://new.invalid'},{id:'another',bgmEpisodeId:999}).position,80);
+});
+
+test('a missing canonical identity never falls back to the same number of another chapter',()=>{
+ const d={subject:{sourceId:'two'},channels:[{episodes:[{id:'new',sort:1,bgmEpisodeId:222,type:'main'}]}]};assert.equal(playbackTarget(d,{sourceId:'one',episode:{id:'old',sort:1,bgmEpisodeId:111},position:30}),null);
+ assert.equal(playbackTarget({...d,channels:[{episodes:[{id:'missing',sort:1,unavailable:true},{id:'second',sort:2}]}]},null),null);
+});
+
+test('manual video page selection persists per Bangumi subject and source, without storing transient media URLs',()=>{
+ const st=store(),lib=makeLibrary(st);lib.setVideoMapping(subject,'one',{id:'page',name:'用户选择的页面',url:'https://source.test/page',videoUrl:'https://signed.invalid/private'});assert.equal(makeLibrary(st).videoMapping(subject,'one').id,'page');assert.equal(lib.videoMapping({...subject,bgmId:123},'one'),null);assert.equal(lib.videoMapping(subject,'two'),null);assert.ok(!JSON.stringify(st.data).includes('signed.invalid'));lib.setVideoMapping(subject,'one',null);assert.equal(lib.videoMapping(subject,'one'),null);
+});

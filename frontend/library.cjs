@@ -1,9 +1,9 @@
 'use strict';
 function cleanName(name){return String(name||'').toLowerCase().replace(/[\s·・:：!！?？()（）「」【】]/g,'');}
 function seriesKey(subject){return subject.bgmId?'bgm:'+subject.bgmId:'name:'+cleanName(subject.name);}
-function episodeKey(sourceId,subject,episode){return sourceId+'|'+(subject.url||subject.id)+'|'+episode.id;}
-function stableSubject(subject){const keep=['id','bgmId','name','originalName','cover','summary','score','date','episodeCount','tags','url','sourceId'];const o={};keep.forEach(k=>{if(subject[k]!==undefined)o[k]=subject[k];});return o;}
-function stableEpisode(episode){const o={};['id','name','sort','type','url','channelName','channelMatch'].forEach(k=>{if(episode[k]!==undefined)o[k]=episode[k];});return o;}
+function episodeKey(sourceId,subject,episode){return episode.bgmEpisodeId?'bgm:'+episode.bgmEpisodeId:sourceId+'|'+(subject.url||subject.id)+'|'+episode.id;}
+function stableSubject(subject){const keep=['id','bgmId','name','originalName','cover','summary','score','date','episodeCount','tags','url','sourceId','sourceSubjectName'];const o={};keep.forEach(k=>{if(subject[k]!==undefined)o[k]=subject[k];});return o;}
+function stableEpisode(episode){const o={};['id','name','sort','type','url','channelName','channelMatch','bgmEpisodeId','bgmSubjectId','bgmEp','sourceSort'].forEach(k=>{if(episode[k]!==undefined)o[k]=episode[k];});return o;}
 function makeLibrary(storage){
   const prefix='fanyuan_';
   function get(key,fallback){try{const raw=storage.getItem(prefix+key);return raw?JSON.parse(raw):fallback;}catch(e){return fallback;}}
@@ -18,7 +18,12 @@ function makeLibrary(storage){
     setFavoriteStatus(subject,status){if(!['wish','watching','done'].includes(status))return false;return set('favorites',api.favorites().map(x=>seriesKey(x)===seriesKey(subject)?Object.assign({},x,{status}):x));},
     toggleFavorite(subject){const key=seriesKey(subject),list=api.favorites(),found=list.some(x=>seriesKey(x)===key);set('favorites',found?list.filter(x=>seriesKey(x)!==key):[Object.assign(stableSubject(subject),{savedAt:Date.now()})].concat(list).slice(0,200));return !found;},
     history(){return get('history',[]);},
-    progressLookup(){const snapshot=get('progress',{});return (sourceId,subject,episode)=>snapshot[episodeKey(sourceId,subject,episode)]||null;},
+    videoMapping(subject,sourceId){return get('videoMappings',{})[seriesKey(subject)+'|'+sourceId]||null;},
+    setVideoMapping(subject,sourceId,value){const all=get('videoMappings',{}),key=seriesKey(subject)+'|'+sourceId;if(value)all[key]={id:value.id,url:value.url,name:value.sourceSubjectName||value.name,sourceId};else delete all[key];return set('videoMappings',all);},
+    latestProgress(subject){return api.history().find(x=>seriesKey(x.subject)===seriesKey(subject)||(!(x.subject.bgmId&&subject.bgmId)&&cleanName(x.subject.name)===cleanName(subject.name)))||null;},
+    sourceFor(subject){const all=get('seriesSources',{}),item=all[seriesKey(subject)]||all['name:'+cleanName(subject.name)];return item&&!(item.bgmId&&subject.bgmId&&item.bgmId!==subject.bgmId)?item.sourceId:null;},
+    setSourceFor(subject,sourceId){if(!subject?.name||!sourceId)return false;const all=get('seriesSources',{}),item={sourceId,bgmId:subject.bgmId||null};all[seriesKey(subject)]=item;all['name:'+cleanName(subject.name)]=item;return set('seriesSources',all);},
+    progressLookup(){const snapshot=get('progress',{});return (sourceId,subject,episode)=>snapshot[episodeKey(sourceId,subject,episode)]||snapshot[sourceId+'|'+(subject.url||subject.id)+'|'+episode.id]||null;},
     progress(sourceId,subject,episode){return api.progressLookup()(sourceId,subject,episode);},
     saveProgress(sourceId,subject,episode,position,duration,completed){
       if(!(duration>0)||!(position>=0)||!isFinite(duration)||!isFinite(position))return false;
@@ -41,4 +46,16 @@ function makeLibrary(storage){
     setOffset(subject,value){const m=get('offsets',{});m[seriesKey(subject)]=value;set('offsets',m);},
   };return api;
 }
-module.exports={makeLibrary,seriesKey,episodeKey,stableSubject,stableEpisode,cleanName};
+function playbackTarget(detail,entry){
+  const channels=detail.channels||[],preferred=entry?channels.findIndex(c=>(entry.episode.channelMatch&&c.match===entry.episode.channelMatch)||(entry.episode.channelName&&c.name===entry.episode.channelName)):-1;
+  const order=channels.map((_,i)=>i);if(preferred>0)order.unshift(order.splice(preferred,1)[0]);
+  for(const channelIndex of order){const eps=channels[channelIndex].episodes||[];let episode;
+    if(!entry)episode=eps.find(e=>(e.type||'main').toLowerCase()==='main')||eps[0];
+    else{const sameSource=detail.subject.sourceId===entry.sourceId;
+      episode=entry.episode.bgmEpisodeId?eps.find(e=>e.bgmEpisodeId===entry.episode.bgmEpisodeId):sameSource&&eps.find(e=>e.id===entry.episode.id);
+      if(!episode&&!entry.episode.bgmEpisodeId){const n=entry.episode.sort;const matches=eps.filter(e=>n!==undefined&&n!==null&&String(n).trim()!==''&&e.sort!==undefined&&e.sort!==null&&String(e.sort).trim()!==''&&Number.isFinite(Number(n))&&Number(e.sort)===Number(n)&&(e.type||'main').toLowerCase()===(entry.episode.type||'main').toLowerCase());if(matches.length===1)episode=matches[0];}
+    }
+    if(episode&&!episode.unavailable)return {episode,channelIndex,startAt:entry&&!entry.completed?entry.position:0};
+  }return null;
+}
+module.exports={playbackTarget,makeLibrary,seriesKey,episodeKey,stableSubject,stableEpisode,cleanName};

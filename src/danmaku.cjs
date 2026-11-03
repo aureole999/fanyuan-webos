@@ -2,6 +2,7 @@
 require('./compat.cjs');
 const {CustomDanmaku}=require('./custom-danmaku.cjs');
 const transport=require('./transport.cjs');
+const BangumiContext=require('./bangumi-context.cjs').BangumiContext;
 function unique(items){return Array.from(new Set(items.filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim())));}
 function mergeResults(results){
  const seen=new Set(),items=[],providers=results.map(r=>({id:r.provider,status:r.status,message:r.message||'',count:r.items.length,episodeId:r.episodeId||null,match:r.match||null})),sources=[];
@@ -9,7 +10,7 @@ function mergeResults(results){
  items.sort((a,b)=>a.time-b.time);return {items,providers,sources};
 }
 class DanmakuService{
- constructor(options){options=options||{};this.request=options.request||transport.request;this.settings=options.settings||{status:()=>({customEnabled:false}),custom:()=>({})};this.custom=new CustomDanmaku({request:this.request,config:()=>this.settings.custom()});this.cache=new Map();this.recent=[];}
+ constructor(options){options=options||{};this.request=options.request||transport.request;this.settings=options.settings||{status:()=>({customEnabled:false}),custom:()=>({})};this.custom=new CustomDanmaku({request:this.request,config:()=>this.settings.custom()});this.cache=new Map();this.recent=[];this.matchingRepository=new BangumiContext(url=>this.json(url));}
  async json(url){const old=this.cache.get(url);if(old&&old.until>Date.now())return old.value;const value=JSON.parse((await this.request(url,{timeout:10000})).text);this.cache.set(url,{value,until:Date.now()+300000});if(this.cache.size>100)this.cache.delete(this.cache.keys().next().value);return value;}
  async context(p){
   let ep,seasonEp,sequel=null,allEpisodes=[],total=0,mappingMethod='sort',subjectId=p.subjectId;
@@ -54,6 +55,7 @@ class DanmakuService{
   try{const sub=await this.json('https://api.bgm.tv/v0/subjects/'+r.subjectId),aliases=[];for(const box of sub.infobox||[]){if(/别名|alias/i.test(box.key)){if(typeof box.value==='string')aliases.push(box.value);else if(Array.isArray(box.value))for(const v of box.value)if(v&&typeof v.v==='string')aliases.push(v.v);}}
    r=Object.assign({},r,{subjectPrimaryName:sub.name_cn||sub.name||r.subjectPrimaryName,subjectNames:unique([sub.name_cn,sub.name,...aliases,...r.subjectNames]),subjectPublishDate:sub.date||r.subjectPublishDate});
   }catch(e){}
+  try{r.matchingContext=await this.matchingRepository.context(r.subjectId);return r;}catch(e){}
   if(r.episodeEp==null||r.episodeSort===r.episodeEp)return r;
   try{const relations=await this.json('https://api.animeko.org/v1/subject-relations/'+r.subjectId);r.splitSeason=relations.splitSeason||null;}catch(e){r.splitSeason=null;}
   return r;
