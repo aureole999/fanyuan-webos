@@ -16,4 +16,15 @@ async function popular(now){now=now||new Date();const start=new Date(now.getFull
 // The top 300 by Bangumi rank; the app picks a daily selection from it.
 async function classics(){const pages=await Promise.all([0,50,100,150,200,250].map(function(offset){return get('https://api.bgm.tv/v0/subjects?type=2&sort=rank&limit=50&offset='+offset,604800000);}));return {items:[].concat.apply([],pages.map(function(p){return p.data||[];})).map(normalize)};}
 async function detail(id){if(!/^\d+$/.test(String(id)))throw new Error('番剧 ID 无效');return {subject:normalize(await get('https://api.bgm.tv/v0/subjects/'+id,3600000))};}
-module.exports={calendar:calendar,search:search,detail:detail,popular:popular,classics:classics,normalize:normalize};
+// Other anime in the same series. Bangumi only links direct neighbours (S2 knows S1 and S3, not a
+// movie hanging off S1), so walk 前传/续集 hops and collect each season's movies, specials and spin-offs.
+const CHAIN=['前传','续集','主线故事'],SIDE=['剧场版','番外篇','总集篇','全集','不同演绎','衍生'];
+async function related(id){if(!/^\d+$/.test(String(id)))throw new Error('番剧 ID 无效');id=String(id);
+ const seen=new Set([id]),found=new Map(),queue=[id];let hops=0;
+ while(queue.length&&hops<10){const at=queue.shift();hops++;let list;try{list=await get('https://api.bgm.tv/v0/subjects/'+at+'/subjects',86400000);}catch(e){continue;}
+  for(const x of Array.isArray(list)?list:[]){if(!x||Number(x.type)!==2)continue;const key=String(x.id),chain=CHAIN.includes(x.relation);if(seen.has(key)||!chain&&!SIDE.includes(x.relation))continue;seen.add(key);found.set(key,at===id?x.relation:chain?'系列':x.relation);if(chain)queue.push(key);}}
+ const keys=[...found.keys()].slice(0,24),subjects=[];
+ for(let i=0;i<keys.length;i+=4)subjects.push(...await Promise.all(keys.slice(i,i+4).map(function(k){return get('https://api.bgm.tv/v0/subjects/'+k,3600000).then(normalize,function(){return null;});})));
+ const items=subjects.map(function(s,i){return s&&Object.assign(s,{relation:found.get(keys[i])});}).filter(function(s){return s&&s.platform!=='其他';});
+ items.sort(function(a,b){return (a.date||'9999').localeCompare(b.date||'9999');});return {items:items};}
+module.exports={calendar:calendar,search:search,detail:detail,popular:popular,classics:classics,related:related,normalize:normalize};

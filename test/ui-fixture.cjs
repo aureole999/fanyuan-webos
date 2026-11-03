@@ -4,16 +4,17 @@ function fixture(){
  const episodes=Array.from({length:12},(_,i)=>({id:'ep'+(i+1),name:'第'+(i+1)+'集',sort:i+1,type:'main',url:'https://example.invalid/ep'+i}));
  const settings={customEnabled:true,customUrl:'https://example.invalid',hasCustomToken:true};
  const subscription={id:'fixture-sub',url:'https://example.invalid/sub.json',enabled:true,updatePeriod:3600000,metadata:{name:'测试订阅'},sourceCount:2};
- window.__fixture={failDetail:false,errors:[],calls:{}};
+ window.__fixture={failDetail:false,errors:[],calls:{},last:{}};
  window.addEventListener('error',e=>window.__fixture.errors.push(e.message));
  window.addEventListener('unhandledrejection',e=>window.__fixture.errors.push(String(e.reason)));
  window.fetch=async(url,options)=>{
-  const method=String(url).split('/').pop(),p=JSON.parse(options?.body||'{}');window.__fixture.calls[method]=(window.__fixture.calls[method]||0)+1;let data={};
+  const method=String(url).split('/').pop(),p=JSON.parse(options?.body||'{}');window.__fixture.calls[method]=(window.__fixture.calls[method]||0)+1;window.__fixture.last[method]=p;let data={};
   if(method==='sources')data={sources:[{id:'fixture',name:'测试视频源',factoryId:'web-selector'},{id:'fixture2',name:'备用视频源',factoryId:'web-selector'}]};
   if(method==='calendar')data={days:Array.from({length:7},(_,i)=>({id:i+1,items:Array.from({length:18},(_,n)=>({...subject,id:'card'+n,name:'测试番剧 '+(n+1)}))}))};
   if(method==='search')data={items:[subject]};
   if(method==='detail')data=window.__fixture.failDetail?{returnValue:false,errorText:'没有可用剧集，请更换视频源'}:{subject,channels:[{name:'线路1',episodes},{name:'线路2',episodes:episodes.map(e=>({...e,id:e.id+'b'}))}]};
   if(method==='bangumiSearch')data={items:[]};
+  if(method==='bangumiRelated')data={items:[{...subject,id:'rel1',bgmId:8001,name:'测试番 第二季',relation:'续集',date:'2025-04-01'}]};
   if(method==='bangumiPopular')data={items:Array.from({length:10},(_,n)=>({...subject,id:'hot'+n,bgmId:9000+n,name:'热门番 '+(n+1)}))};
   if(method==='bangumiClassics')data={items:Array.from({length:40},(_,n)=>({...subject,id:'classic'+n,bgmId:8000+n,name:'经典番 '+(n+1)}))};
   if(method==='subscriptions'||method.startsWith('subscription'))data={subscriptions:[subscription]};
