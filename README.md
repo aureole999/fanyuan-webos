@@ -1,6 +1,6 @@
 # 番源 (fanyuan-webos)
 
-面向 LG webOS（目标 LG C1 / webOS 6.x，免 Root）的追番与弹幕播放应用，应用 ID 为 `com.local.animesources`。无需额外部署家庭服务器或 NAS，安装到电视即可直接使用。
+面向 LG webOS（目标 LG C1 / webOS 6.x，免 Root）的追番与弹幕播放应用，应用 ID 为 `io.github.fanyuantv.fanyuan`。无需额外部署家庭服务器或 NAS，安装到电视即可直接使用。
 
 ---
 
@@ -14,17 +14,41 @@
 - **电视界面**：基于 LG Enact 4.9.5 / Sandstone 2.9.6 与 Spotlight 焦点管理；海报、设置行、按钮、输入框、进度条等高频控件使用轻量自制组件，以保证在 LG C1 等低性能电视上的流畅度。
 - **电视遥控操作**：
   - 支持方向键、确定键、返回键及动感应遥控器滚轮/指针。
-  - 播放时控制栏隐藏状态下，按 `左右方向键` 直接快退/快进 10 秒；按 `OK` 唤出控制栏。
+  - 播放时控制栏隐藏状态下，按 `左右方向键` 直接快退/快进 10 秒；按 `OK` 暂停/继续播放；按 `上下方向键` 唤出控制栏。
 
 ---
 
-## 构建与安装
+## 安装
 
-### 环境要求
-- Node.js 18+ 与 npm
-- LG 官方打包工具 [`@webos-tools/cli`](https://webostv.developer.lge.com/develop/tools/cli-installation)
+需要先在电视上安装 [Homebrew Channel](https://github.com/webosbrew/webos-homebrew-channel)（通过 Developer Mode 或 root 均可）。
 
-### 1. 构建并打包 IPK
+### 方式一：Homebrew Channel 自定义软件源（推荐）
+
+番源没有收录在 Homebrew Channel 的官方软件源中。本项目提供一个只包含番源的软件源，添加后可以在 Homebrew Channel 里安装，并随新版本提示更新；官方软件源的其他应用不受影响。
+
+1. 打开 Homebrew Channel → 设置（Settings）。
+2. 在附加软件源（Extra repositories）中添加：
+   ```text
+   https://fanyuantv.github.io/fanyuan-webos/apps.json
+   ```
+3. 返回应用列表，找到「番源」安装。
+
+### 方式二：手动安装 IPK
+
+从 [Releases](https://github.com/fanyuantv/fanyuan-webos/releases/latest) 下载 `io.github.fanyuantv.fanyuan_<版本>_all.ipk`，然后任选一种：
+
+- 电视已开启 Developer Mode，并已用 `ares-setup-device` 配置好设备名（如 `YOUR_TV`）：
+  ```sh
+  ares-install --device YOUR_TV io.github.fanyuantv.fanyuan_<版本>_all.ipk
+  ares-launch --device YOUR_TV io.github.fanyuantv.fanyuan
+  ```
+- 使用 [webOS Dev Manager](https://github.com/webosbrew/dev-manager-desktop) 等图形工具，选择下载的 IPK 安装。
+
+手动安装的版本不会自动更新；之后改用软件源安装同一应用会直接覆盖，追番记录和设置保留。
+
+## 从源码构建
+
+需要 Node.js 18+、npm 与 LG 官方打包工具 [`@webos-tools/cli`](https://webostv.developer.lge.com/develop/tools/cli-installation)：
 
 ```sh
 npm ci
@@ -32,16 +56,9 @@ npm run build
 ares-package dist/app dist/service -o .
 ```
 
-打包完成后会在当前目录生成 `com.local.animesources_0.7.9_all.ipk`。
+当前目录会生成 `io.github.fanyuantv.fanyuan_<版本>_all.ipk`，按上面「手动安装 IPK」的方式安装即可。
 
-### 2. 安装到电视
-
-确保电视已开启 Developer Mode 并通过 `ares-setup-device` 配置好设备名（如 `YOUR_TV`）：
-
-```sh
-ares-install --device YOUR_TV com.local.animesources_0.7.9_all.ipk
-ares-launch --device YOUR_TV com.local.animesources
-```
+发布新版本：修改 `package.json` 的版本号后推送 `v<版本>` 标签，GitHub Actions（[release.yml](.github/workflows/release.yml)）会测试、打包，并把 IPK 与 Homebrew 清单发布到 Releases，并更新 GitHub Pages 上的软件源 `apps.json`。
 
 ---
 

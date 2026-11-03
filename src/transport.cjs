@@ -9,7 +9,7 @@ const ca = fs.existsSync(caFile) ? fs.readFileSync(caFile) : undefined;
 const agents = { 'http:': new http.Agent({ keepAlive: true, maxSockets: 6 }), 'https:': new https.Agent({ keepAlive: true, maxSockets: 6, ca: ca }) };
 const UA = 'Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36';
 // Bangumi asks API clients to identify themselves with a name and a contact link.
-const BANGUMI_UA = 'aureole999/fanyuan-webos/' + require('../package.json').version + ' (https://github.com/aureole999/fanyuan-webos)';
+const BANGUMI_UA = 'fanyuantv/fanyuan-webos/' + require('../package.json').version + ' (https://github.com/fanyuantv/fanyuan-webos)';
 function open(url, options, redirects) {
   options = options || {}; redirects = redirects || 0;
   return new Promise(function (resolve, reject) {

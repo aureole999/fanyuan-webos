@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Tag matches package.json
+        run: |
+          version=$(node -p "require('./package.json').version")
+          [ "$GITHUB_REF_NAME" = "v$version" ] || { echo "::error::tag $GITHUB_REF_NAME does not match package.json $version"; exit 1; }
+      - name: Package
+        run: |
+          mkdir out
+          npx -y -p @webos-tools/cli ares-package dist/app dist/service -o out
+          node .github/homebrew-manifest.cjs out/*.ipk out "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME"
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(sha256sum out/*.ipk | cut -d' ' -f1)
+          gh release create "$GITHUB_REF_NAME" out/* --title "番源 $GITHUB_REF_NAME" --latest \
+            --notes "安装方式见 README。Homebrew Channel 软件源：https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/apps.json
+
+          sha256 $sha"
+      # Homebrew Channel repository with only this app, served by GitHub Pages.
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: release
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

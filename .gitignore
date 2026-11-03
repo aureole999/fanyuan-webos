@@ -3,3 +3,4 @@ dist/
 .local-data/
 *.ipk
 .DS_Store
+site/

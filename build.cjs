@@ -59,10 +59,10 @@ async function main(){
   copyTree(path.join(__dirname,'vendor/webOSTVjs-1.2.13'),path.join(app,'webOSTVjs-1.2.13'));
   function writeIcon(prefix,size){const png=icon(size),name=prefix+'-'+crypto.createHash('sha256').update(png).digest('hex').slice(0,12)+'.png';fs.writeFileSync(path.join(app,name),png);return name;}
   const smallIcon=writeIcon('icon',80),largeIcon=writeIcon('largeIcon',130);
-  fs.writeFileSync(path.join(app,'appinfo.json'),JSON.stringify({id:'com.local.animesources',version:version,vendor:'Local experimental port',type:'web',main:'index.html',title:'番源',icon:smallIcon,largeIcon:largeIcon,iconColor:'#18191c',bgColor:'#111315',resolution:'1920x1080',disableBackHistoryAPI:true,requiredPermissions:['all'],requiredACG:[]},null,2));
+  fs.writeFileSync(path.join(app,'appinfo.json'),JSON.stringify({id:'io.github.fanyuantv.fanyuan',version:version,vendor:'fanyuantv',type:'web',main:'index.html',title:'番源',icon:smallIcon,largeIcon:largeIcon,iconColor:'#18191c',bgColor:'#111315',resolution:'1920x1080',disableBackHistoryAPI:true,requiredPermissions:['all'],requiredACG:[]},null,2));
   await esbuild.build({entryPoints:[path.join(__dirname,'src/service.cjs')],outfile:path.join(service,'service.js'),bundle:true,platform:'node',target:'node8',external:['webos-service'],legalComments:'eof',minify:false});
-  fs.writeFileSync(path.join(service,'package.json'),JSON.stringify({name:'com.local.animesources.service',version:version,main:'service.js'},null,2));
-  fs.writeFileSync(path.join(service,'services.json'),JSON.stringify({id:'com.local.animesources.service',description:'On-TV source rule engine',services:[{name:'com.local.animesources.service',description:'Search, source parsing, loopback playback and danmaku'}]},null,2));
+  fs.writeFileSync(path.join(service,'package.json'),JSON.stringify({name:'io.github.fanyuantv.fanyuan.service',version:version,main:'service.js'},null,2));
+  fs.writeFileSync(path.join(service,'services.json'),JSON.stringify({id:'io.github.fanyuantv.fanyuan.service',description:'On-TV source rule engine',services:[{name:'io.github.fanyuantv.fanyuan.service',description:'Search, source parsing, loopback playback and danmaku'}]},null,2));
   fs.copyFileSync(path.join(__dirname,'vendor/cacert.pem'),path.join(service,'cacert.pem'));
   if(fs.existsSync(path.join(__dirname,'LICENSE.txt')))for(const dest of [app,service])fs.copyFileSync(path.join(__dirname,'LICENSE.txt'),path.join(dest,'LICENSE.txt'));
   fs.copyFileSync(path.join(__dirname,'frontend/vendor/bilitv/LICENSE'),path.join(app,'BILITV-LICENSE.txt'));
