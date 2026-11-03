@@ -18,12 +18,13 @@ function createDownloadMeter(clock){
 }
 function createProxy(){
   const sessions={};let port=0;const events=[];
-  function log(status,kind){events.push({time:Date.now(),status:status,kind:kind});if(events.length>25)events.shift();}
+  function log(status,kind,details){events.push(Object.assign({time:Date.now(),status:status,kind:kind},details||{}));if(events.length>50)events.shift();}
   function mapped(token,url){return 'http://127.0.0.1:'+port+'/media/'+token+'?u='+encodeURIComponent(url);}
   const server=http.createServer(async function(req,res){
     res.setHeader('Access-Control-Allow-Origin','*');
     if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Headers':'Range','Access-Control-Allow-Methods':'GET,HEAD,OPTIONS'});res.end();return;}
-    let upstream;
+    let upstream;const started=Date.now(),range=req.headers.range||'';
+    function failureDetails(e){return {range:range,elapsedMs:Date.now()-started,code:String(e.code||''),message:String(e.message||e).replace(/https?:\/\/[^\s]+/g,'[源站地址]').slice(0,180)};}
     try{
       const u=new URL(req.url,'http://127.0.0.1'),token=u.pathname.split('/')[2],session=sessions[token];
       if(!session||!/^\/media\//.test(u.pathname)){res.writeHead(404);res.end();return;}
@@ -34,7 +35,7 @@ function createProxy(){
       if(req.headers.range)h.Range=req.headers.range;
       if(req.headers['if-range'])h['If-Range']=req.headers['if-range'];
       upstream=await transport.open(target,{headers:h,method:req.method==='HEAD'?'HEAD':'GET',stream:true,timeout:25000});
-      log(upstream.statusCode,'upstream');
+      log(upstream.statusCode,'upstream',{range:range,elapsedMs:Date.now()-started,contentType:upstream.headers['content-type']||''});
       if(upstream.statusCode>=400){upstream.resume();res.writeHead(upstream.statusCode);res.end('Media upstream '+upstream.statusCode);return;}
       const contentType=upstream.headers['content-type']||'application/octet-stream';
       const responseHeaders={'Content-Type':contentType,'Cache-Control':'no-store','Access-Control-Allow-Origin':'*','Access-Control-Expose-Headers':'Content-Range,Accept-Ranges,Content-Length'};
@@ -58,9 +59,9 @@ function createProxy(){
         }else{res.writeHead(upstream.statusCode,responseHeaders);res.write(first);upstream.pipe(res);}
       });
       upstream.on('end',function(){if(!sawData&&!res.headersSent){res.writeHead(upstream.statusCode,responseHeaders);res.end();}});
-      upstream.on('error',function(){res.destroy();});
+      upstream.on('error',function(e){log(502,'streamError',failureDetails(e));res.destroy();});
       res.on('close',function(){if(upstream)upstream.destroy();});
-    }catch(e){log(502,'error');if(!res.headersSent)res.writeHead(502);res.end('媒体请求失败');if(upstream)upstream.destroy();}
+    }catch(e){log(502,'error',failureDetails(e));if(!res.headersSent)res.writeHead(502);res.end('媒体请求失败');if(upstream)upstream.destroy();}
   });
   const ready=new Promise(function(resolve,reject){server.once('error',reject);server.listen(0,'127.0.0.1',function(){port=server.address().port;resolve(port);});});
   return {server:server,ready:ready,events:events,stats:function(url){try{const u=new URL(url),session=sessions[u.pathname.split('/')[2]];if(u.origin!=='http://127.0.0.1:'+port||!/^\/media\//.test(u.pathname)||!session)return {available:false};return Object.assign({available:true},session.meter.snapshot());}catch(e){return {available:false};}},add:async function(media){await ready;Object.keys(sessions).forEach(function(k){if(Date.now()-sessions[k].used>2*3600000)delete sessions[k];});const token=crypto.randomBytes(18).toString('hex');sessions[token]={url:media.url,headers:media.headers||{},used:Date.now(),meter:createDownloadMeter()};return mapped(token,media.url);}};

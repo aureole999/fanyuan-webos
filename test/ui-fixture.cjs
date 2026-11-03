@@ -28,7 +28,7 @@ function fixture(){
   if(method==='danmakuSettings')data=settings;
   if(method==='danmakuConfigure'){if((p.customEnabled??settings.customEnabled)&&!(p.customUrl??settings.customUrl))data={returnValue:false,errorText:'请先填写自建服务地址'};else{Object.assign(settings,p);settings.usingDefault=!settings.customEnabled;data=settings;}}
   if(method==='customDanmakuTest')data={count:2};
-  if(method==='playbackStats')data=window.__fixture.statsUnavailable?{available:false}:{available:true,bytesPerSecond:2097152,downloadedBytes:(window.__fixture.calls.playbackStats||0)*2097152,sampledAt:(window.__fixture.calls.playbackStats||0)*1000};
+  if(method==='playbackStats')data=window.__fixture.statsUnavailable?{available:false}:{available:true,bytesPerSecond:window.__fixture.zeroSpeed?0:2097152,downloadedBytes:(window.__fixture.calls.playbackStats||0)*2097152,sampledAt:(window.__fixture.calls.playbackStats||0)*1000};
   if(method==='resolve')data={url:'data:video/mp4;base64,'};
   if(method==='danmaku')data={items:[],providers:[{id:'custom',status:'empty'}],sources:[]};
   return {json:async()=>({returnValue:true,...data})};

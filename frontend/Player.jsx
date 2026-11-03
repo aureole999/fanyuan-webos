@@ -116,7 +116,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   // Read only the current media session, and only while buffering. No extra media requests.
   useEffect(()=>{
     setDownloadRate(null);
-    if(message!=='正在缓冲…'||paused||failed||!mediaUrl)return;
+    if(message!=='正在缓冲…'||failed||!mediaUrl)return;
     let disposed=false,timer;
     async function sample(){
       try{
@@ -126,7 +126,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
       if(!disposed)timer=setTimeout(sample,1000);
     }
     sample();return()=>{disposed=true;clearTimeout(timer);};
-  },[message,paused,failed,mediaUrl]);
+  },[message,failed,mediaUrl]);
   useEffect(()=>{const timer=setInterval(()=>{const v=videoRef.current;if(!v)return;setCurrent(v.currentTime||0);if(Number.isFinite(v.duration))setDuration(v.duration);if(!v.paused&&Date.now()-lastSaved.current>10000){save();lastSaved.current=Date.now();}},250);return()=>clearInterval(timer);},[]);
   useEffect(()=>{
     const release=e=>seekSession.current.release(remoteKey(e));
@@ -158,13 +158,17 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
       if(!['Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(key))return false;
       claimRemoteFocus();
       if(delta){e.preventDefault();scrubBy(delta>0?1:-1);return true;}
-      if(!controlsRef.current){e.preventDefault();if(key==='Enter'){if(!e.repeat)toggle(false);}else show();return true;}
+      if(!controlsRef.current){e.preventDefault();
+        // Before a source is attached, OK only brings the controls back.
+        if(key==='Enter'&&videoRef.current?.getAttribute('src')){if(!e.repeat)toggle(false);}else show();return true;}
       show();return false;
     };
     setCustomKeyHandler(handler);return()=>setCustomKeyHandler(null);
   },[episode,offset,speed,settings,panel]);
   useEffect(()=>{window.__fanYuanPlayer={diagnostics:()=>{const v=videoRef.current;return {playing:!!v&&!v.paused,time:v?.currentTime,readyState:v?.readyState,videoWidth:v?.videoWidth,danmaku:danmakus.length,providers:dmProviders,sources:dmSources,error:v?.error?.code};}};return()=>delete window.__fanYuanPlayer;},[danmakus,dmProviders,dmSources]);
-  function ready(){const v=videoRef.current;setDuration(v.duration);if(!resumeApplied.current){resumeApplied.current=true;const saved=library.progress(sourceId,subject,episode);const position=item.startAt!=null?item.startAt:saved&&!saved.completed?saved.position:0;if(position>3&&position<v.duration-12){v.currentTime=position;if(!playbackError.current?.failed)setMessage('已续播到 '+time(position));setTimeout(()=>mounted.current&&!playbackError.current?.failed&&setMessage(''),1800);}}}
+  function ready(){const v=videoRef.current;setDuration(v.duration);if(!resumeApplied.current){resumeApplied.current=true;const saved=library.progress(sourceId,subject,episode);const position=item.startAt!=null?item.startAt:saved&&!saved.completed?saved.position:0;if(position>3&&position<v.duration-12){v.currentTime=position;if(!playbackError.current?.failed)setMessage('已续播到 '+time(position));setTimeout(()=>mounted.current&&!playbackError.current?.failed&&setMessage(m=>m==='已续播到 '+time(position)?'':m),1800);}}}
+  function buffering(){const v=videoRef.current;if(v&&!v.paused&&!playbackError.current?.failed)setMessage('正在缓冲…');}
+  function seeked(){const v=videoRef.current;if(v&&v.readyState>=3)setMessage(m=>m==='正在缓冲…'?'':m);}
   function ended(){save(true);setControls(true);if(settingsRef.current.autoplayNext&&item.hasNext){setCountdown(5);let left=5;clearInterval(nextTimer.current);nextTimer.current=setInterval(()=>{left--;setCountdown(left);if(left<=0){clearInterval(nextTimer.current);onNext();}},1000);}else setMessage('本集播放结束');}
   function adjustOffset(n){const value=offset+n;setOffset(value);library.setOffset(subject,value);}
   function applySpeed(next){try{videoRef.current.playbackRate=next;setSpeed(videoRef.current.playbackRate);hidePanel();}catch(e){setMessage('此格式暂不支持倍速');}}
@@ -216,7 +220,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
         </div>;
   },[showUi,panel,paused,speed,settings,offset,dmInfo,dmError,customBusy,customSubject,customSubjects,customEpisodes,dmSources,sourcePrefs,channels,channelIndex,episode,subject,sourceId,library,start,onSettings,onNext,onEpisode,onSwitchChannel,onClose]);
   return <FocusContainer spotlightId="player" spotlightRestrict="self-only" className="player-page" onMouseMove={show}>
-    <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{playbackError.current=null;setPaused(false);setMessage('');setFailed(false);if(controlsRef.current)show();}} onPause={()=>{setPaused(true);setMessage(m=>m==='正在缓冲…'?'':m);save();if(controlsRef.current)show();}} onWaiting={()=>{if(!videoRef.current?.paused&&!playbackError.current?.failed)setMessage('正在缓冲…');}} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){reportPlaybackFailure(null);}}}/>
+    <video ref={videoRef} className="player-video" playsInline onPlay={()=>setPaused(false)} onSeeking={buffering} onSeeked={seeked} onStalled={buffering} onLoadedMetadata={ready} onPlaying={()=>{playbackError.current=null;setPaused(false);setMessage('');setFailed(false);if(controlsRef.current)show();}} onPause={()=>{setPaused(true);setMessage(m=>m==='正在缓冲…'?'':m);save();if(controlsRef.current)show();}} onWaiting={buffering} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){reportPlaybackFailure(null);}}}/>
     <div className="danmaku-wrap" style={{opacity:settings.danmakuOpacity}}><DanmakuLayer danmakus={danmakus} currentTime={current-offset} paused={paused} enabled={settings.danmaku} fontScale={settings.danmakuScale} settings={settings}/>{settings.danmaku&&topFixed.map((d,i)=><div key={'top-'+d.time+'-'+i} className="fixed-danmaku top" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}{settings.danmaku&&bottomFixed.map((d,i)=><div key={'bot-'+d.time+'-'+i} className="fixed-danmaku bottom" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${-i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}</div>
     {seekHint&&!controls&&<div className="seek-hint">{seekHint}</div>}
     {!controls&&seekHint&&<div className="seek-progress" role="status" aria-label="跳转进度"><span>{time(scrubTarget!=null?scrubTarget:current)}</span><div className="seek-progress-track"><i style={{width:`${duration?Math.min(100,Math.max(0,(scrubTarget!=null?scrubTarget:current)/duration*100)):0}%`}}/></div><span>{time(duration)}</span></div>}

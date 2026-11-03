@@ -44,3 +44,8 @@ test('rolling download speed is available on first read, combines chunks and exp
  now+=500;a.add(4096);assert.equal(a.snapshot().bytesPerSecond,7168);now+=500;assert.equal(a.snapshot().bytesPerSecond,4096);now+=500;assert.equal(a.snapshot().bytesPerSecond,0);assert.equal(a.snapshot().downloadedBytes,7168);
  now+=5000;a.add(9);assert.equal(a.snapshot().bytesPerSecond,9);assert.equal(a.snapshot().downloadedBytes,7177);
 });
+
+test('proxy records failed range requests with a sanitized cause and elapsed time',async()=>{
+ const http=require('http'),upstream=http.createServer((req,res)=>req.socket.destroy());await new Promise(r=>upstream.listen(0,'127.0.0.1',r));const proxy=createProxy();
+ try{const url=await proxy.add({url:'http://127.0.0.1:'+upstream.address().port+'/video.mp4?private=secret'});await assert.rejects(request(url,{headers:{Range:'bytes=123-456'}}),/HTTP 502/);const e=proxy.events.find(e=>e.kind==='error');assert.equal(e.range,'bytes=123-456');assert.equal(e.code,'ECONNRESET');assert.ok(e.elapsedMs>=0);assert.ok(e.message);assert.doesNotMatch(JSON.stringify(e),/private=secret/);}finally{proxy.server.close();upstream.close();}
+});
