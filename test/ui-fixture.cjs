@@ -10,12 +10,15 @@ function fixture(){
  window.fetch=async(url,options)=>{
   const method=String(url).split('/').pop(),p=JSON.parse(options?.body||'{}');window.__fixture.calls[method]=(window.__fixture.calls[method]||0)+1;window.__fixture.last[method]=p;let data={};
   if(method==='sources')data={sources:[{id:'fixture',name:'测试视频源',factoryId:'web-selector'},{id:'fixture2',name:'备用视频源',factoryId:'web-selector'}]};
+  if(method==='sourceProbe'){if(window.__fixture.probeDelay)await new Promise(r=>setTimeout(r,window.__fixture.probeDelay));data={matchCount:p.sourceId==='fixture'?1:0,candidateCount:p.sourceId==='fixture'?2:1};}
   if(method==='calendar')data={days:Array.from({length:7},(_,i)=>({id:i+1,items:Array.from({length:18},(_,n)=>({...subject,id:'card'+n,name:'测试番剧 '+(n+1)}))}))};
   if(method==='search')data={items:window.__fixture.emptySearch?[]:[{...subject,sourceId:p.sourceId}]};
   if((method==='detail'||method==='matchSource')&&window.__fixture.delayDetail)await new Promise(r=>setTimeout(r,window.__fixture.delayDetail));
   if(method==='detail')data=window.__fixture.failDetail?{returnValue:false,errorText:'没有可用剧集，请更换视频源'}:{subject:{...subject,...p.subject,sourceId:p.sourceId},channels:[{name:'线路1',episodes},{name:'线路2',episodes:episodes.map(e=>({...e,id:e.id+'b'}))}]};
   if(method==='matchSource')data=window.__fixture.failDetail?{returnValue:false,errorText:'无法可靠对应剧集'}:window.__fixture.emptySearch?{items:[]}:{detail:{subject:{...subject,...p.subject,sourceId:p.sourceId},canonical:true,channels:[{name:'线路1',episodes:episodes.map((e,i)=>({...e,...(window.__fixture.canonical?{unavailable:!!window.__fixture.missingFirst&&i===0,bgmEpisodeId:10001+i,bgmSubjectId:p.subject.bgmId,sort:String(13+i),sourceSort:String(i+1)}:{})}))}]}};
+  if(method==='matchSource'&&data.detail&&window.__fixture.extraEpisodes)data.detail.channels[0].unmatchedEpisodes=Array.from({length:17},(_,i)=>({id:'extra'+i,name:'源第'+(i+1)+'集',sort:String(i+1),sourceSort:String(i+1),sourceIndex:i,unmatched:true,type:'main',url:'https://example.invalid/extra'+i}));
   if(method==='matchSource'&&window.__fixture.manualPage)data={items:[{...subject,name:'用户确认的页面',sourceId:p.sourceId}],manualRequired:true};
+  if(method==='matchSource'&&p.manual)data={items:window.__fixture.emptySearch?[]:[{...subject,name:'匹配的页面',matchKind:'own',sourceId:p.sourceId},{...subject,id:'candidate',url:'https://example.invalid/candidate',name:'候选的页面',matchKind:'family',sourceId:p.sourceId}],manualRequired:true};
   if(method==='bangumiDetail')data={subject:{...subject,bgmId:p.id,name:p.id===8001?'测试番 第二季':subject.name}};
   if(method==='bangumiSearch')data={items:[]};
   if(method==='bangumiRelated')data={items:[{...subject,id:'rel1',bgmId:8001,name:'测试番 第二季',relation:'续集',date:'2025-04-01'}]};

@@ -98,6 +98,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   async function chooseCustom(ep){const token=++customGeneration.current;library.setCustomDanmakuMapping(subject,episode,ep.selection);await loadDanmaku(subject.bgmId||library.mapping(subject));if(mounted.current&&token===customGeneration.current&&panelRef.current==='customMatch')hidePanel();}
   function sourceSetting(id,patch){setSourcePrefs(library.setDanmakuSource(id,patch));}
   async function autoDanmaku(){
+    if(item.unmatched&&!library.customDanmakuMapping(subject,episode)){setDmInfo('此集未匹配，请手动选择弹幕');setDmError('');setRawDanmakus([]);setDmProviders([]);setDmSources([]);return;}
     const mapped=subject.bgmId||library.mapping(subject)||Number(localStorage.getItem('bgm:'+subject.name));
     return loadDanmaku(mapped||null);
   }

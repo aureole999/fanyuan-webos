@@ -6,23 +6,45 @@ function canonicalDetail(detail,context,confirmedPage){
  const channels=[],rejected=[];
  for(const ch of detail.channels||[]){const result=matchPage(context,{name:detail.subject.name,episodes:ch.episodes,confirmed:!!confirmedPage}),byId=new Map(result.matches.map(m=>[String(m.episode.id),m]));
   if(!result.available){rejected.push({channel:ch.name,reason:result.reason});continue;}
+  const sourceIndices=new Map(ch.episodes.map((e,i)=>[String(e.id),i]));
   const episodes=mainEpisodes(context.subject).map(ep=>{const m=byId.get(String(ep.id)),canonical={bgmEpisodeId:Number(ep.id),bgmEp:ep.ep==null?null:Number(ep.ep),bgmSubjectId:context.subject.id,sort:String(ep.sort),type:'main',name:(Number(ep.sort)===0?'0':ep.ep)+' '+(ep.name_cn||ep.name||'第'+ep.ep+'集')};
-   return m?Object.assign({},m.row,canonical,{sourceSort:m.row.sort,sourceEpisodeName:m.row.name,matchMethod:m.method}):Object.assign({id:'bgm:'+ep.id,unavailable:true},canonical);
+   return m?Object.assign({},m.row,canonical,{sourceSort:m.row.sort,sourceEpisodeName:m.row.name,sourceIndex:sourceIndices.get(String(m.row.id)),matchMethod:m.method}):Object.assign({id:'bgm:'+ep.id,unavailable:true},canonical);
   });
   const specials=(context.subject.episodes||[]).filter(e=>Number(e.type)===1),rawSpecials=(ch.episodes||[]).filter(e=>/^(?:sp|ova|oad|special)$/i.test(e.type||'')||/^(?:\d+\s*)?(?:OVA|OAD|SP|特别篇|特別篇)(?:\s|$)/i.test(e.name||''));
   for(const ep of specials){const names=[ep.name_cn,ep.name].map(episodeTitle).filter(Boolean),hits=rawSpecials.filter(e=>names.includes(episodeTitle(e.name))),raw=hits.length===1?hits[0]:specials.length===1&&rawSpecials.length===1?rawSpecials[0]:null;
    const canonical={bgmEpisodeId:Number(ep.id),bgmEp:ep.ep==null?null:Number(ep.ep),bgmSubjectId:context.subject.id,sort:String(ep.sort),type:'sp',name:'特别篇 '+(ep.name_cn||ep.name||ep.sort)};
-   episodes.push(raw?Object.assign({},raw,canonical,{sourceSort:raw.sort,sourceEpisodeName:raw.name,matchMethod:hits.length===1?'title':'uniqueSpecial'}):Object.assign({id:'bgm:'+ep.id,unavailable:true},canonical));
+   episodes.push(raw?Object.assign({},raw,canonical,{sourceSort:raw.sort,sourceEpisodeName:raw.name,sourceIndex:sourceIndices.get(String(raw.id)),matchMethod:hits.length===1?'title':'uniqueSpecial'}):Object.assign({id:'bgm:'+ep.id,unavailable:true},canonical));
   }
-  channels.push(Object.assign({},ch,{episodes,matchedCount:result.available,matchKind:result.kind}));
+  const used=new Set(episodes.filter(e=>!e.unavailable).map(e=>String(e.id))),unmatchedEpisodes=ch.episodes.filter(e=>!used.has(String(e.id))).map(e=>Object.assign({},e,{unmatched:true,sourceSort:e.sort,sourceEpisodeName:e.name,sourceIndex:sourceIndices.get(String(e.id))}));
+  channels.push(Object.assign({},ch,{episodes,unmatchedEpisodes,matchedCount:result.available,matchKind:result.kind}));
  }
  if(!channels.length){const err=Error(rejected.some(r=>r.reason==='duplicateEpisodeTitle')?'这条线路的集名重复，无法可靠对应剧集，请换一个源':'这个页面没有可靠对应到本季的剧集，请选择其他页面或视频源');err.code='EPISODE_MAPPING_UNCERTAIN';err.rejected=rejected;throw err;}
  return Object.assign({},detail,{subject:Object.assign({},detail.subject,{sourceSubjectName:detail.subject.sourceSubjectName||detail.subject.name,name:context.subject.name,originalName:context.subject.originalName,bgmId:context.subject.id}),channels,canonical:true,mappingWarnings:rejected});
 }
 class SourceMatcher{
- constructor(engine,repository){this.engine=engine;this.repository=repository;}
+ constructor(engine,repository){this.engine=engine;this.repository=repository;this.probeCache=new Map();this.probeEngine=null;}
+ async probe(sourceId,subject){
+  const engine=this.engine();if(this.probeEngine!==engine){this.probeCache.clear();this.probeEngine=engine;}
+  const key=JSON.stringify([subject.bgmId||subject.name,sourceId]),old=this.probeCache.get(key);
+  if(old&&old.engine===engine&&(old.pending||old.until>Date.now()))return old.pending||old.value;
+  const entry={engine};const task=(async()=>{
+   const ctx=subject.bgmId?await this.repository.context(subject.bgmId):{subject,series:[subject]},keyword=familyBases(ctx)[0]||subject.name,items=await engine.search(sourceId,keyword),seen=new Set();let matchCount=0,candidateCount=0;
+   for(const item of items){if(seen.has(item.url))continue;seen.add(item.url);const kind=pageKind(ctx,item.name);if(kind==='own')matchCount++;else if(['season','series','family'].includes(kind))candidateCount++;}
+   return {matchCount,candidateCount};
+  })();entry.pending=task;this.probeCache.set(key,entry);
+  try{entry.value=await task;entry.until=Date.now()+300000;return entry.value;}catch(e){if(this.probeCache.get(key)===entry)this.probeCache.delete(key);throw e;}finally{delete entry.pending;if(this.probeCache.size>100)this.probeCache.delete(this.probeCache.keys().next().value);}
+ }
  async detail(sourceId,pageSubject,subject,confirmedPage){const engine=this.engine(),raw=await engine.detail(sourceId,sourceSubject(pageSubject));if(!subject.bgmId)return raw;const ctx=await this.repository.context(subject.bgmId);return canonicalDetail(raw,ctx,confirmedPage);}
- async search(sourceId,subject){
+ async pages(sourceId,subject){
+  const engine=this.engine(),ctx=subject.bgmId?await this.repository.context(subject.bgmId):{subject,series:[subject]},queries=Array.from(new Set([subject.name].concat(familyBases(ctx)))).slice(0,5),seen=new Set(),items=[];let lastError,success=false;
+  for(const q of queries){let rows;try{rows=await engine.search(sourceId,q);success=true;}catch(e){lastError=e;continue;}
+   for(const s of rows){if(seen.has(s.url))continue;seen.add(s.url);const kind=pageKind(ctx,s.name);if(kind==='unrelated')continue;items.push(Object.assign({},s,{matchKind:kind}));if(items.length>=80)break;}if(items.length>=80)break;
+  }
+  if(!success&&lastError)throw lastError;
+  return {items:items.sort((a,b)=>(a.matchKind==='own'?0:1)-(b.matchKind==='own'?0:1)),manualRequired:true};
+ }
+ async search(sourceId,subject,manual){
+  if(manual)return this.pages(sourceId,subject);
   if(!subject.bgmId)return {items:await this.engine().search(sourceId,subject.name)};
   const ctx=await this.repository.context(subject.bgmId),seen=new Set(),items=[],base=familyBases(ctx),queries=Array.from(new Set([subject.name].concat(base))).slice(0,5);let best=null,lastError;
   const own=subjectNames(ctx.subject),rank=s=>own.some(n=>episodeTitle(n)===episodeTitle(s.name))?0:pageKind(ctx,s.name)==='own'?1:2;

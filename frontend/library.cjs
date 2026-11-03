@@ -3,12 +3,12 @@ function cleanName(name){return String(name||'').toLowerCase().replace(/[\s·・
 function seriesKey(subject){return subject.bgmId?'bgm:'+subject.bgmId:'name:'+cleanName(subject.name);}
 function episodeKey(sourceId,subject,episode){return episode.bgmEpisodeId?'bgm:'+episode.bgmEpisodeId:sourceId+'|'+(subject.url||subject.id)+'|'+episode.id;}
 function stableSubject(subject){const keep=['id','bgmId','name','originalName','cover','summary','score','date','episodeCount','tags','url','sourceId','sourceSubjectName'];const o={};keep.forEach(k=>{if(subject[k]!==undefined)o[k]=subject[k];});return o;}
-function stableEpisode(episode){const o={};['id','name','sort','type','url','channelName','channelMatch','bgmEpisodeId','bgmSubjectId','bgmEp','sourceSort'].forEach(k=>{if(episode[k]!==undefined)o[k]=episode[k];});return o;}
+function stableEpisode(episode){const o={};['id','name','sort','type','url','channelName','channelMatch','bgmEpisodeId','bgmSubjectId','bgmEp','sourceSort','unmatched'].forEach(k=>{if(episode[k]!==undefined)o[k]=episode[k];});return o;}
 function makeLibrary(storage){
   const prefix='fanyuan_';
   function get(key,fallback){try{const raw=storage.getItem(prefix+key);return raw?JSON.parse(raw):fallback;}catch(e){return fallback;}}
   function set(key,value){try{storage.setItem(prefix+key,JSON.stringify(value));return true;}catch(e){return false;}}
-  const defaults={danmaku:true,danmakuScale:1,danmakuOpacity:0.85,danmakuArea:0.33,danmakuLineGap:10,danmakuSpeed:1,danmakuDensity:'medium',danmakuWeight:600,danmakuStroke:1,danmakuFloating:true,danmakuTop:true,danmakuBottom:false,danmakuColor:true,autoplayNext:true,skipShortcut:true,gridCols:4};
+  const defaults={danmaku:true,danmakuScale:1,danmakuOpacity:0.85,danmakuArea:0.33,danmakuLineGap:10,danmakuSpeed:1,danmakuDensity:'medium',danmakuWeight:600,danmakuStroke:1,danmakuFloating:true,danmakuTop:true,danmakuBottom:false,danmakuColor:true,autoplayNext:true,resumeToEpisodes:false,skipShortcut:true,gridCols:4};
   const api={
     settings(){return Object.assign({},defaults,get('settings',{}));},
     setSettings(patch){const value=Object.assign({},api.settings(),patch);set('settings',value);return value;},

@@ -1,0 +1,257 @@
+{
+  "captured": "2026-11-03",
+  "subject": {
+    "id": "https://source-d.example.test/bangumi/1154.html",
+    "name": "黑礁",
+    "url": "https://source-d.example.test/bangumi/1154.html",
+    "sourceId": "source-d"
+  },
+  "channels": [
+    {
+      "name": "旧番主线①30",
+      "match": "旧番主线①",
+      "episodes": [
+        {
+          "id": "https://source-d.example.test/watch/1154/1/1.html",
+          "name": "第01集",
+          "url": "https://source-d.example.test/watch/1154/1/1.html",
+          "sort": "01",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/2.html",
+          "name": "第02集",
+          "url": "https://source-d.example.test/watch/1154/1/2.html",
+          "sort": "02",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/3.html",
+          "name": "第03集",
+          "url": "https://source-d.example.test/watch/1154/1/3.html",
+          "sort": "03",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/4.html",
+          "name": "第04集",
+          "url": "https://source-d.example.test/watch/1154/1/4.html",
+          "sort": "04",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/5.html",
+          "name": "第05集",
+          "url": "https://source-d.example.test/watch/1154/1/5.html",
+          "sort": "05",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/6.html",
+          "name": "第06集",
+          "url": "https://source-d.example.test/watch/1154/1/6.html",
+          "sort": "06",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/7.html",
+          "name": "第07集",
+          "url": "https://source-d.example.test/watch/1154/1/7.html",
+          "sort": "07",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/8.html",
+          "name": "第08集",
+          "url": "https://source-d.example.test/watch/1154/1/8.html",
+          "sort": "08",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/9.html",
+          "name": "第09集",
+          "url": "https://source-d.example.test/watch/1154/1/9.html",
+          "sort": "09",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/10.html",
+          "name": "第9x集",
+          "url": "https://source-d.example.test/watch/1154/1/10.html",
+          "sort": "9x",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/11.html",
+          "name": "第10集",
+          "url": "https://source-d.example.test/watch/1154/1/11.html",
+          "sort": "10",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/12.html",
+          "name": "第11集",
+          "url": "https://source-d.example.test/watch/1154/1/12.html",
+          "sort": "11",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/13.html",
+          "name": "第12集",
+          "url": "https://source-d.example.test/watch/1154/1/13.html",
+          "sort": "12",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/14.html",
+          "name": "第13集",
+          "url": "https://source-d.example.test/watch/1154/1/14.html",
+          "sort": "13",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/15.html",
+          "name": "第14集",
+          "url": "https://source-d.example.test/watch/1154/1/15.html",
+          "sort": "14",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/16.html",
+          "name": "第15集",
+          "url": "https://source-d.example.test/watch/1154/1/16.html",
+          "sort": "15",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/17.html",
+          "name": "第16集",
+          "url": "https://source-d.example.test/watch/1154/1/17.html",
+          "sort": "16",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/18.html",
+          "name": "第17集",
+          "url": "https://source-d.example.test/watch/1154/1/18.html",
+          "sort": "17",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/19.html",
+          "name": "第18集",
+          "url": "https://source-d.example.test/watch/1154/1/19.html",
+          "sort": "18",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/20.html",
+          "name": "第19集",
+          "url": "https://source-d.example.test/watch/1154/1/20.html",
+          "sort": "19",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/21.html",
+          "name": "第20集",
+          "url": "https://source-d.example.test/watch/1154/1/21.html",
+          "sort": "20",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/22.html",
+          "name": "第21集",
+          "url": "https://source-d.example.test/watch/1154/1/22.html",
+          "sort": "21",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/23.html",
+          "name": "第22集",
+          "url": "https://source-d.example.test/watch/1154/1/23.html",
+          "sort": "22",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/24.html",
+          "name": "第23集",
+          "url": "https://source-d.example.test/watch/1154/1/24.html",
+          "sort": "23",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/25.html",
+          "name": "第24集",
+          "url": "https://source-d.example.test/watch/1154/1/25.html",
+          "sort": "24",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/26.html",
+          "name": "第25集",
+          "url": "https://source-d.example.test/watch/1154/1/26.html",
+          "sort": "25",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/27.html",
+          "name": "第26集",
+          "url": "https://source-d.example.test/watch/1154/1/27.html",
+          "sort": "26",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/28.html",
+          "name": "第27集",
+          "url": "https://source-d.example.test/watch/1154/1/28.html",
+          "sort": "27",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/29.html",
+          "name": "第28集",
+          "url": "https://source-d.example.test/watch/1154/1/29.html",
+          "sort": "28",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        },
+        {
+          "id": "https://source-d.example.test/watch/1154/1/30.html",
+          "name": "第29集",
+          "url": "https://source-d.example.test/watch/1154/1/30.html",
+          "sort": "29",
+          "channelName": "旧番主线①30",
+          "channelMatch": "旧番主线①"
+        }
+      ]
+    }
+  ]
+}

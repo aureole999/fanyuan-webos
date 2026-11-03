@@ -92,3 +92,24 @@ test('canonical labels do not replace raw rule template inputs when resolving or
  const {sourceSubject,sourceEpisode}=require('../src/source-matcher.cjs'),raw=videos.find(v=>v.sourceId==='source-c'&&v.subject.id==='1395'),d=canonicalDetail(raw,context(316247)),ep=d.channels[0].episodes[0];
  assert.equal(d.subject.name,'Re：从零开始的异世界生活 第二季 后半部分');assert.equal(sourceSubject(d.subject).name,raw.subject.name);assert.equal(sourceEpisode(ep).sort,'14');assert.equal(sourceEpisode(ep).name,raw.channels[0].episodes.find(e=>e.sort==='14').name);assert.equal(ep.sort,'39');
 });
+test('more episodes are the exact unmatched complement, retaining source order and independent identities',()=>{
+ const raw=videos.find(v=>v.sourceId==='source-c'&&v.subject.id==='1087'),d=canonicalDetail(raw,context(980)),ch=d.channels[0];
+ assert.equal(ch.episodes.length,12);assert.deepEqual(ch.unmatchedEpisodes.map(e=>Number(e.sort)),[1,2,3,4,5,6,7,8,9,10,11,12,25,26,27,28,29]);
+ assert.equal(new Set(ch.episodes.concat(ch.unmatchedEpisodes).map(e=>e.id)).size,29);
+ const {sourcePlayback}=require('../frontend/detail-episodes.cjs'),p=sourcePlayback(d,ch.unmatchedEpisodes[0],0);assert.equal(p.subject.bgmId,undefined);assert.equal(p.episode.bgmEpisodeId,undefined);assert.equal(p.episode.sort,'1');assert.equal(p.subject.name,'黑礁');assert.equal(p.channels[0].episodes.length,29);assert.equal(p.channels[0].episodes[12].sort,'13');assert.equal(p.channels[0].episodes[12].bgmEpisodeId,undefined);assert.equal(p.hasNext,true);assert.equal(sourcePlayback(d,ch.unmatchedEpisodes[ch.unmatchedEpisodes.length-1],0).hasNext,false);
+});
+test('source availability probes search exactly once, distinguish title matches from candidates and coalesce cached calls',async()=>{
+ let searches=0;const records=videos.filter(v=>v.sourceId==='source-a'&&/^黑礁/.test(v.subject.name)).map(v=>v.subject);let engine={search:async(id,q)=>{searches++;assert.equal(q,'黑礁');return records;},detail:()=>{throw Error('Probing must not read episode pages');}};
+ const service=new SourceMatcher(()=>engine,{context:async()=>context(980)}),[a,b]=await Promise.all([service.probe('source-a',{bgmId:980,name:'黑礁 The Second Barrage'}),service.probe('source-a',{bgmId:980,name:'黑礁 The Second Barrage'})]);
+ assert.deepEqual(a,{matchCount:1,candidateCount:2});assert.deepEqual(a,b);assert.equal(searches,1);await service.probe('source-a',{bgmId:980});assert.equal(searches,1);engine={...engine};await service.probe('source-a',{bgmId:980});assert.equal(searches,2);
+});
+test('failed availability probes are retryable errors, never cached as zero matches',async()=>{
+ let calls=0;const service=new SourceMatcher(()=>engine,{context:async()=>context(980)}),engine={search:async()=>{if(++calls===1)throw Error('offline');return [];}};await assert.rejects(service.probe('x',{bgmId:980}),/offline/);assert.deepEqual(await service.probe('x',{bgmId:980}),{matchCount:0,candidateCount:0});assert.equal(calls,2);
+});
+test('captured old-source 9x episode remains available in More without shifting the second-season mapping',()=>{
+ const raw=require('./fixtures/multiseason/black-lagoon-old-source.json'),d=canonicalDetail(raw,context(980)),ch=d.channels[0];assert.equal(ch.episodes.length,12);assert.equal(ch.episodes[0].sourceSort,'13');assert.equal(ch.unmatchedEpisodes.length,18);const special=ch.unmatchedEpisodes.find(e=>e.name==='第9x集');assert.ok(special);const p=require('../frontend/detail-episodes.cjs').sourcePlayback(d,special,0);assert.equal(p.episode.name,'第9x集');assert.equal(p.episode.id,special.id);assert.equal(p.episode.bgmEpisodeId,undefined);assert.equal(p.channels[0].episodes.length,30);
+});
+test('manual source page search returns exact matches and candidates without resolving or auto-selecting',async()=>{
+ const records=videos.filter(v=>v.sourceId==='source-a'&&/^黑礁/.test(v.subject.name)).map(v=>v.subject),engine={search:async()=>records,detail:()=>{throw Error('Manual picker must not read episode pages');}},service=new SourceMatcher(()=>engine,{context:async()=>context(980)});
+ const r=await service.search('source-a',{bgmId:980,name:context(980).subject.name},true);assert.ok(r.manualRequired);assert.equal(r.detail,undefined);assert.equal(new Set(r.items.map(s=>s.url)).size,r.items.length);assert.equal(r.items[0].matchKind,'own');assert.ok(r.items.some(s=>s.matchKind!=='own'));assert.equal(r.items.length,records.length);
+});

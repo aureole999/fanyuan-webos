@@ -36,7 +36,8 @@ async function action(name,p){
   if(name==='subscriptionRemove')return subscriptions.remove(p.id);
   if(name==='search')return {items:await engine.search(p.sourceId,p.keyword)};
   if(name==='detail')return sourceMatcher.detail(p.sourceId,p.subject,p.subject,!!p.confirmedPage);
-  if(name==='matchSource')return sourceMatcher.search(p.sourceId,p.subject);
+  if(name==='sourceProbe')return sourceMatcher.probe(p.sourceId,p.subject);
+  if(name==='matchSource')return sourceMatcher.search(p.sourceId,p.subject,!!p.manual);
   if(name==='resolve'){const original=require('./source-matcher.cjs'),m=await engine.resolve(p.sourceId,original.sourceSubject(p.subject),original.sourceEpisode(p.episode));return {url:await proxy.add(m),type:m.type,trace:m.trace,location:'TV'};}
   if(name==='danmakuSettings')return danmakuSettings.status();
   if(name==='danmakuConfigure')return danmakuSettings.configure(p);
@@ -58,7 +59,7 @@ if(process.env.ANIMEKO_LOCAL_DEV==='1'){
   http.createServer(function(req,res){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','Content-Type');if(req.method==='OPTIONS'){res.end();return;}let body='';req.on('data',function(b){body+=b;if(body.length>100000)req.destroy();});req.on('end',function(){let p;try{p=JSON.parse(body||'{}');}catch(e){res.writeHead(400);res.end();return;}action(req.url.slice(1),p).then(function(v){res.end(JSON.stringify(Object.assign({returnValue:true},v)));},function(e){res.end(JSON.stringify({returnValue:false,errorText:cleanError(e)}));});});}).listen(18764,'127.0.0.1');
 }else{
   const Service=require('webos-service'),service=new Service('com.local.animesources.service');
-  ['sources','search','detail','matchSource','resolve','danmaku','calendar','bangumiSearch','bangumiPopular','bangumiClassics','bangumiDetail','bangumiRelated','diagnostics','ping','subscriptions','subscriptionsUpdate','subscriptionUpdate','subscriptionAdd','subscriptionConfigure','subscriptionRemove','danmakuSettings','danmakuConfigure','customDanmakuSearch','customDanmakuEpisodes','customDanmakuTest'].forEach(function(name){service.register(name,function(message){action(name,message.payload).then(function(v){message.respond(Object.assign({returnValue:true},v));},function(e){const entry=Object.assign({method:name,sourceId:message.payload&&message.payload.sourceId||'',time:Date.now()},errorDetails(e));recent.push(entry);console.error('[FanYuan]',JSON.stringify(entry));if(recent.length>20)recent.shift();message.respond({returnValue:false,errorCode:e.code||'SOURCE_ERROR',errorText:cleanError(e)});});});});
+  ['sources','search','detail','matchSource','sourceProbe','resolve','danmaku','calendar','bangumiSearch','bangumiPopular','bangumiClassics','bangumiDetail','bangumiRelated','diagnostics','ping','subscriptions','subscriptionsUpdate','subscriptionUpdate','subscriptionAdd','subscriptionConfigure','subscriptionRemove','danmakuSettings','danmakuConfigure','customDanmakuSearch','customDanmakuEpisodes','customDanmakuTest'].forEach(function(name){service.register(name,function(message){action(name,message.payload).then(function(v){message.respond(Object.assign({returnValue:true},v));},function(e){const entry=Object.assign({method:name,sourceId:message.payload&&message.payload.sourceId||'',time:Date.now()},errorDetails(e));recent.push(entry);console.error('[FanYuan]',JSON.stringify(entry));if(recent.length>20)recent.shift();message.respond({returnValue:false,errorCode:e.code||'SOURCE_ERROR',errorText:cleanError(e)});});});});
   let keepAlive;service.activityManager.create('keepAlive',function(activity){keepAlive=activity;});
 }
 module.exports={action:action};

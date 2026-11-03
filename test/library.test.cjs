@@ -57,3 +57,7 @@ test('a missing canonical identity never falls back to the same number of anothe
 test('manual video page selection persists per Bangumi subject and source, without storing transient media URLs',()=>{
  const st=store(),lib=makeLibrary(st);lib.setVideoMapping(subject,'one',{id:'page',name:'用户选择的页面',url:'https://source.test/page',videoUrl:'https://signed.invalid/private'});assert.equal(makeLibrary(st).videoMapping(subject,'one').id,'page');assert.equal(lib.videoMapping({...subject,bgmId:123},'one'),null);assert.equal(lib.videoMapping(subject,'two'),null);assert.ok(!JSON.stringify(st.data).includes('signed.invalid'));lib.setVideoMapping(subject,'one',null);assert.equal(lib.videoMapping(subject,'one'),null);
 });
+
+test('unmatched source playback keeps its manual identity when saved for continue watching',()=>{
+ const lib=makeLibrary(store());lib.saveProgress('one',{...subject,bgmId:undefined},{...ep,type:'unmatched',unmatched:true},40,1400);assert.equal(lib.history()[0].episode.unmatched,true);assert.equal(lib.history()[0].subject.bgmId,undefined);
+});

@@ -1,10 +1,10 @@
 {
   "name": "fanyuan-webos",
-  "version": "0.7.5",
+  "version": "0.7.7",
   "private": true,
   "license": "AGPL-3.0",
   "scripts": {
-    "test": "node --test test/engine.test.cjs test/transport-node8.test.cjs test/library.test.cjs test/navigation.test.cjs test/subscription.test.cjs test/danmaku.test.cjs test/custom-danmaku.test.cjs test/discover.test.cjs test/catalog.test.cjs test/multiseason.test.cjs test/playback-error.test.cjs",
+    "test": "node --test test/engine.test.cjs test/transport-node8.test.cjs test/library.test.cjs test/navigation.test.cjs test/subscription.test.cjs test/danmaku.test.cjs test/custom-danmaku.test.cjs test/discover.test.cjs test/catalog.test.cjs test/multiseason.test.cjs test/playback-error.test.cjs test/source-probes.test.cjs",
     "build": "node build.cjs",
     "test:ui": "node --experimental-websocket test/enact-ui.cjs"
   },
