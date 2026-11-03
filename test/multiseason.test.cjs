@@ -130,3 +130,16 @@ test('a confirmed page with a repeated chapter maps it once and stays playable w
  const kept=canonicalDetail(odd,ctx,true);
  assert.ok(kept.channels[0].episodes.every(e=>e.unavailable));assert.deepEqual(kept.channels[0].unmatchedEpisodes.map(e=>e.id),['x1','x2']);
 });
+
+test('captured Black Lagoon episode 4 matches the unaccented dandan title automatically',()=>{
+ const captured=require('./fixtures/multiseason/black-lagoon-dandan.json');
+ const result=matchPage(captured.context,{name:captured.rows[0].subjectName,danmaku:true,confirmed:true,episodes:captured.rows.map(e=>({...e,name:e.episodeName,genericTitle:!e.episodeName}))});
+ const found=result.matches.find(m=>m.episode.id===1477);assert.ok(found,result.reason);assert.equal(Number(found.row.number),4);assert.equal(found.method,'title');assert.match(found.row.episodeName,/Ruckkehr/);
+ const conflict=JSON.parse(JSON.stringify(captured.rows));conflict.find(e=>Number(e.number)===4).episodeName='A completely different chapter';
+ const rejected=matchPage(captured.context,{name:conflict[0].subjectName,danmaku:true,confirmed:true,episodes:conflict.map(e=>({...e,name:e.episodeName}))});assert.ok(!rejected.matches.some(m=>m.episode.id===1477));
+});
+test('episode title accent folding supports Latin combining marks and preserves kana voicing',()=>{
+ const {episodeTitle}=require('../src/episode-matching.cjs');
+ for(const [a,b] of [['Die Rückkehr des Adlers','Die Ruckkehr des Adlers'],['Die Ru\u0308ckkehr des Adlers','Die Ruckkehr des Adlers'],['Café résumé','Cafe resume']])assert.equal(episodeTitle(a),episodeTitle(b));
+ assert.notEqual(episodeTitle('かみの物語'),episodeTitle('がみの物語'));assert.equal(episodeTitle('がみの物語'),episodeTitle('か\u3099みの物語'));
+});

@@ -136,11 +136,18 @@ await evaluate('document.querySelector("[data-focus-id=danmaku-custom]").focus()
   })()`);
   // Held right previews 30 → 1:10 and seeks once, after the key rests.
   assert.deepEqual(playback,{preview:30,shown:'01:10',pos:70,controls:false,progress:true});assert.equal(await evaluate('!!document.querySelector("[data-focus-id=player-retry]")'),false);
-  await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-0"');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-1');
+  console.log('UI: hidden OK pauses/resumes without opening controls');
+  await evaluate(`(()=>{const v=document.querySelector('video');let paused=false;window.__pauseCalls=0;window.__playCalls=0;Object.defineProperty(v,'paused',{configurable:true,get:()=>paused});v.pause=()=>{window.__pauseCalls++;paused=true;v.dispatchEvent(new Event('pause'));};v.play=()=>{window.__playCalls++;paused=false;v.dispatchEvent(new Event('playing'));return Promise.resolve();};return true;})()`);
+  await key('Enter');await wait('!!document.querySelector(".player-pause-indicator")');assert.equal(await evaluate('!!document.querySelector(".player-ui.visible")'),false);
+  await evaluate('window.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",repeat:true,bubbles:true}));true');assert.equal(await evaluate('window.__playCalls'),0);
+  await key('Enter');await wait('!document.querySelector(".player-pause-indicator")');assert.equal(await evaluate('window.__playCalls'),1);assert.equal(await evaluate('!!document.querySelector(".player-ui.visible")'),false);
+  await evaluate('document.querySelector("video").dispatchEvent(new Event("waiting"));true');await wait('!!document.querySelector(".player-buffering")');await wait('document.querySelector(".player-download-speed")?.textContent==="2.00 MB/s"');assert.ok(await evaluate('document.querySelector(".player-buffering").getBoundingClientRect().width<400'));
+  await key('Enter');await wait('!!document.querySelector(".player-pause-indicator")');assert.equal(await evaluate('!!document.querySelector(".player-buffering")'),false);const statsCalls=await evaluate('window.__fixture.calls.playbackStats');await new Promise(r=>setTimeout(r,1200));assert.equal(await evaluate('window.__fixture.calls.playbackStats'),statsCalls);await key('Enter');await wait('!document.querySelector(".player-pause-indicator")');
+  await key('ArrowDown');await wait('document.activeElement.dataset.focusId==="player-controls-0"');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-1');
   await evaluate('window.__reviewVideo=document.querySelector("video");true');await key('Escape');await wait('!document.querySelector(".player-ui")');
-  assert.equal(await evaluate('document.querySelectorAll("[data-focus-group=player]").length'),0);
+  await wait('document.querySelectorAll("[data-focus-group=player]").length===0');
   await new Promise(r=>setTimeout(r,600));assert.equal(await evaluate('document.querySelector("video")===window.__reviewVideo'),true);
-  await evaluate('document.querySelector("video").currentTime=125');await key('Enter');await wait('document.activeElement.dataset.focusId==="player-controls-1"');assert.equal(await evaluate('document.querySelector(".player-time span").textContent'),'02:05');
+  await evaluate('document.querySelector("video").currentTime=125');await key('ArrowDown');await wait('document.activeElement.dataset.focusId==="player-controls-1"');assert.equal(await evaluate('document.querySelector(".player-time span").textContent'),'02:05');
   // 下一集 → 弹幕 (toggle) → 弹幕设置 (panel)
   await key('ArrowRight');await key('ArrowRight');assert.equal(await evaluate('window.__focusState().current'),'player-controls-6');await key('Enter');await wait('!!document.querySelector(".player-panel")');await key('Escape');await wait('!document.querySelector(".player-panel")');
   console.log('UI: progress bar scrubbing');
@@ -150,7 +157,7 @@ await evaluate('document.querySelector("[data-focus-id=danmaku-custom]").focus()
   await key('Escape');await wait('!document.querySelector(".player-ui.visible")');
   for(const at of [0.3,0.5,0.62]){
    await evaluate(`(()=>{const v=document.querySelector("video");v.currentTime=v.duration*${at};return 1})()`);
-   await key('Enter');await wait('/^player-controls-/.test(window.__focusState().current||"")');
+   await key('ArrowDown');await wait('/^player-controls-/.test(window.__focusState().current||"")');
    for(const k of ['ArrowRight','ArrowRight','ArrowRight','ArrowRight','ArrowLeft','ArrowLeft','ArrowLeft','ArrowLeft','ArrowLeft','ArrowLeft']){await key(k);assert.notEqual(await focusNow(),'player-progress','left/right must not reach the progress bar');}
    const from=await focusNow();await key('ArrowUp');assert.equal(await focusNow(),'player-progress');await key('ArrowDown');assert.equal(await focusNow(),from,'down returns to the same button');
    await key('Escape');await wait('!document.querySelector(".player-ui.visible")');

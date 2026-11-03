@@ -1,7 +1,8 @@
 'use strict';
 const names=require('./danmaku-match.cjs');
 function norm(s){return names.normalize(String(s||'').replace(/`/g,"'"));}
-function episodeTitle(s){let value=String(s||'').replace(/^【[^】]*】\s*/,'');for(let i=0;i<2;i++)value=value.replace(/^(?:第\s*)?\d+(?:\.\d+)?\s*(?:[话話集]\s*)?/,'');return norm(value.replace(/^[SOC]\d+\s*/i,''));}
+function episodeTitle(s){let value=String(s||'').replace(/^【[^】]*】\s*/,'');for(let i=0;i<2;i++)value=value.replace(/^(?:第\s*)?\d+(?:\.\d+)?\s*(?:[话話集]\s*)?/,'');// Fold Latin accents only: preserve kana voicing and the displayed title.
+ return norm(value.replace(/^[SOC]\d+\s*/i,'').normalize('NFD').replace(/([A-Za-z])[\u0300-\u036f]+/g,'$1'));}
 function finite(v){return v!==null&&v!==undefined&&String(v).trim()!==''&&Number.isFinite(Number(v))?Number(v):null;}
 function subjectNames(s){return Array.from(new Set([s.name,s.name_cn,s.originalName].concat(s.aliases||[]).filter(Boolean)));}
 function mainEpisodes(s){return (s.episodes||[]).filter(e=>Number(e.type||0)===0).slice().sort((a,b)=>Number(a.sort)-Number(b.sort));}

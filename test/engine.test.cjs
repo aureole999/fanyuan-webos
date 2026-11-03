@@ -24,3 +24,16 @@ test('web rule interprets selectors, URL bases and named episode groups',async()
 test('linkTemplate {value} is used for API-assisted web source',async()=>{const r=rule('fixture-web-json');const e=new Engine([r],async url=>({url,text:JSON.stringify({info:{rows:[{vod_id:123,vod_name:'测试'}]}})}));assert.equal((await e.search(r.id,'测试'))[0].url,'https://play.example.test/GV123/');});
 test('HLS rewrites nested playlists, keys and relative segments',()=>{const s='#EXTM3U\n#EXT-X-KEY:METHOD=AES-128,URI="key.bin"\nvariant/main.m3u8\n../segment.ts?token=1\n';const urls=[];const out=rewritePlaylist(s,'https://example.test/a/master',u=>{urls.push(u);return 'local/'+urls.length;});assert.deepEqual(urls,['https://example.test/a/key.bin','https://example.test/a/variant/main.m3u8','https://example.test/segment.ts?token=1']);assert.match(out,/URI="local\/1"/);});
 test('loopback proxy detects opaque HLS and preserves byte ranges',async()=>{const http=require('http');const upstream=http.createServer((req,res)=>{if(req.url==='/opaque'){res.writeHead(200,{'Content-Type':'binary/octet-stream'});res.end('#EXTM3U\n#EXTINF:2,\nseg.ts\n');}else{assert.equal(req.headers.range,'bytes=0-3');res.writeHead(206,{'Content-Type':'video/mp4','Content-Range':'bytes 0-3/8'});res.end('abcd');}});await new Promise(r=>upstream.listen(0,'127.0.0.1',r));const proxy=createProxy();try{const base='http://127.0.0.1:'+upstream.address().port;const playlist=await request(await proxy.add({url:base+'/opaque',headers:{}}));assert.match(playlist.text,/127\.0\.0\.1.*%2Fseg.ts/);const partial=await request(await proxy.add({url:base+'/bytes',headers:{}}),{headers:{Range:'bytes=0-3'}});assert.equal(partial.status,206);assert.equal(partial.text,'abcd');assert.equal(partial.headers['content-range'],'bytes 0-3/8');}finally{proxy.server.close();upstream.close();}});
+
+test('proxy download counters isolate media sessions, include HLS segments and exclude HEAD',async()=>{
+ const http=require('http'),body='#EXTM3U\n#EXTINF:2,\nseg.ts\n';
+ const upstream=http.createServer((req,res)=>{res.setHeader('Content-Type',req.url==='/list'?'application/vnd.apple.mpegurl':'video/mp2t');res.end(req.url==='/list'?body:'abcd');});
+ await new Promise(r=>upstream.listen(0,'127.0.0.1',r));const proxy=createProxy();
+ try{
+  const base='http://127.0.0.1:'+upstream.address().port,url=await proxy.add({url:base+'/list'}),other=await proxy.add({url:base+'/other'});
+  assert.equal(proxy.stats(url).downloadedBytes,0);const list=await request(url),segment=list.text.trim().split('\n').pop();await Promise.all([request(segment),request(segment)]);
+  assert.equal(proxy.stats(url).downloadedBytes,Buffer.byteLength(body)+8);assert.equal(proxy.stats(other).downloadedBytes,0);
+  const before=proxy.stats(url);await request(segment,{method:'HEAD'});assert.equal(proxy.stats(url).downloadedBytes,before.downloadedBytes);assert.ok(proxy.stats(url).sampledAt>=before.sampledAt);
+  assert.deepEqual(proxy.stats(url.replace('127.0.0.1','localhost')),{available:false});assert.deepEqual(proxy.stats('bad'),{available:false});
+ }finally{proxy.server.close();upstream.close();}
+});

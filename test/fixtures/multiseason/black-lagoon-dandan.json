@@ -1,0 +1,1334 @@
+{
+  "context": {
+    "subject": {
+      "id": 979,
+      "bgmId": 979,
+      "name": "黑礁",
+      "name_cn": "黑礁",
+      "originalName": "BLACK LAGOON",
+      "date": "2006-04-08",
+      "aliases": [
+        "ブラック・ラグーン",
+        "ブラックラグーン"
+      ],
+      "episodes": [
+        {
+          "airdate": "2006-04-08",
+          "name": "The Black Lagoon",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 1,
+          "sort": 1,
+          "id": 1474,
+          "subject_id": 979,
+          "comment": 22,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-04-15",
+          "name": "Mangrove Heaven",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 2,
+          "sort": 2,
+          "id": 1475,
+          "subject_id": 979,
+          "comment": 29,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-04-22",
+          "name": "Ring-Ding Ship Chase",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 3,
+          "sort": 3,
+          "id": 1476,
+          "subject_id": 979,
+          "comment": 28,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-04-29",
+          "name": "Die Rückkehr des Adlers",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 4,
+          "sort": 4,
+          "id": 1477,
+          "subject_id": 979,
+          "comment": 14,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-05-06",
+          "name": "Eagle Hunting and Hunting Eagles",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 5,
+          "sort": 5,
+          "id": 1478,
+          "subject_id": 979,
+          "comment": 24,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-05-13",
+          "name": "Moonlit Hunting Grounds",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 6,
+          "sort": 6,
+          "id": 1479,
+          "subject_id": 979,
+          "comment": 26,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-05-20",
+          "name": "Calm Down, Two Men",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 7,
+          "sort": 7,
+          "id": 1480,
+          "subject_id": 979,
+          "comment": 51,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-05-27",
+          "name": "Rasta Blasta",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 8,
+          "sort": 8,
+          "id": 1481,
+          "subject_id": 979,
+          "comment": 13,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-06-03",
+          "name": "Maid to Kill",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 9,
+          "sort": 9,
+          "id": 1482,
+          "subject_id": 979,
+          "comment": 39,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-06-10",
+          "name": "The Unstoppable Chambermaid",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 10,
+          "sort": 10,
+          "id": 1483,
+          "subject_id": 979,
+          "comment": 31,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-06-17",
+          "name": "Lock'n Load Revolution",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 11,
+          "sort": 11,
+          "id": 1484,
+          "subject_id": 979,
+          "comment": 13,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        },
+        {
+          "airdate": "2006-06-24",
+          "name": "Guerrillas in the Jungle",
+          "name_cn": "",
+          "duration": "",
+          "desc": "",
+          "ep": 12,
+          "sort": 12,
+          "id": 1485,
+          "subject_id": 979,
+          "comment": 18,
+          "type": 0,
+          "disc": 0,
+          "duration_seconds": 0
+        }
+      ],
+      "inlineSpecialCount": 0,
+      "relations": [
+        {
+          "images": {
+            "small": "https://lain.bgm.tv/r/200/pic/cover/l/d7/9a/980_b715Q.jpg",
+            "grid": "https://lain.bgm.tv/r/100/pic/cover/l/d7/9a/980_b715Q.jpg",
+            "large": "https://lain.bgm.tv/pic/cover/l/d7/9a/980_b715Q.jpg",
+            "medium": "https://lain.bgm.tv/r/800/pic/cover/l/d7/9a/980_b715Q.jpg",
+            "common": "https://lain.bgm.tv/r/400/pic/cover/l/d7/9a/980_b715Q.jpg"
+          },
+          "name": "BLACK LAGOON The Second Barrage",
+          "name_cn": "黑礁 The Second Barrage",
+          "relation": "续集",
+          "type": 2,
+          "id": 980
+        },
+        {
+          "images": {
+            "small": "https://lain.bgm.tv/r/200/pic/cover/l/14/16/6303_l7krk.jpg",
+            "grid": "https://lain.bgm.tv/r/100/pic/cover/l/14/16/6303_l7krk.jpg",
+            "large": "https://lain.bgm.tv/pic/cover/l/14/16/6303_l7krk.jpg",
+            "medium": "https://lain.bgm.tv/r/800/pic/cover/l/14/16/6303_l7krk.jpg",
+            "common": "https://lain.bgm.tv/r/400/pic/cover/l/14/16/6303_l7krk.jpg"
+          },
+          "name": "BLACK LAGOON ORIGINAL SOUND TRACK",
+          "name_cn": "黑礁原声大碟",
+          "relation": "原声集",
+          "type": 3,
+          "id": 6303
+        },
+        {
+          "images": {
+            "small": "https://lain.bgm.tv/r/200/pic/cover/l/7b/ab/12471_jp.jpg",
+            "grid": "https://lain.bgm.tv/r/100/pic/cover/l/7b/ab/12471_jp.jpg",
+            "large": "https://lain.bgm.tv/pic/cover/l/7b/ab/12471_jp.jpg",
+            "medium": "https://lain.bgm.tv/r/800/pic/cover/l/7b/ab/12471_jp.jpg",
+            "common": "https://lain.bgm.tv/r/400/pic/cover/l/7b/ab/12471_jp.jpg"
+          },
+          "name": "Red fraction",
+          "name_cn": "",
+          "relation": "片头曲",
+          "type": 3,
+          "id": 12471
+        },
+        {
+          "images": {
+            "small": "https://lain.bgm.tv/r/200/pic/cover/l/eb/cf/19495_lDE81.jpg",
+            "grid": "https://lain.bgm.tv/r/100/pic/cover/l/eb/cf/19495_lDE81.jpg",
+            "large": "https://lain.bgm.tv/pic/cover/l/eb/cf/19495_lDE81.jpg",
+            "medium": "https://lain.bgm.tv/r/800/pic/cover/l/eb/cf/19495_lDE81.jpg",
+            "common": "https://lain.bgm.tv/r/400/pic/cover/l/eb/cf/19495_lDE81.jpg"
+          },
+          "name": "OVA BLACK LAGOON Roberta’s Blood Trail Blu-ray001 Blu-ray Vo.1 初回限定版 特典CD",
+          "name_cn": "",
+          "relation": "原声集",
+          "type": 3,
+          "id": 19495
+        },
+        {
+          "images": {
+            "small": "https://lain.bgm.tv/r/200/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+            "grid": "https://lain.bgm.tv/r/100/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+            "large": "https://lain.bgm.tv/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+            "medium": "https://lain.bgm.tv/r/800/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+            "common": "https://lain.bgm.tv/r/400/pic/cover/l/4d/20/19496_pnNwQ.jpg"
+          },
+          "name": "BLACK LAGOON",
+          "name_cn": "黑礁",
+          "relation": "书籍",
+          "type": 1,
+          "id": 19496
+        },
+        {
+          "images": {
+            "small": "https://lain.bgm.tv/r/200/pic/cover/l/d7/82/64276_1M8WL.jpg",
+            "grid": "https://lain.bgm.tv/r/100/pic/cover/l/d7/82/64276_1M8WL.jpg",
+            "large": "https://lain.bgm.tv/pic/cover/l/d7/82/64276_1M8WL.jpg",
+            "medium": "https://lain.bgm.tv/r/800/pic/cover/l/d7/82/64276_1M8WL.jpg",
+            "common": "https://lain.bgm.tv/r/400/pic/cover/l/d7/82/64276_1M8WL.jpg"
+          },
+          "name": "BLACK LAGOON オマケ漫画",
+          "name_cn": "黑礁 特典小剧场",
+          "relation": "衍生",
+          "type": 2,
+          "id": 64276
+        },
+        {
+          "images": {
+            "small": "https://lain.bgm.tv/r/200/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+            "grid": "https://lain.bgm.tv/r/100/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+            "large": "https://lain.bgm.tv/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+            "medium": "https://lain.bgm.tv/r/800/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+            "common": "https://lain.bgm.tv/r/400/pic/cover/l/0b/1b/469393_M3i7C.jpg"
+          },
+          "name": "BLACK LAGOON Heaven's Shot",
+          "name_cn": "黑礁 天堂之枪",
+          "relation": "游戏",
+          "type": 4,
+          "id": 469393
+        }
+      ]
+    },
+    "series": [
+      {
+        "id": 979,
+        "bgmId": 979,
+        "name": "黑礁",
+        "name_cn": "黑礁",
+        "originalName": "BLACK LAGOON",
+        "date": "2006-04-08",
+        "aliases": [
+          "ブラック・ラグーン",
+          "ブラックラグーン"
+        ],
+        "episodes": [
+          {
+            "airdate": "2006-04-08",
+            "name": "The Black Lagoon",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 1,
+            "sort": 1,
+            "id": 1474,
+            "subject_id": 979,
+            "comment": 22,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-04-15",
+            "name": "Mangrove Heaven",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 2,
+            "sort": 2,
+            "id": 1475,
+            "subject_id": 979,
+            "comment": 29,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-04-22",
+            "name": "Ring-Ding Ship Chase",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 3,
+            "sort": 3,
+            "id": 1476,
+            "subject_id": 979,
+            "comment": 28,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-04-29",
+            "name": "Die Rückkehr des Adlers",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 4,
+            "sort": 4,
+            "id": 1477,
+            "subject_id": 979,
+            "comment": 14,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-05-06",
+            "name": "Eagle Hunting and Hunting Eagles",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 5,
+            "sort": 5,
+            "id": 1478,
+            "subject_id": 979,
+            "comment": 24,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-05-13",
+            "name": "Moonlit Hunting Grounds",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 6,
+            "sort": 6,
+            "id": 1479,
+            "subject_id": 979,
+            "comment": 26,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-05-20",
+            "name": "Calm Down, Two Men",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 7,
+            "sort": 7,
+            "id": 1480,
+            "subject_id": 979,
+            "comment": 51,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-05-27",
+            "name": "Rasta Blasta",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 8,
+            "sort": 8,
+            "id": 1481,
+            "subject_id": 979,
+            "comment": 13,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-06-03",
+            "name": "Maid to Kill",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 9,
+            "sort": 9,
+            "id": 1482,
+            "subject_id": 979,
+            "comment": 39,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-06-10",
+            "name": "The Unstoppable Chambermaid",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 10,
+            "sort": 10,
+            "id": 1483,
+            "subject_id": 979,
+            "comment": 31,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-06-17",
+            "name": "Lock'n Load Revolution",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 11,
+            "sort": 11,
+            "id": 1484,
+            "subject_id": 979,
+            "comment": 13,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-06-24",
+            "name": "Guerrillas in the Jungle",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 12,
+            "sort": 12,
+            "id": 1485,
+            "subject_id": 979,
+            "comment": 18,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          }
+        ],
+        "inlineSpecialCount": 0,
+        "relations": [
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/d7/9a/980_b715Q.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/d7/9a/980_b715Q.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/d7/9a/980_b715Q.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/d7/9a/980_b715Q.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/d7/9a/980_b715Q.jpg"
+            },
+            "name": "BLACK LAGOON The Second Barrage",
+            "name_cn": "黑礁 The Second Barrage",
+            "relation": "续集",
+            "type": 2,
+            "id": 980
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/14/16/6303_l7krk.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/14/16/6303_l7krk.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/14/16/6303_l7krk.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/14/16/6303_l7krk.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/14/16/6303_l7krk.jpg"
+            },
+            "name": "BLACK LAGOON ORIGINAL SOUND TRACK",
+            "name_cn": "黑礁原声大碟",
+            "relation": "原声集",
+            "type": 3,
+            "id": 6303
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/7b/ab/12471_jp.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/7b/ab/12471_jp.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/7b/ab/12471_jp.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/7b/ab/12471_jp.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/7b/ab/12471_jp.jpg"
+            },
+            "name": "Red fraction",
+            "name_cn": "",
+            "relation": "片头曲",
+            "type": 3,
+            "id": 12471
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/eb/cf/19495_lDE81.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/eb/cf/19495_lDE81.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/eb/cf/19495_lDE81.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/eb/cf/19495_lDE81.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/eb/cf/19495_lDE81.jpg"
+            },
+            "name": "OVA BLACK LAGOON Roberta’s Blood Trail Blu-ray001 Blu-ray Vo.1 初回限定版 特典CD",
+            "name_cn": "",
+            "relation": "原声集",
+            "type": 3,
+            "id": 19495
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/4d/20/19496_pnNwQ.jpg"
+            },
+            "name": "BLACK LAGOON",
+            "name_cn": "黑礁",
+            "relation": "书籍",
+            "type": 1,
+            "id": 19496
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/d7/82/64276_1M8WL.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/d7/82/64276_1M8WL.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/d7/82/64276_1M8WL.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/d7/82/64276_1M8WL.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/d7/82/64276_1M8WL.jpg"
+            },
+            "name": "BLACK LAGOON オマケ漫画",
+            "name_cn": "黑礁 特典小剧场",
+            "relation": "衍生",
+            "type": 2,
+            "id": 64276
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/0b/1b/469393_M3i7C.jpg"
+            },
+            "name": "BLACK LAGOON Heaven's Shot",
+            "name_cn": "黑礁 天堂之枪",
+            "relation": "游戏",
+            "type": 4,
+            "id": 469393
+          }
+        ]
+      },
+      {
+        "id": 980,
+        "bgmId": 980,
+        "name": "黑礁 The Second Barrage",
+        "name_cn": "黑礁 The Second Barrage",
+        "originalName": "BLACK LAGOON The Second Barrage",
+        "date": "2006-10-02",
+        "aliases": [
+          "黑礁 第二季"
+        ],
+        "episodes": [
+          {
+            "airdate": "2006-10-02",
+            "name": "The Vampire Twins Comen",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 1,
+            "sort": 13,
+            "id": 1486,
+            "subject_id": 980,
+            "comment": 11,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-10-09",
+            "name": "Bloodsport Fairytale",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 2,
+            "sort": 14,
+            "id": 1487,
+            "subject_id": 980,
+            "comment": 16,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-10-16",
+            "name": "Swan Song at Dawn",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 3,
+            "sort": 15,
+            "id": 1488,
+            "subject_id": 980,
+            "comment": 69,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-10-23",
+            "name": "Greenback Jane",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 4,
+            "sort": 16,
+            "id": 1489,
+            "subject_id": 980,
+            "comment": 14,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-10-30",
+            "name": "The Roanapur Freakshow Circus",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 5,
+            "sort": 17,
+            "id": 1490,
+            "subject_id": 980,
+            "comment": 8,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-11-06",
+            "name": "Mr. Benny's Good Fortune",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 6,
+            "sort": 18,
+            "id": 1491,
+            "subject_id": 980,
+            "comment": 31,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-11-13",
+            "name": "Fujiyama Gangsta Paradise",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 7,
+            "sort": 19,
+            "id": 1492,
+            "subject_id": 980,
+            "comment": 23,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-11-20",
+            "name": "The Succession",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 8,
+            "sort": 20,
+            "id": 1493,
+            "subject_id": 980,
+            "comment": 21,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-11-27",
+            "name": "Two Father's Little Soldier Girls",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 9,
+            "sort": 21,
+            "id": 1494,
+            "subject_id": 980,
+            "comment": 10,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-12-04",
+            "name": "The Dark Tower",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 10,
+            "sort": 22,
+            "id": 1495,
+            "subject_id": 980,
+            "comment": 30,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-12-11",
+            "name": "Snow White's Payback",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 11,
+            "sort": 23,
+            "id": 1496,
+            "subject_id": 980,
+            "comment": 15,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          },
+          {
+            "airdate": "2006-12-18",
+            "name": "The Gunslingers",
+            "name_cn": "",
+            "duration": "",
+            "desc": "",
+            "ep": 12,
+            "sort": 24,
+            "id": 1497,
+            "subject_id": 980,
+            "comment": 20,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 0
+          }
+        ],
+        "inlineSpecialCount": 0,
+        "relations": [
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/c3/2d/979_Pw5W0.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/c3/2d/979_Pw5W0.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/c3/2d/979_Pw5W0.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/c3/2d/979_Pw5W0.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/c3/2d/979_Pw5W0.jpg"
+            },
+            "name": "BLACK LAGOON",
+            "name_cn": "黑礁",
+            "relation": "前传",
+            "type": 2,
+            "id": 979
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/21/9e/6985_Enean.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/21/9e/6985_Enean.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/21/9e/6985_Enean.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/21/9e/6985_Enean.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/21/9e/6985_Enean.jpg"
+            },
+            "name": "BLACK LAGOON Roberta’s Blood Trail",
+            "name_cn": "黑礁 Roberta’s Blood Trail",
+            "relation": "续集",
+            "type": 2,
+            "id": 6985
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/4d/20/19496_pnNwQ.jpg"
+            },
+            "name": "BLACK LAGOON",
+            "name_cn": "黑礁",
+            "relation": "书籍",
+            "type": 1,
+            "id": 19496
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/d7/82/64276_1M8WL.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/d7/82/64276_1M8WL.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/d7/82/64276_1M8WL.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/d7/82/64276_1M8WL.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/d7/82/64276_1M8WL.jpg"
+            },
+            "name": "BLACK LAGOON オマケ漫画",
+            "name_cn": "黑礁 特典小剧场",
+            "relation": "衍生",
+            "type": 2,
+            "id": 64276
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/0b/1b/469393_M3i7C.jpg"
+            },
+            "name": "BLACK LAGOON Heaven's Shot",
+            "name_cn": "黑礁 天堂之枪",
+            "relation": "游戏",
+            "type": 4,
+            "id": 469393
+          }
+        ]
+      },
+      {
+        "id": 6985,
+        "bgmId": 6985,
+        "name": "黑礁 Roberta’s Blood Trail",
+        "name_cn": "黑礁 Roberta’s Blood Trail",
+        "originalName": "BLACK LAGOON Roberta’s Blood Trail",
+        "date": "2010-07-17",
+        "aliases": [
+          "黑礁 第三季",
+          "黑礁 罗贝尔特的复仇"
+        ],
+        "episodes": [
+          {
+            "airdate": "2010-07-17",
+            "name": "Collateral Massacre",
+            "name_cn": "",
+            "duration": "00:34:19",
+            "desc": "",
+            "ep": 1,
+            "sort": 25,
+            "id": 37941,
+            "subject_id": 6985,
+            "comment": 29,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 2059
+          },
+          {
+            "airdate": "2010-09-30",
+            "name": "An Office Man's Tactics",
+            "name_cn": "",
+            "duration": "00:32:17",
+            "desc": "",
+            "ep": 2,
+            "sort": 26,
+            "id": 37942,
+            "subject_id": 6985,
+            "comment": 20,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 1937
+          },
+          {
+            "airdate": "2011-01-07",
+            "name": "Angel in the Crosshairs",
+            "name_cn": "",
+            "duration": "00:34:04",
+            "desc": "",
+            "ep": 3,
+            "sort": 27,
+            "id": 37943,
+            "subject_id": 6985,
+            "comment": 27,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 2044
+          },
+          {
+            "airdate": "2011-03-11",
+            "name": "Oversaturation Kill Box",
+            "name_cn": "",
+            "duration": "00:33:04",
+            "desc": "",
+            "ep": 4,
+            "sort": 28,
+            "id": 37944,
+            "subject_id": 6985,
+            "comment": 18,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 1984
+          },
+          {
+            "airdate": "2011-06-22",
+            "name": "Codename Paradise,Status MIA",
+            "name_cn": "",
+            "duration": "00:33:39",
+            "desc": "5月11日延迟到6月22日了唉",
+            "ep": 5,
+            "sort": 29,
+            "id": 37945,
+            "subject_id": 6985,
+            "comment": 38,
+            "type": 0,
+            "disc": 0,
+            "duration_seconds": 2019
+          }
+        ],
+        "inlineSpecialCount": 0,
+        "relations": [
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/d7/9a/980_b715Q.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/d7/9a/980_b715Q.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/d7/9a/980_b715Q.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/d7/9a/980_b715Q.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/d7/9a/980_b715Q.jpg"
+            },
+            "name": "BLACK LAGOON The Second Barrage",
+            "name_cn": "黑礁 The Second Barrage",
+            "relation": "前传",
+            "type": 2,
+            "id": 980
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/fb/49/15059_l7h7A.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/fb/49/15059_l7h7A.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/fb/49/15059_l7h7A.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/fb/49/15059_l7h7A.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/fb/49/15059_l7h7A.jpg"
+            },
+            "name": "MIRAGE",
+            "name_cn": "",
+            "relation": "片头曲",
+            "type": 3,
+            "id": 15059
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/4d/20/19496_pnNwQ.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/4d/20/19496_pnNwQ.jpg"
+            },
+            "name": "BLACK LAGOON",
+            "name_cn": "黑礁",
+            "relation": "书籍",
+            "type": 1,
+            "id": 19496
+          },
+          {
+            "images": {
+              "small": "https://lain.bgm.tv/r/200/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "grid": "https://lain.bgm.tv/r/100/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "large": "https://lain.bgm.tv/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "medium": "https://lain.bgm.tv/r/800/pic/cover/l/0b/1b/469393_M3i7C.jpg",
+              "common": "https://lain.bgm.tv/r/400/pic/cover/l/0b/1b/469393_M3i7C.jpg"
+            },
+            "name": "BLACK LAGOON Heaven's Shot",
+            "name_cn": "黑礁 天堂之枪",
+            "relation": "游戏",
+            "type": 4,
+            "id": 469393
+          }
+        ]
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "10101",
+      "number": "1",
+      "episodeName": "The Black Lagoon",
+      "displayName": "【dandan】 第1话 The Black Lagoon",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "1",
+        "episodeName": "The Black Lagoon"
+      }
+    },
+    {
+      "id": "10102",
+      "number": "2",
+      "episodeName": "Mangrove Heaven",
+      "displayName": "【dandan】 第2话 Mangrove Heaven",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "2",
+        "episodeName": "Mangrove Heaven"
+      }
+    },
+    {
+      "id": "10103",
+      "number": "3",
+      "episodeName": "Ring-Ding Ship Chase",
+      "displayName": "【dandan】 第3话 Ring-Ding Ship Chase",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "3",
+        "episodeName": "Ring-Ding Ship Chase"
+      }
+    },
+    {
+      "id": "10104",
+      "number": "4",
+      "episodeName": "Die Ruckkehr des Adlers",
+      "displayName": "【dandan】 第4话 Die Ruckkehr des Adlers",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "4",
+        "episodeName": "Die Ruckkehr des Adlers"
+      }
+    },
+    {
+      "id": "10105",
+      "number": "5",
+      "episodeName": "Eagle Hunting and Hunting Eagles",
+      "displayName": "【dandan】 第5话 Eagle Hunting and Hunting Eagles",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "5",
+        "episodeName": "Eagle Hunting and Hunting Eagles"
+      }
+    },
+    {
+      "id": "10106",
+      "number": "6",
+      "episodeName": "Moonlit Hunting Grounds",
+      "displayName": "【dandan】 第6话 Moonlit Hunting Grounds",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "6",
+        "episodeName": "Moonlit Hunting Grounds"
+      }
+    },
+    {
+      "id": "10107",
+      "number": "7",
+      "episodeName": "Calm Down, Two Men",
+      "displayName": "【dandan】 第7话 Calm Down, Two Men",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "7",
+        "episodeName": "Calm Down, Two Men"
+      }
+    },
+    {
+      "id": "10108",
+      "number": "8",
+      "episodeName": "Rasta Blasta",
+      "displayName": "【dandan】 第8话 Rasta Blasta",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "8",
+        "episodeName": "Rasta Blasta"
+      }
+    },
+    {
+      "id": "10109",
+      "number": "9",
+      "episodeName": "Maid to Kill",
+      "displayName": "【dandan】 第9话 Maid to Kill",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "9",
+        "episodeName": "Maid to Kill"
+      }
+    },
+    {
+      "id": "10110",
+      "number": "10",
+      "episodeName": "The Unstoppable Chambermaid",
+      "displayName": "【dandan】 第10话 The Unstoppable Chambermaid",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "10",
+        "episodeName": "The Unstoppable Chambermaid"
+      }
+    },
+    {
+      "id": "10111",
+      "number": "11",
+      "episodeName": "Lock`n Load Revolution",
+      "displayName": "【dandan】 第11话 Lock`n Load Revolution",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "11",
+        "episodeName": "Lock`n Load Revolution"
+      }
+    },
+    {
+      "id": "10112",
+      "number": "12",
+      "episodeName": "Guerrillas in the Jungle",
+      "displayName": "【dandan】 第12话 Guerrillas in the Jungle",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": "12",
+        "episodeName": "Guerrillas in the Jungle"
+      }
+    },
+    {
+      "id": "10113",
+      "number": null,
+      "episodeName": "高校編",
+      "displayName": "【dandan】 S1 高校編",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "高校編"
+      }
+    },
+    {
+      "id": "10114",
+      "number": null,
+      "episodeName": "魔法少女編",
+      "displayName": "【dandan】 S2 魔法少女編",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "魔法少女編"
+      }
+    },
+    {
+      "id": "10115",
+      "number": null,
+      "episodeName": "バラライカの憂鬱",
+      "displayName": "【dandan】 S3 バラライカの憂鬱",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "バラライカの憂鬱"
+      }
+    },
+    {
+      "id": "10116",
+      "number": null,
+      "episodeName": "男の子女の子編",
+      "displayName": "【dandan】 S4 男の子女の子編",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "男の子女の子編"
+      }
+    },
+    {
+      "id": "10117",
+      "number": null,
+      "episodeName": "English Voice Actors Interview",
+      "displayName": "【dandan】 S5 English Voice Actors Interview",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "English Voice Actors Interview"
+      }
+    },
+    {
+      "id": "10118",
+      "number": null,
+      "episodeName": "納涼怖い語編",
+      "displayName": "【dandan】 S6 納涼怖い語編",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "納涼怖い語編"
+      }
+    },
+    {
+      "id": "10119",
+      "number": null,
+      "episodeName": "ビバ！ヤング編",
+      "displayName": "【dandan】 S7 ビバ！ヤング編",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "ビバ！ヤング編"
+      }
+    },
+    {
+      "id": "10120",
+      "number": null,
+      "episodeName": "めざせお笑いグランプリ",
+      "displayName": "【dandan】 S8 めざせお笑いグランプリ",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "めざせお笑いグランプリ"
+      }
+    },
+    {
+      "id": "10121",
+      "number": null,
+      "episodeName": "Opening",
+      "displayName": "【dandan】 C1 Opening",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "Opening"
+      }
+    },
+    {
+      "id": "10122",
+      "number": null,
+      "episodeName": "Ending",
+      "displayName": "【dandan】 C2 Ending",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "Ending"
+      }
+    },
+    {
+      "id": "10123",
+      "number": null,
+      "episodeName": "Mell - Red Fraction (MV)",
+      "displayName": "【dandan】 O1 Mell - Red Fraction (MV)",
+      "subjectName": "黑礁",
+      "selection": {
+        "subjectName": "黑礁(2006)【TV动画】from dandan",
+        "source": "dandan",
+        "sourceKey": "3395",
+        "episodeNumber": null,
+        "episodeName": "Mell - Red Fraction (MV)"
+      }
+    }
+  ]
+}

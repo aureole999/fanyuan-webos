@@ -32,6 +32,8 @@ function createProxy(){
       const responseHeaders={'Content-Type':contentType,'Cache-Control':'no-store','Access-Control-Allow-Origin':'*','Access-Control-Expose-Headers':'Content-Range,Accept-Ranges,Content-Length'};
       ['content-length','content-range','accept-ranges'].forEach(function(k){if(upstream.headers[k])responseHeaders[k]=upstream.headers[k];});
       if(req.method==='HEAD'){res.writeHead(upstream.statusCode,responseHeaders);res.end();upstream.resume();return;}
+      // Count upstream payload once, including concurrent HLS segments; no per-chunk allocation.
+      upstream.on('data',function(chunk){session.downloadedBytes+=chunk.length;});
       let sawData=false;
       upstream.once('data',function(first){
         sawData=true;
@@ -53,6 +55,6 @@ function createProxy(){
     }catch(e){log(502,'error');if(!res.headersSent)res.writeHead(502);res.end('媒体请求失败');if(upstream)upstream.destroy();}
   });
   const ready=new Promise(function(resolve,reject){server.once('error',reject);server.listen(0,'127.0.0.1',function(){port=server.address().port;resolve(port);});});
-  return {server:server,ready:ready,events:events,add:async function(media){await ready;Object.keys(sessions).forEach(function(k){if(Date.now()-sessions[k].used>2*3600000)delete sessions[k];});const token=crypto.randomBytes(18).toString('hex');sessions[token]={url:media.url,headers:media.headers||{},used:Date.now()};return mapped(token,media.url);}};
+  return {server:server,ready:ready,events:events,stats:function(url){try{const u=new URL(url),session=sessions[u.pathname.split('/')[2]];if(u.origin!=='http://127.0.0.1:'+port||!/^\/media\//.test(u.pathname)||!session)return {available:false};return {available:true,downloadedBytes:session.downloadedBytes,sampledAt:Date.now()};}catch(e){return {available:false};}},add:async function(media){await ready;Object.keys(sessions).forEach(function(k){if(Date.now()-sessions[k].used>2*3600000)delete sessions[k];});const token=crypto.randomBytes(18).toString('hex');sessions[token]={url:media.url,headers:media.headers||{},used:Date.now(),downloadedBytes:0};return mapped(token,media.url);}};
 }
 module.exports={createProxy:createProxy,rewritePlaylist:rewritePlaylist};

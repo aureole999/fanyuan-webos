@@ -27,6 +27,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
   const [controlsMounted,setControlsMounted]=useState(true);
   const seekSession=useRef(null);if(!seekSession.current)seekSession.current=createSeekSession();
   const [message,setMessage]=useState('正在解析播放地址…'),[current,setCurrent]=useState(0),[duration,setDuration]=useState(0),[paused,setPaused]=useState(true),[controls,setControls]=useState(true),[panel,setPanel]=useState(''),[rawDanmakus,setRawDanmakus]=useState([]),[dmInfo,setDmInfo]=useState('弹幕待匹配'),[offset,setOffset]=useState(()=>library.offset(subject)),[speed,setSpeed]=useState(1),[countdown,setCountdown]=useState(null);
+  const [mediaUrl,setMediaUrl]=useState(''),[downloadRate,setDownloadRate]=useState(null);
   const [seekHint,setSeekHint]=useState(''),[dmError,setDmError]=useState(''),[failed,setFailed]=useState(false);
   const [dmProviders,setDmProviders]=useState([]),[dmSources,setDmSources]=useState([]),[sourcePrefs,setSourcePrefs]=useState(()=>library.danmakuSources()),[customSubjects,setCustomSubjects]=useState([]),[customEpisodes,setCustomEpisodes]=useState([]),[customSubject,setCustomSubject]=useState(null),[customBusy,setCustomBusy]=useState(false);
   const danmakus=useMemo(()=>renderItems(rawDanmakus,sourcePrefs),[rawDanmakus,sourcePrefs]),fixedItems=useMemo(()=>danmakus.filter(d=>d.mode===4||d.mode===5),[danmakus]);
@@ -43,7 +44,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     playbackError.current=failure;setMessage(failure.message);setFailed(failure.failed);if(failure.failed)setControls(true);
   }
   function playVideo(v,token=generation.current){try{const p=v.play();if(p&&p.catch)p.catch(e=>reportPlaybackFailure(e,v,token));}catch(e){reportPlaybackFailure(e,v,token);}}
-  function toggle(){const v=videoRef.current;if(!v)return;if(v.paused)playVideo(v);else v.pause();show();}
+  function toggle(reveal=true){const v=videoRef.current;if(!v)return;if(v.paused)playVideo(v);else v.pause();if(reveal)show();}
   // Moves the preview by the held-key step, or by a fixed amount (the skip shortcut); one seek on commit.
   function scrubBy(dir,amount,delay=650){
     const v=videoRef.current;if(!v||!Number.isFinite(v.duration))return;const st=scrub.current;
@@ -103,8 +104,8 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     return loadDanmaku(mapped||null);
   }
   const start=useCallback(async()=>{
-    const token=++generation.current;playbackError.current=null;setFailed(false);setMessage('正在解析播放地址…');
-    try{const r=await call('resolve',{sourceId,subject,episode});if(!mounted.current||token!==generation.current)return;const v=videoRef.current;v.src=r.url;v.load();playVideo(v,token);autoDanmaku();}
+    const token=++generation.current;playbackError.current=null;setFailed(false);setMediaUrl('');setMessage('正在解析播放地址…');
+    try{const r=await call('resolve',{sourceId,subject,episode});if(!mounted.current||token!==generation.current)return;const v=videoRef.current;setMediaUrl(r.url);v.src=r.url;v.load();playVideo(v,token);autoDanmaku();}
     catch(e){if(mounted.current&&token===generation.current){playbackError.current={failed:true,message:e.message};setMessage(e.message);setFailed(true);}}
   },[]);
   useEffect(()=>{
@@ -112,6 +113,23 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     const heartbeat=setInterval(()=>call('ping').catch(()=>{}),20000);
     return()=>{save();mounted.current=false;generation.current++;dmGeneration.current++;clearInterval(heartbeat);clearTimeout(timer.current);clearTimeout(seekTimer.current);clearInterval(nextTimer.current);const v=videoRef.current;if(v){v.pause();v.removeAttribute('src');v.load();}};
   },[]);
+  // Read only the current media session, and only while buffering. No extra media requests.
+  useEffect(()=>{
+    setDownloadRate(null);
+    if(message!=='正在缓冲…'||paused||failed||!mediaUrl)return;
+    let disposed=false,timer,last=null;
+    async function sample(){
+      try{
+        const next=await call('playbackStats',{url:mediaUrl});if(disposed)return;
+        if(next.available&&Number.isFinite(next.downloadedBytes)&&Number.isFinite(next.sampledAt)){
+          if(last&&next.sampledAt>last.sampledAt&&next.downloadedBytes>=last.downloadedBytes)setDownloadRate((next.downloadedBytes-last.downloadedBytes)*1000/(next.sampledAt-last.sampledAt));
+          last=next;
+        }else{last=null;setDownloadRate(-1);}
+      }catch(e){if(disposed)return;last=null;setDownloadRate(-1);}
+      if(!disposed)timer=setTimeout(sample,1000);
+    }
+    sample();return()=>{disposed=true;clearTimeout(timer);};
+  },[message,paused,failed,mediaUrl]);
   useEffect(()=>{const timer=setInterval(()=>{const v=videoRef.current;if(!v)return;setCurrent(v.currentTime||0);if(Number.isFinite(v.duration))setDuration(v.duration);if(!v.paused&&Date.now()-lastSaved.current>10000){save();lastSaved.current=Date.now();}},250);return()=>clearInterval(timer);},[]);
   useEffect(()=>{
     const release=e=>seekSession.current.release(remoteKey(e));
@@ -143,7 +161,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
       if(!['Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(key))return false;
       claimRemoteFocus();
       if(delta){e.preventDefault();scrubBy(delta>0?1:-1);return true;}
-      if(!controlsRef.current){e.preventDefault();show();return true;}
+      if(!controlsRef.current){e.preventDefault();if(key==='Enter'){if(!e.repeat)toggle(false);}else show();return true;}
       show();return false;
     };
     setCustomKeyHandler(handler);return()=>setCustomKeyHandler(null);
@@ -201,11 +219,12 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
         </div>;
   },[showUi,panel,paused,speed,settings,offset,dmInfo,dmError,customBusy,customSubject,customSubjects,customEpisodes,dmSources,sourcePrefs,channels,channelIndex,episode,subject,sourceId,library,start,onSettings,onNext,onEpisode,onSwitchChannel,onClose]);
   return <FocusContainer spotlightId="player" spotlightRestrict="self-only" className="player-page" onMouseMove={show}>
-    <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{playbackError.current=null;setPaused(false);setMessage('');setFailed(false);if(controlsRef.current)show();}} onPause={()=>{setPaused(true);save();show();}} onWaiting={()=>{if(!playbackError.current?.failed)setMessage('正在缓冲…');}} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){reportPlaybackFailure(null);}}}/>
+    <video ref={videoRef} className="player-video" playsInline onLoadedMetadata={ready} onPlaying={()=>{playbackError.current=null;setPaused(false);setMessage('');setFailed(false);if(controlsRef.current)show();}} onPause={()=>{setPaused(true);setMessage(m=>m==='正在缓冲…'?'':m);save();if(controlsRef.current)show();}} onWaiting={()=>{if(!videoRef.current?.paused&&!playbackError.current?.failed)setMessage('正在缓冲…');}} onTimeUpdate={()=>{}} onEnded={ended} onError={()=>{if(videoRef.current?.getAttribute('src')){reportPlaybackFailure(null);}}}/>
     <div className="danmaku-wrap" style={{opacity:settings.danmakuOpacity}}><DanmakuLayer danmakus={danmakus} currentTime={current-offset} paused={paused} enabled={settings.danmaku} fontScale={settings.danmakuScale} settings={settings}/>{settings.danmaku&&topFixed.map((d,i)=><div key={'top-'+d.time+'-'+i} className="fixed-danmaku top" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}{settings.danmaku&&bottomFixed.map((d,i)=><div key={'bot-'+d.time+'-'+i} className="fixed-danmaku bottom" style={{...fixedStrokeStyle,color:dmLayout.enableColor?(d.color||'#fff'):'#fff',fontSize:Math.round((d.size||28)*dmLayout.fontScale),transform:`translateY(${-i*dmLayout.trackHeight}px)`}}>{d.text}</div>)}</div>
     {seekHint&&!controls&&<div className="seek-hint">{seekHint}</div>}
     {!controls&&seekHint&&<div className="seek-progress" role="status" aria-label="跳转进度"><span>{time(scrubTarget!=null?scrubTarget:current)}</span><div className="seek-progress-track"><i style={{width:`${duration?Math.min(100,Math.max(0,(scrubTarget!=null?scrubTarget:current)/duration*100)):0}%`}}/></div><span>{time(duration)}</span></div>}
-    {message&&!panel&&<div className="player-message">{message}{failed&&<div className="player-message-actions"><LiteButton id="player-retry" group="player" row={-2} label="重试" className="player-button" onSelect={start}><Icon name="refresh" size={23}/><span>重试</span></LiteButton><LiteButton id="player-retry-channel" group="player" row={-2} col={1} label="切换线路" className="player-button" onSelect={()=>openPanel('channels')}><Icon name="channel" size={23}/><span>切换线路</span></LiteButton></div>}</div>}
+    {paused&&!controls&&!message&&!failed&&countdown===null&&<div className="player-pause-indicator" role="status" aria-label="已暂停"><Icon name="pause" size={52}/></div>}
+    {message&&!panel&&<div className={'player-message'+(message==='正在缓冲…'?' player-buffering':'')}>{message}{message==='正在缓冲…'&&<div className="player-download-speed">{downloadRate===null?'网速统计中…':downloadRate<0?'网速暂不可用':downloadRate>=1048576?(downloadRate/1048576).toFixed(2)+' MB/s':Math.round(downloadRate/1024)+' KB/s'}</div>}{failed&&<div className="player-message-actions"><LiteButton id="player-retry" group="player" row={-2} label="重试" className="player-button" onSelect={start}><Icon name="refresh" size={23}/><span>重试</span></LiteButton><LiteButton id="player-retry-channel" group="player" row={-2} col={1} label="切换线路" className="player-button" onSelect={()=>openPanel('channels')}><Icon name="channel" size={23}/><span>切换线路</span></LiteButton></div>}</div>}
     {showUi&&<div className={'player-ui'+(controls?' visible':'')}>
       <header className="player-heading"><LiteButton id="player-back" group="player" row={-1} label="退出播放" className="player-back" onSelect={close}><Icon name="back" size={28}/></LiteButton><div><h1>{subject.name}</h1><p>{[episode.channelName,episode.name].filter(Boolean).join(' · ')}</p></div><div className="player-dm-status">{dmInfo}</div></header>
       <div className="player-bottom">

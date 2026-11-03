@@ -2655,3 +2655,44 @@ input::placeholder {
 #root .dialog-option:focus .dialog-swatch {
   box-shadow: 0 0 0 2px var(--focus-fg);
 }
+
+/* Compact playback feedback: no animation or blur over the video. */
+#root .player-message.player-buffering {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: auto;
+  padding: 12px 24px;
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(18, 20, 26, 0.38);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: none;
+  text-shadow: none;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#root .player-pause-indicator {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18, 20, 26, 0.48);
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+
+#root .player-download-speed {
+  margin-top: 2px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.48);
+  font-variant-numeric: tabular-nums;
+}
