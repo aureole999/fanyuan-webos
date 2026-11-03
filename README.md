@@ -1,54 +1,69 @@
-# 番源 (fanyuan-webos)
+# 番源
 
-面向 LG webOS（目标 LG C1 / webOS 6.x，免 Root）的追番与弹幕播放应用，应用 ID 为 `io.github.fanyuantv.fanyuan`。无需额外部署家庭服务器或 NAS，安装到电视即可直接使用。
+LG webOS 电视上的追番与弹幕播放应用。在 LG C1（webOS 6）上开发和测试，不需要 root，也不需要另外部署服务器。
 
----
+![首页](docs/screenshots/home.jpg)
 
-## 功能特性
+| 番剧详情与选集 | 主题色 |
+|---|---|
+| ![番剧详情](docs/screenshots/detail.jpg) | ![主题色](docs/screenshots/theme.jpg) |
 
-- **番剧资料与时间表**：提供每日新番放送时间表、番剧搜索、评分、简介与剧集列表。
-- **本地追番与历史记录**：支持番剧收藏（`想看` / `在看` / `看过`）、观看历史记录、断点自动续播，以及长按剧集标记已看。
-- **在线视频源订阅**：与 Animeko 相同，应用不内置任何视频源规则，首次启动时自动下载默认订阅（Animeko 兼容格式），也可以在设置中添加、替换或停用订阅，手动刷新或按周期（1 / 6 / 12 / 24 小时）自动更新。
-- **播放与线路切换**：支持播放中选集、切换同集不同线路、倍速播放（1x / 1.25x / 1.5x / 2x）与自动连播下一集。
-- **弹幕服务与匹配**：默认使用项目的只读弹幕服务（`danmu-api.aureole999.workers.dev`），无需配置。**默认服务仅供测试使用，不保证服务稳定性**，日常使用请自行部署 danmu_api；也可以在设置中接入兼容 [huangxd-/danmu_api](https://github.com/huangxd-/danmu_api) 的自建服务以获取更多平台的弹幕。自动匹配番剧与剧集弹幕，支持在播放器内手动指定平台/番剧/集数，以及调节弹幕开关、时间偏移、样式与密度。
-- **电视界面**：基于 LG Enact 4.9.5 / Sandstone 2.9.6 与 Spotlight 焦点管理；海报、设置行、按钮、输入框、进度条等高频控件使用轻量自制组件，以保证在 LG C1 等低性能电视上的流畅度。
-- **电视遥控操作**：
-  - 支持方向键、确定键、返回键及动感应遥控器滚轮/指针。
-  - 播放时控制栏隐藏状态下，按 `左右方向键` 直接快退/快进 10 秒；按 `OK` 暂停/继续播放；按 `上下方向键` 唤出控制栏。
+## 功能
 
----
+- **番剧资料**：每日放送时间表、本季热门、高分推荐、搜索、评分、简介和剧集列表，数据来自 [Bangumi](https://bgm.tv)。
+- **追番记录**：收藏（想看 / 在看 / 看过）、观看历史、断点续播，长按剧集可标记已看。数据只保存在电视上，不需要登录。
+- **视频源订阅**：兼容 [Animeko](https://github.com/open-ani/animeko) 的订阅格式。应用本身不带任何视频源，首次启动时下载默认订阅，可以在设置中添加、更换或停用。
+- **播放**：选集、切换线路、倍速、自动连播下一集。
+- **弹幕**：自动匹配番剧和剧集，可在播放器里手动选择，可调整开关、时间偏移、样式和密度。
+- **为电视优化**：遥控器操作；针对 LG C1 这类性能较弱的电视优化了界面和弹幕渲染；提供 8 种主题色。
 
 ## 安装
 
-需要先在电视上安装 [Homebrew Channel](https://github.com/webosbrew/webos-homebrew-channel)（通过 Developer Mode 或 root 均可）。
+先在电视上安装 [Homebrew Channel](https://github.com/webosbrew/webos-homebrew-channel)（开发者模式或 root 均可）。
 
-### 方式一：Homebrew Channel 自定义软件源（推荐）
+### 方式一：添加番源的软件源（推荐）
 
-番源没有收录在 Homebrew Channel 的官方软件源中。本项目提供一个只包含番源的软件源，添加后可以在 Homebrew Channel 里安装，并随新版本提示更新；官方软件源的其他应用不受影响。
+番源没有收录在 Homebrew Channel 的官方软件源中，需要手动添加本项目的软件源。添加后可以直接安装，有新版本时也会提示更新。官方软件源的其他应用不受影响。
 
 1. 打开 Homebrew Channel → 设置（Settings）。
 2. 在附加软件源（Extra repositories）中添加：
    ```text
    https://fanyuantv.github.io/fanyuan-webos/apps.json
    ```
-3. 返回应用列表，找到「番源」安装。
+3. 回到应用列表，找到「番源」安装。
 
 ### 方式二：手动安装 IPK
 
-从 [Releases](https://github.com/fanyuantv/fanyuan-webos/releases/latest) 下载 `io.github.fanyuantv.fanyuan_<版本>_all.ipk`，然后任选一种：
+从 [Releases](https://github.com/fanyuantv/fanyuan-webos/releases/latest) 下载 `.ipk` 文件，用 [webOS Dev Manager](https://github.com/webosbrew/dev-manager-desktop) 安装；或者在已开启开发者模式的电视上，用 LG 的命令行工具安装：
 
-- 电视已开启 Developer Mode，并已用 `ares-setup-device` 配置好设备名（如 `YOUR_TV`）：
-  ```sh
-  ares-install --device YOUR_TV io.github.fanyuantv.fanyuan_<版本>_all.ipk
-  ares-launch --device YOUR_TV io.github.fanyuantv.fanyuan
-  ```
-- 使用 [webOS Dev Manager](https://github.com/webosbrew/dev-manager-desktop) 等图形工具，选择下载的 IPK 安装。
+```sh
+ares-install --device <设备名> io.github.fanyuantv.fanyuan_<版本>_all.ipk
+```
 
-手动安装的版本不会自动更新；之后改用软件源安装同一应用会直接覆盖，追番记录和设置保留。
+手动安装的版本不会自动更新。之后改用软件源安装会直接覆盖，追番记录和设置都会保留。
+
+## 使用说明
+
+**遥控器**：方向键移动，OK 键选择，返回键后退；也支持动感应遥控器的指针和滚轮。播放时控制栏隐藏的状态下：
+
+- 左右方向键：快退 / 快进 10 秒
+- OK：暂停 / 继续
+- 上下方向键：显示控制栏
+
+**弹幕服务**：默认使用本项目部署在 Cloudflare Workers 上的 [danmu_api](https://github.com/huangxd-/danmu_api)，只提供弹弹play 来源的弹幕。**默认服务仅供测试使用，不保证稳定性**，可能会限流或停止服务。日常使用建议自己部署一个 danmu_api（可以获取更多平台的弹幕），然后在「设置 → 弹幕服务」中填写地址和 Token。
+
+## 用到的外部服务
+
+| 服务 | 用途 |
+|---|---|
+| [Bangumi](https://bgm.tv) | 番剧资料、放送时间表、剧集信息 |
+| 视频源订阅（默认 `sub.creamycake.org`，可在设置中更换） | 视频源规则。播放来自哪些网站由订阅决定，与本项目无关 |
+| danmu_api | 弹幕。默认使用本项目部署在 Cloudflare Workers 上的服务，也可以换成自己部署的服务 |
+| `api.animeko.org` | 备用：订阅直接下载失败时，通过它代理下载；Bangumi 资料不完整时，查询分割放送的季度关系 |
 
 ## 从源码构建
 
-需要 Node.js 18+、npm 与 LG 官方打包工具 [`@webos-tools/cli`](https://webostv.developer.lge.com/develop/tools/cli-installation)：
+需要 Node.js 18+ 和 LG 的命令行工具 [`@webos-tools/cli`](https://webostv.developer.lge.com/develop/tools/cli-installation)：
 
 ```sh
 npm ci
@@ -56,65 +71,13 @@ npm run build
 ares-package dist/app dist/service -o .
 ```
 
-当前目录会生成 `io.github.fanyuantv.fanyuan_<版本>_all.ipk`，按上面「手动安装 IPK」的方式安装即可。
-
-发布新版本：修改 `package.json` 的版本号后推送 `v<版本>` 标签，GitHub Actions（[release.yml](.github/workflows/release.yml)）会测试、打包，并把 IPK 与 Homebrew 清单发布到 Releases，并更新 GitHub Pages 上的软件源 `apps.json`。
-
----
-
-## 界面回归测试
-
-界面测试需 Node.js 22+。安装 [agent-browser](https://github.com/vercel-labs/agent-browser) 及其浏览器后，可以执行：
-
-```sh
-npm run build
-npm run test:ui
-```
-
-测试使用本机模拟数据，覆盖设置弹窗、焦点恢复、直接输入搜索、时间表、订阅、空剧集换源以及播放器长按跳转；不连接电视或真实视频源。
-
-## 外部服务
-
-应用在电视上直接访问以下服务，不需要自建服务器：
-
-| 服务 | 用途 |
-|---|---|
-| [Bangumi API](https://bangumi.github.io/api/)（`api.bgm.tv`） | 番剧资料、每日放送、本季热门、高分经典、剧集与续集关系 |
-| `api.animeko.org`（Animeko 项目的服务，非公开 API，可能随时变动或不可用） | 两处兜底：① 订阅地址直连下载失败时，经其订阅代理（`/v1/subs/proxy`）重试，此时订阅地址会发给该服务；② Bangumi 系列资料读取失败、且季内集号与累计集号不同时，查询分割放送的季度关系（`/v1/subject-relations`）用于弹幕集数对应 |
-| 视频源订阅（默认 `sub.creamycake.org`，可在设置中更换） | 视频源规则；各视频源网站由规则决定，与本项目无关 |
-| 项目默认服务（`danmu-api.aureole999.workers.dev`） | 匿名只读的 danmu_api，仅使用 dandan 来源。**仅供测试使用，不保证服务稳定性**，可能限流、变更或停止 |
-| 弹弹play 数据镜像（`api.danmaku.weeblify.app`） | 用于核验 Bangumi 与弹弹play的作品 ID；默认服务的 dandan 上游也依赖它 |
-| 自建 [danmu_api](https://github.com/huangxd-/danmu_api)（可选） | 在设置中开启「使用自建服务」后替代默认弹幕来源 |
+- 运行测试：`npm test`；界面测试需要 Node.js 22+ 和 [agent-browser](https://github.com/vercel-labs/agent-browser)，运行 `npm run test:ui`。
+- 发布新版本：修改 `package.json` 的版本号，推送 `v<版本>` 标签。GitHub Actions 会自动测试、打包，把 IPK 发布到 Releases，并更新软件源。
 
 ## 致谢与许可证
 
-- 界面控件与焦点管理使用 [Enact / Sandstone](https://github.com/enactjs/sandstone)（Apache-2.0）；字体和依赖许可随安装包提供。
-- 本项目按 **MIT** 许可证发布，详见 [`LICENSE.txt`](LICENSE.txt)。
-- 视频源规则格式与弹幕匹配参考 [`open-ani/animeko`](https://github.com/open-ani/animeko)。本仓库不包含任何视频源规则。
-- 弹幕渲染（`frontend/vendor/bilitv/player/DanmakuLayer.jsx`）与焦点管理（`frontend/focus.js`、`frontend/SidebarItem.jsx`）部分改写自 [`asdf17128/bili-webos`](https://github.com/asdf17128/bili-webos)（MIT 许可证，详见 [`frontend/vendor/bilitv/LICENSE`](frontend/vendor/bilitv/LICENSE)）。
-- 第三方依赖许可证保存在 [`THIRD_PARTY_NOTICES/`](THIRD_PARTY_NOTICES/)，包括 `webOSTV.js`（Apache-2.0）和 Mozilla 根证书包（MPL-2.0）。
-- 本项目为非官方实验移植版，与 Animeko、BiliTV 或 LG 官方无关。
-
-### 弹幕作品身份核验
-
-自动匹配优先通过只读的弹弹play镜像作品资料核对 Bangumi 作品 ID，确认同一作品后，直接按弹弹play作品 ID 向当前服务请求剧集与弹幕。自建服务尚未缓存该 ID 时，使用已确认的名称建立缓存，并核对来源和作品 ID；ID 无法确认、目标集缺失或弹幕为空时，再回退名称匹配。身份关联（包括镜像确认没有对应条目的结果）按作品缓存 30 分钟，镜像无法连接时 1 分钟后重试；切集时重新解析当前服务的剧集 ID，区分季内集号与累计集号。未开启自建服务时，搜索、剧集和弹幕通过项目默认服务获取；开启自建服务后，使用自己的 danmu_api 地址和 Token。镜像仍用于核验作品身份。均不需要账号或密钥。手动关联始终优先：当它在当前服务中不存在、剧集失效或返回空弹幕时，才尝试通过已核验的 Bangumi 作品 ID 恢复，按名称猜测的结果不会覆盖手动选择。
-
-
-### 多季番与源集号映射
-
-详情页有 Bangumi 身份时，以该条目的正片列表为选集基准。视频源页面按条目内 `ep`、Bangumi `sort`、季内连续编号分别匹配；分割放送、跨季合并、序章和特别篇均保留各自身份。集名冲突、重复或集数结构不足以确认时不自动播放。缺失剧集显示为“此线路暂无”，不会把后续剧集往前挪。
-
-`src/episode-matching.cjs` 是视频和弹幕共用的纯匹配规则；`src/bangumi-context.cjs` 只读取 Bangumi 资料并缓存系列和剧集；`src/source-matcher.cjs` 负责搜源、读取线路和生成保留原始播放 ID 的映射。播放器将明确的 Bangumi 剧集 ID 交给弹幕服务。已有源进度可继续读取，新进度按 Bangumi 剧集 ID 跨源保存。
-
-`npm test` 包含 `test/multiseason.test.cjs`。`test/fixtures/multiseason/` 保存实际查询的公开名称、集号及页面列表，覆盖黑礁、无职、Re:0，以及独立验证的 86、进击的巨人、夏目友人帐和灵能百分百；视频源站点与源 ID 已替换为 `source-*.example.test` 占位，不含访问令牌或临时视频地址。回归完全离线，包含搜索到播放映射和自动弹幕调用的回放。
-
-不转换“陆／六”等作品名称中的写法。自动匹配不能确认页面时保留候选，用户手动选择后按条目和视频源保存在本机；再次点击当前视频源，或再次点击已选中的线路，可打开匹配及候选番剧列表；重新选择后更新该条目的本地关联，取消则保留当前页面。
-
-
-### 查看其它源集数与源搜索数量
-
-匹配剧集列表后的“更多”可展开该线路未匹配到当前番剧的集数，保持源原始名称和编号。这些集数可手动播放，不借用当前季的 Bangumi 身份或自动套用其弹幕，可在播放器中手动选择弹幕。
-
-详情页打开选源列表时，每个源只执行一次番剧搜索，显示同名匹配数及需确认的候选数；数字不是可播放集数。探测最多同时两个，结果只更新对应数字，不重建详情页或移动焦点；关闭弹窗取消尚未开始的查询。结果缓存五分钟，订阅规则刷新后重新探测，查询失败不计为零。
-
-设置 → 播放 →「继续观看时先选集」可让首页和观看历史中的续播入口先进入番剧选集页；默认关闭，继续直接续播。选集页的「继续观看」按钮始终可直接续播。
+- 本项目按 [MIT](LICENSE.txt) 许可证发布，为非官方项目，与 Animeko、BiliTV 和 LG 均无关。
+- 界面基于 [Enact / Sandstone](https://github.com/enactjs/sandstone)（Apache-2.0）。
+- 视频源订阅格式和弹幕匹配参考了 [Animeko](https://github.com/open-ani/animeko)。本仓库不包含任何视频源规则。
+- 弹幕渲染和焦点管理的部分代码改写自 [BiliTV](https://github.com/asdf17128/bili-webos)（MIT，见 [`frontend/vendor/bilitv/LICENSE`](frontend/vendor/bilitv/LICENSE)）。
+- 第三方依赖的许可证见 [`THIRD_PARTY_NOTICES/`](THIRD_PARTY_NOTICES/)。
