@@ -18,7 +18,7 @@ function time(t){if(!Number.isFinite(t))return '00:00';const m=Math.floor(t/60),
 export default function Player({item,library,settings,onSettings,onClose,onNext,onEpisode,onSwitchChannel}){
   const {sourceId,subject,episode,channels,channelIndex}=item;
   const videoRef=useRef(null),mounted=useRef(true),resumeApplied=useRef(false),lastSaved=useRef(0),generation=useRef(0),controlsRef=useRef(true),panelRef=useRef(''),panelHistory=useRef([]),panelTarget=useRef(null),timer=useRef(null),nextTimer=useRef(null),seekTimer=useRef(null),dmGeneration=useRef(0),customGeneration=useRef(0);
-  const playbackError=useRef(null);
+  const playbackError=useRef(null),bufferingShown=useRef(false);
   const lastControlFocus=useRef('player-controls-0');
   // Scrubbing moves a preview position; the video seeks once, when the remote rests (or on OK).
   const scrub=useRef({target:null,start:0,count:0,timer:null}),focusOnShow=useRef(null);
@@ -114,6 +114,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     return()=>{save();mounted.current=false;generation.current++;dmGeneration.current++;clearInterval(heartbeat);clearTimeout(timer.current);clearTimeout(seekTimer.current);clearInterval(nextTimer.current);const v=videoRef.current;if(v){v.pause();v.removeAttribute('src');v.load();}};
   },[]);
   // Read only the current media session, and only while buffering. No extra media requests.
+  useEffect(()=>{bufferingShown.current=message==='正在缓冲…';},[message]);
   useEffect(()=>{
     setDownloadRate(null);
     if(message!=='正在缓冲…'||failed||!mediaUrl)return;
@@ -128,7 +129,7 @@ export default function Player({item,library,settings,onSettings,onClose,onNext,
     sample();return()=>{disposed=true;clearTimeout(timer);};
   },[message,failed,mediaUrl]);
   // stalled can fire while the buffer still covers playback, so no playing event follows; clear the hint once time moves.
-  useEffect(()=>{let last=-1;const timer=setInterval(()=>{const v=videoRef.current;if(!v)return;const t=v.currentTime||0;if(!v.paused&&v.readyState>=3&&last>=0&&t>last)setMessage(m=>m==='正在缓冲…'?'':m);last=t;setCurrent(t);if(Number.isFinite(v.duration))setDuration(v.duration);if(!v.paused&&Date.now()-lastSaved.current>10000){save();lastSaved.current=Date.now();}},250);return()=>clearInterval(timer);},[]);
+  useEffect(()=>{let last=-1;const timer=setInterval(()=>{const v=videoRef.current;if(!v)return;const t=v.currentTime||0;if(bufferingShown.current&&!v.paused&&v.readyState>=3&&last>=0&&t>last)setMessage(m=>m==='正在缓冲…'?'':m);last=t;setCurrent(t);if(Number.isFinite(v.duration))setDuration(v.duration);if(!v.paused&&Date.now()-lastSaved.current>10000){save();lastSaved.current=Date.now();}},250);return()=>clearInterval(timer);},[]);
   useEffect(()=>{
     const release=e=>seekSession.current.release(remoteKey(e));
     const reset=()=>seekSession.current.reset();
