@@ -19,7 +19,7 @@ export default function Subscriptions({onChanged,notify,chooseOption}){
   return <div className="subscriptions-page">
     {/* Status banners belong to the add form so focusing it reveals them; the page note is in the header. */}
     <ScrollGroup className="subscription-head"><form className="subscription-add" onSubmit={e=>e.preventDefault()}>
-      <TextInput id="subscription-url" inputRef={input} className="subscription-input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="输入 Animeko 订阅地址（HTTP / HTTPS）" onSubmit={()=>run('subscriptionAdd',{url:url.trim()})}/>
+      <TextInput id="subscription-url" inputRef={input} className="subscription-input" value={url} onChange={e=>setUrl(e.target.value)} placeholder="输入视频源订阅地址（HTTP / HTTPS）" onSubmit={()=>run('subscriptionAdd',{url:url.trim()})}/>
       <FocusButton id="content-0-1" row={0} col={1} className="primary" onSelect={()=>run('subscriptionAdd',{url:url.trim()})}>添加订阅</FocusButton>
       <FocusButton id="content-0-2" row={0} col={2} onSelect={()=>run('subscriptionsUpdate',{force:true})}>全部更新</FocusButton>
     </form>
@@ -28,7 +28,7 @@ export default function Subscriptions({onChanged,notify,chooseOption}){
     {!state?<Loading/>:state.subscriptions.length===0?<Empty title="添加你的第一个订阅">已下载的源仍然可用。添加订阅后会自动获取新规则。</Empty>:state.subscriptions.map((s,i)=>{
       const row=i*2+1,period=s.updatePeriod/3600000;
       return <ScrollGroup key={s.id} className="subscription-card">
-        <h2>{s.metadata?.name||'Animeko 视频源订阅'}<small>{s.sourceCount} 个源</small></h2>
+        <h2>{s.metadata?.name||'视频源订阅'}<small>{s.sourceCount} 个源</small></h2>
         <div className="subscription-url">{s.url}</div>
         <p>最近成功：{stamp(s.lastSuccess)}　·　{s.origin==='bundled'?'等待首次下载':'使用电视本地缓存'}</p>
         {s.lastUpdated?.error&&<p className="error-text">{s.lastUpdated.error.message}{s.lastUpdated.error.requiresNewerApp?'，已保留此前可用规则。':''}</p>}

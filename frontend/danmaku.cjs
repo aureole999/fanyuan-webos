@@ -7,7 +7,7 @@ const DENSITY_PRESETS={
 const DANMAKU_OPTIONS={
   area:[
     {value:0.125,short:'上方 1/8',label:'1/8 屏幕 · 极窄',description:'仅在画面顶部边缘显示 1–2 行弹幕'},
-    {value:0.25,short:'上方 1/4',label:'1/4 屏幕 · 顶部四分之一',description:'Animeko 默认区域，不遮挡人物主体与字幕'},
+    {value:0.25,short:'上方 1/4',label:'1/4 屏幕 · 顶部四分之一',description:'默认区域，不遮挡人物主体与字幕'},
     {value:0.33,short:'上方 1/3',label:'1/3 屏幕 · 上方三分之一',description:'仅在画面上方 1/3 区域显示弹幕（推荐）'},
     {value:0.5,short:'半屏 1/2',label:'1/2 屏幕 · 上半屏',description:'画面上半部分显示弹幕'},
     {value:0.75,short:'3/4 屏幕',label:'3/4 屏幕 · 大半屏',description:'画面上方 3/4 区域显示弹幕，避开底部字幕'},
@@ -48,14 +48,14 @@ const DANMAKU_OPTIONS={
   ],
   weight:[
     {value:400,short:'常规 400',label:'常规 · 400',description:'标准细体字重'},
-    {value:600,short:'半粗 600',label:'半粗 · 600',description:'Animeko 默认字重，兼顾清晰度与字形'},
+    {value:600,short:'半粗 600',label:'半粗 · 600',description:'默认字重，兼顾清晰度与字形'},
     {value:700,short:'粗体 700',label:'粗体 · 700',description:'加粗文字，远距离更醒目'},
     {value:800,short:'特粗 800',label:'特粗 · 800',description:'最粗字重'}
   ],
   stroke:[
     {value:0,short:'无描边',label:'无描边 · 0%',description:'仅保留轻微阴影，无黑框描边'},
     {value:0.6,short:'细描边 60%',label:'细描边 · 60%',description:'柔和细黑边，文字更轻盈'},
-    {value:1,short:'标准 100%',label:'标准描边 · 100%',description:'Animeko 默认黑框描边，亮暗背景皆清晰'},
+    {value:1,short:'标准 100%',label:'标准描边 · 100%',description:'默认黑框描边，亮暗背景皆清晰'},
     {value:1.5,short:'浓重 150%',label:'浓重描边 · 150%',description:'加粗描边，强光背景下文字依然分明'}
   ]
 };
