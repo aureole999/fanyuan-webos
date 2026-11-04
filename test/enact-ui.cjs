@@ -50,6 +50,16 @@ async function page(name){await evaluate(`window.__fanYuan.navigate(${JSON.strin
   await evaluate('[...document.querySelectorAll(".dialog-option")].find(e=>e.textContent.includes("樱粉")).click(),1');await wait('!document.querySelector(".selection-popup")');assert.equal(await evaluate('document.documentElement.dataset.theme'),'sakura');
   console.log('UI: direct search');await page('search');await wait('window.__focusState().current==="content-0-0"');await key('Enter');await cdp('Input.insertText',{text:'测试番'});await key('Enter');await wait('window.__fanYuan.state.results.length===1');assert.equal(await evaluate('window.__focusState().paused'),false);assert.equal(await evaluate('window.__fixture.calls.search'),1);assert.equal(await evaluate('window.__fixture.calls.bangumiSearch'),1);
   await key('ArrowUp');assert.equal(await evaluate('window.__focusState().current'),'content-0-0');
+  console.log('UI: pointer moves keep typing focus, and a click outside ends it');
+  const searchMouse=(type,x,y,extra={})=>cdp('Input.dispatchMouseEvent',{type,x,y,...extra}),searchCentre=selector=>evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+  const searchTyping=()=>evaluate('document.activeElement===document.querySelector(".search-field input")');
+  await key('Enter');assert.equal(await searchTyping(),true);
+  const fieldEdge=await evaluate('(()=>{const r=document.querySelector(".search-field").getBoundingClientRect();return {x:r.x+4,y:r.y+r.height/2};})()'),submitAt=await searchCentre('.search-submit');
+  await searchMouse('mouseMoved',fieldEdge.x,fieldEdge.y);assert.equal(await searchTyping(),true,'the field padding must not take focus from the input');
+  await searchMouse('mouseMoved',submitAt.x,submitAt.y);assert.equal(await searchTyping(),true,'another control must not take focus while typing');
+  await searchMouse('mouseMoved',20,1060);assert.equal(await searchTyping(),true,'empty space must not blur the input');
+  await searchMouse('mousePressed',1000,1060,{button:'left',clickCount:1});await searchMouse('mouseReleased',1000,1060,{button:'left',clickCount:1});await wait('document.activeElement!==document.querySelector(".search-field input")');assert.equal(await evaluate('window.__focusState().paused'),false);
+  await searchMouse('mouseMoved',submitAt.x,submitAt.y);await wait('document.activeElement===document.querySelector(".search-submit")');await key('ArrowUp');
   console.log('UI: calendar');await page('calendar');await wait('window.__focusState().current==="content-0-0"');await key('ArrowRight');await key('ArrowRight');await key('ArrowDown');assert.match(await evaluate('window.__focusState().current'),/^content-[1-9]/);
   // Ending typing hands remote focus back to the field, so the arrows navigate again.
   const typing='document.activeElement.tagName==="INPUT"',onField='document.activeElement.dataset.focusId==="content-0-0"';

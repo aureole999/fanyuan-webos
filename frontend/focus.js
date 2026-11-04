@@ -95,6 +95,11 @@ export function initKeyboardNav(){
    if(!hold&&!e.repeat){hold={id,fired:false,timer:setTimeout(()=>{if(hold){hold.fired=true;registry.get(id)?.onLongPress?.();}},800)};}
   }
  },true);
+ // Spotlight blurs the focused element when the pointer leaves it, which would close the on-screen
+ // keyboard on the way to reach it. Pausing Spotlight is not an option: Sandstone's Scroller then
+ // swallows the arrow keys that end typing. A click elsewhere still ends typing natively.
+ const typingPointer=e=>{if(document.activeElement?.tagName==='INPUT')e.stopImmediatePropagation();};
+ window.addEventListener('mousemove',typingPointer,true);window.addEventListener('mouseover',typingPointer,true);
  window.addEventListener('keyup',e=>{
   if(remoteKey(e)!=='Enter'||!hold)return;
   e.preventDefault();e.stopImmediatePropagation();const {id,fired}=hold;clearHold();if(!fired)registry.get(id)?.onSelect?.();
