@@ -2657,13 +2657,13 @@ input::placeholder {
 }
 
 /* Compact playback feedback: no animation or blur over the video. */
-#root .player-message.player-buffering {
+#root .player-message.player-quiet {
   left: 50%;
   right: auto;
   transform: translateX(-50%);
   width: auto;
-  padding: 12px 24px;
-  font-size: 22px;
+  padding: 16px 32px;
+  font-size: 26px;
   color: rgba(255, 255, 255, 0.65);
   background: rgba(18, 20, 26, 0.38);
   border-color: rgba(255, 255, 255, 0.08);
@@ -2691,7 +2691,7 @@ input::placeholder {
 
 #root .player-download-speed {
   margin-top: 2px;
-  font-size: 16px;
+  font-size: 19px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.48);
   font-variant-numeric: tabular-nums;
